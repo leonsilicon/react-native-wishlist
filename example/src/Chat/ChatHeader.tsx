@@ -20,7 +20,7 @@ export function ChatHeader({ isLoading, onRefreshPress }: HeaderProps) {
         </View>
       </View>
       <View style={styles.center}>
-        {!isLoading && <Text style={styles.title}>Margelo.io</Text>}
+        {!isLoading && <Text style={styles.title}>Margelo.com</Text>}
       </View>
       <View style={styles.right}>
         {onRefreshPress != null && (
