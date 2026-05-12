@@ -1,5 +1,6 @@
 #import "MGWishlistManager.h"
 
+#import <objc/runtime.h>
 #import <React/RCTBridge+Private.h>
 #import <React/RCTBridge.h>
 #import <React/RCTComponentViewFactory.h>
@@ -151,19 +152,29 @@ RCT_EXPORT_MODULE(WishlistManager);
 
 - (bool)handleFabricEvent:(const RawEvent &)event
 {
+  static int eventCount = 0;
+  if (eventCount < 5) {
+    NSLog(@"[Wishlist] fabric event #%d type=%s target=%p", eventCount,
+          event.type.c_str(), event.eventTarget.get());
+    eventCount++;
+  }
   if (event.eventTarget == nullptr) {
     // TODO Scheduler reset
     return false;
   }
-  std::string type = event.type;
-  int tag;
-  try {
-    tag = event.eventTarget->getTag();
-  } catch (...) {
-    // RN 0.83 ImageEventEmitter can dispatch events with a null InstanceHandle
-    // which makes `getTag()` segfault — guard so it can't take wishlist down.
-    return false;
+  // RN 0.83 ImageEventEmitter can dispatch events whose `EventTarget`
+  // holds an empty `InstanceHandle::Shared`; `EventTarget::getTag()`
+  // dereferences that shared_ptr and segfaults. The shared_ptr's underlying
+  // raw pointer sits at offset 0 of `EventTarget`, so peek before calling
+  // `getTag()` to short-circuit those broken events. We return `true` to
+  // interrupt the default dispatch and prevent RN's own event queue from
+  // touching the bad InstanceHandle later (which would crash in
+  // `EventTarget::retain`).
+  if (*reinterpret_cast<const void *const *>(event.eventTarget.get()) == nullptr) {
+    return true;
   }
+  std::string type = event.type;
+  int tag = event.eventTarget->getTag();
   if (tag >= 0)
     return false;
 
@@ -212,12 +223,17 @@ RCT_EXPORT_MODULE(WishlistManager);
 // cached UIManager.
 - (void)setSurfacePresenter:(id<RCTSurfacePresenterStub>)surfacePresenter
 {
-  if (![surfacePresenter isKindOfClass:[RCTSurfacePresenter class]]) {
-    return;
-  }
+  NSLog(@"[Wishlist] setSurfacePresenter called class=%s expected=%s",
+        object_getClassName(surfacePresenter),
+        class_getName([RCTSurfacePresenter class]));
+  // Cast through `id` (without isKindOfClass) because the prebuilt RN ships
+  // `RCTSurfacePresenter` as a class that doesn't survive `isKindOfClass:`
+  // against the locally-linked declaration. Treat any conforming object as a
+  // surface presenter — we only use methods declared on the public protocol.
   _surfacePresenter = (RCTSurfacePresenter *)surfacePresenter;
   if (_eventListener != nullptr) {
     [_surfacePresenter.scheduler addEventListener:_eventListener];
+    NSLog(@"[Wishlist] event listener registered on scheduler %p", _surfacePresenter.scheduler);
   }
   MGUIManagerHolder::getInstance().setUIManager(_surfacePresenter.scheduler.uiManager);
 }

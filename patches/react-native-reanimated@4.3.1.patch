@@ -1,0 +1,20 @@
+diff --git a/Common/cpp/reanimated/NativeModules/ReanimatedModuleProxy.cpp b/Common/cpp/reanimated/NativeModules/ReanimatedModuleProxy.cpp
+index 808d40ea0dcf4866a85efb4eb98d5893141982a4..e202edf89286e41030bb78323a7445d3fd8cbb42 100644
+--- a/Common/cpp/reanimated/NativeModules/ReanimatedModuleProxy.cpp
++++ b/Common/cpp/reanimated/NativeModules/ReanimatedModuleProxy.cpp
+@@ -562,6 +562,15 @@ bool ReanimatedModuleProxy::handleRawEvent(const RawEvent &rawEvent, double curr
+     return false;
+   }
+ 
++  // RN 0.83+ ImageEventEmitter occasionally dispatches `onLoadStart` events
++  // with an EventTarget whose `instanceHandle_` shared_ptr is empty.
++  // `EventTarget::getTag()` dereferences that pointer and crashes. The
++  // `instanceHandle_` field sits at offset 0, so peek at the raw pointer
++  // before calling `getTag()` to short-circuit safely.
++  if (*reinterpret_cast<const void *const *>(eventTarget) == nullptr) {
++    return false;
++  }
++
+   int tag = eventTarget->getTag();
+   auto eventType = rawEvent.type;
+   if (eventType.rfind("top", 0) == 0) {
