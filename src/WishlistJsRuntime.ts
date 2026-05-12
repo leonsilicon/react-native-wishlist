@@ -1,19 +1,10 @@
-import { ContextType, IWorkletContext, Worklets } from 'react-native-worklets';
-
-function getWorkletContext(): IWorkletContext {
-  const ctx = global.__wishlistWorkletContext;
-  if (!ctx) {
-    throw new Error('Worklet context not initialized');
-  }
-  return ctx;
-}
+import { runOnJS, runOnUIAsync } from 'react-native-worklets';
 
 export function createRunInWishlistFn<
-  C extends ContextType,
   T,
-  A extends Array<unknown>,
->(fn: (this: C, ...args: A) => T): (...args: A) => Promise<T> {
-  return Worklets.createRunInContextFn(fn, getWorkletContext());
+  A extends unknown[] = [],
+>(fn: (...args: A) => T): (...args: A) => Promise<T> {
+  return (...args: A) => runOnUIAsync(fn, ...args);
 }
 
-export const createRunInJsFn = Worklets.createRunInJsFn;
+export const createRunInJsFn = runOnJS;

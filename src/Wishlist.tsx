@@ -155,7 +155,6 @@ function ComponentBase<T extends BaseItem>(
     ) ? (
       ListHeaderComponent
     ) : (
-      // @ts-expect-error
       <ListHeaderComponent />
     );
   }
@@ -166,7 +165,6 @@ function ComponentBase<T extends BaseItem>(
     ) ? (
       ListFooterComponent
     ) : (
-      // @ts-expect-error
       <ListFooterComponent />
     );
   }
@@ -234,7 +232,9 @@ function ComponentBase<T extends BaseItem>(
   }, [data, hasFooter, hasHeader]);
 
   const inflatorIdRef = useRef<string | null>(null);
-  const prevInflatorRef = useRef<typeof resolvedInflater>();
+  const prevInflatorRef = useRef<typeof resolvedInflater | undefined>(
+    undefined,
+  );
 
   // Inflator registration and tracking
   const inflatorId = useMemo(() => {

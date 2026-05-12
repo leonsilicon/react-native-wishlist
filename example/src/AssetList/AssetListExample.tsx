@@ -52,14 +52,25 @@ export const AssetListExample: React.FC<{}> = () => {
   const [data, setData] = useState<ListItemsType[]>(tokens as ListItemsType[]);
 
   const list = useMemo<ListItemsType[]>(() => {
-    const arr = [{ type: 'asset-list-header', isExpanded }].concat(data);
+    const arr = [
+      {
+        type: 'asset-list-header',
+        isExpanded,
+        key: 'header',
+        isEditing,
+        isSelected: false,
+      } as ListItemsType,
+    ].concat(data);
 
-    // @ts-expect-error
     const topItems = arr
       .slice(0, 6)
       .concat({
         type: 'asset-list-separator',
-      })
+        key: 'separator',
+        isEditing,
+        isExpanded,
+        isSelected: false,
+      } as ListItemsType)
       .map((item) => ({
         ...item,
         isEditing,
