@@ -2,7 +2,7 @@ import type * as React from 'react';
 import {
   codegenNativeCommands,
   codegenNativeComponent,
-  type NativeComponentType,
+  type HostComponent,
   type ViewProps,
 } from 'react-native';
 import type {
@@ -22,7 +22,7 @@ export interface WishlistProps extends ViewProps {
   onEndReached?: DirectEventHandler<Readonly<{}>>;
 }
 
-type NativeType = NativeComponentType<WishlistProps>;
+type NativeType = HostComponent<WishlistProps>;
 
 export type ScrollToItem = (
   viewRef: React.ElementRef<NativeType>,
