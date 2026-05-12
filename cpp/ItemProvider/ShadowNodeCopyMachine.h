@@ -19,7 +19,6 @@ class ShadowNodeCopyMachine {
  public:
   static std::shared_ptr<ShadowNode> copyShadowSubtree(
       const std::shared_ptr<const ShadowNode> &sn);
-  static void clearParent(const std::shared_ptr<const ShadowNode> &sn);
-};
+  };
 
-}; // namespace Wishlist
+  }; // namespace Wishlist

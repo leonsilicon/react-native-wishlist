@@ -23,7 +23,6 @@ void ComponentsPool::returnToPool(std::shared_ptr<ShadowNode const> sn) {
   if (sn == nullptr) {
     return;
   }
-  ShadowNodeCopyMachine::clearParent(sn);
   std::string type = tagToType_[sn->getTag()];
   reusable_[type].push_back(sn);
 }
@@ -39,7 +38,9 @@ std::shared_ptr<ShadowNode const> ComponentsPool::getNodeForType(const std::stri
   if (reusable_[type].size() > 0) {
     auto res = reusable_[type].back();
     reusable_[type].pop_back();
-    return res;
+    auto deepCopy = ShadowNodeCopyMachine::copyShadowSubtree(res);
+    tagToType_[deepCopy->getTag()] = type;
+    return deepCopy;
   }
 
   auto templateNode = registeredViews_[nameToIndex_[type]];

@@ -188,8 +188,9 @@ Value ShadowNodeBinding::get(Runtime &rt, const PropNameID &nameProp) {
                 subItems.getValueAtIndex(rt, i)
                     .getObject(rt)
                     .getHostObject<ShadowNodeBinding>(rt);
-            ShadowNodeCopyMachine::clearParent(child->sn_);
-            newChildren->push_back(child->sn_);
+            auto clonedChild = ShadowNodeCopyMachine::copyShadowSubtree(child->sn_);
+            newChildren->push_back(clonedChild);
+            child->sn_ = clonedChild;
             child->parent_ = shared_from_this();
           }
 
