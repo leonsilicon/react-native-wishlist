@@ -13,6 +13,7 @@
     "react": "^18.2.0",
     "react-native": "^0.72.3",
     "react-native-gesture-handler": "^2.12.0",
+    "react-native-wishlist": "link:../",
     "react-native-worklets": "janicduplessis/react-native-worklets#react-native-worklets-v0.1.0-alpha.4-gitpkg"
   },
   "devDependencies": {
@@ -26,6 +27,7 @@
     "postinstall-postinstall": "^2.1.0"
   },
   "engines": {
-    "node": ">=16"
-  }
+    "node": ">=22"
+  },
+  "packageManager": "yarn@1.22.22"
 }
