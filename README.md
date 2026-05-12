@@ -25,8 +25,7 @@ WishList is an archived, read-only repository, and should probably not be used i
 ## Installation
 
 ```sh
-yarn add react-native-worklets # still private
-yarn add react-native-wishlist
+vp add react-native-wishlist
 cd ios && pod install
 ```
 
