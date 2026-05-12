@@ -25,13 +25,21 @@ export function ChatHeader({ isLoading, onRefreshPress }: HeaderProps) {
       </View>
       <View style={styles.right}>
         <Pressable
+          accessibilityLabel="Open levels"
+          accessibilityRole="button"
+          hitSlop={12}
           onPress={() => {
             console.log('pressed');
+            onRefreshPress?.();
             router.push('/levels');
           }}
           style={styles.iconButton}
         >
-          <Image source={require('./assets/refresh.png')} style={styles.icon} />
+          <Image
+            pointerEvents="none"
+            source={require('./assets/refresh.png')}
+            style={styles.icon}
+          />
         </Pressable>
       </View>
     </View>
@@ -40,12 +48,15 @@ export function ChatHeader({ isLoading, onRefreshPress }: HeaderProps) {
 
 const styles = StyleSheet.create({
   container: {
+    elevation: 10,
     height: 108,
     paddingTop: 58,
     paddingHorizontal: 19,
+    position: 'relative',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    zIndex: 10,
   },
   avatar: {
     width: 20,
@@ -78,6 +89,10 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   iconButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 44,
+    minWidth: 44,
     padding: 8,
   },
   icon: {
