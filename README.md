@@ -1,5 +1,7 @@
 # @leonsilicon/react-native-wishlist
 
+> Experimental fork of <https://github.com/margelo/react-native-wishlist>, not intended for public us
+
 The fastest List component for React Native.
 
 
