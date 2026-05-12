@@ -9,12 +9,6 @@
       "@/assets/*": [
         "./assets/*"
       ],
-      "react-native": [
-        "./node_modules/react-native"
-      ],
-      "react-native-wishlist": [
-        "../src/index"
-      ]
     }
   },
   "include": [
