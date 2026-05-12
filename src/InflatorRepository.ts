@@ -1,3 +1,4 @@
+import { runOnUISync } from 'react-native-worklets';
 import { getColorsUIModule } from './Colors';
 import {
   ComponentPool,
@@ -182,21 +183,133 @@ const buildInflatorRegistry = (): UIInflatorRegistry => {
   return inflatorRegistry;
 };
 
+// On the JS runtime we install a thin proxy whose methods dispatch synchronously
+// to the real registry living on the worklets UI runtime. The native side reads
+// `global.__wishlistInflatorRegistry` via `WishlistJsRuntime` (the JS runtime),
+// so without a proxy here the lookups throw `getPropertyAsObject: property
+// '__wishlistInflatorRegistry' is undefined`. By forwarding through
+// `runOnUISync` we keep a single source of truth on the UI runtime where the
+// inflators (which are worklets) actually need to execute.
+const buildInflatorRegistryProxy = (): UIInflatorRegistry => {
+  const proxy: UIInflatorRegistry = {
+    inflateItem: (id, index, nativePool, prevItem) =>
+      runOnUISync(() => {
+        'worklet';
+        return global.__wishlistInflatorRegistry.inflateItem(
+          id,
+          index,
+          nativePool,
+          prevItem,
+        );
+      }),
+    registerInflator: (id, inflateMethod) => {
+      runOnUISync(() => {
+        'worklet';
+        global.__wishlistInflatorRegistry.registerInflator(id, inflateMethod);
+      });
+    },
+    unregisterInflator: (id) => {
+      runOnUISync(() => {
+        'worklet';
+        global.__wishlistInflatorRegistry.unregisterInflator(id);
+      });
+    },
+    registerMapping: (inflatorId, nativeId, templateType, inflateMethod) => {
+      runOnUISync(() => {
+        'worklet';
+        global.__wishlistInflatorRegistry.registerMapping(
+          inflatorId,
+          nativeId,
+          templateType,
+          inflateMethod,
+        );
+      });
+    },
+    useMappings: (item, value, templateType, id, pool, rootValue) =>
+      runOnUISync(() => {
+        'worklet';
+        return global.__wishlistInflatorRegistry.useMappings(
+          item,
+          value,
+          templateType,
+          id,
+          pool,
+          rootValue,
+        );
+      }),
+    getTemplateValueState: (id) =>
+      runOnUISync(() => {
+        'worklet';
+        return global.__wishlistInflatorRegistry.getTemplateValueState(id);
+      }),
+    setTemplateValueState: (id, state) => {
+      runOnUISync(() => {
+        'worklet';
+        global.__wishlistInflatorRegistry.setTemplateValueState(id, state);
+      });
+    },
+    deleteTemplateValueState: (id) => {
+      runOnUISync(() => {
+        'worklet';
+        global.__wishlistInflatorRegistry.deleteTemplateValueState(id);
+      });
+    },
+    withCurrentValues: (value, rootValue, callback) => {
+      runOnUISync(() => {
+        'worklet';
+        global.__wishlistInflatorRegistry.withCurrentValues(
+          value,
+          rootValue,
+          callback,
+        );
+      });
+    },
+    getCurrentValue: () =>
+      runOnUISync(() => {
+        'worklet';
+        return global.__wishlistInflatorRegistry.getCurrentValue();
+      }),
+    getCurrentRootValue: () =>
+      runOnUISync(() => {
+        'worklet';
+        return global.__wishlistInflatorRegistry.getCurrentRootValue();
+      }),
+    didPushChildren: () => {
+      runOnUISync(() => {
+        'worklet';
+        global.__wishlistInflatorRegistry.didPushChildren();
+      });
+    },
+    addPushChildrenCallback: (callback) => {
+      runOnUISync(() => {
+        'worklet';
+        global.__wishlistInflatorRegistry.addPushChildrenCallback(callback);
+      });
+    },
+    processProps: (props) =>
+      runOnUISync(() => {
+        'worklet';
+        return global.__wishlistInflatorRegistry.processProps(props);
+      }),
+  };
+  return proxy;
+};
+
 let done = false;
 const maybeInit = () => {
   if (!done) {
     done = true;
-    // Install on the worklets UI runtime so worklet callers see it.
+    // The real registry lives on the worklets UI runtime, where worklet
+    // inflators are serialized and executed.
     createRunInWishlistFn(() => {
       'worklet';
       global.__wishlistInflatorRegistry = buildInflatorRegistry();
     })();
-    // Also install on the main JS runtime — the native side accesses the
-    // registry via WishlistJsRuntime (which is `cxxBridge.runtime`, i.e. the
-    // JS runtime), so without this the lookups in MGViewportCarerImpl and
-    // friends throw `getPropertyAsObject: property '__wishlistInflatorRegistry'
-    // is undefined`.
-    global.__wishlistInflatorRegistry = buildInflatorRegistry();
+    // The native side reads `global.__wishlistInflatorRegistry` from the JS
+    // runtime (via `WishlistJsRuntime`, which is initialised with
+    // `cxxBridge.runtime`). We install a forwarding proxy here so calls from
+    // native are funnelled to the UI-runtime registry synchronously.
+    global.__wishlistInflatorRegistry = buildInflatorRegistryProxy();
   }
 };
 
@@ -209,7 +322,6 @@ export function getUIInflatorRegistry(): UIInflatorRegistry {
 export default class InflatorRepository {
   static register(id: string, inflateMethod: InflateMethod) {
     maybeInit();
-    global.__wishlistInflatorRegistry?.registerInflator(id, inflateMethod);
     createRunInWishlistFn(() => {
       'worklet';
       getUIInflatorRegistry().registerInflator(id, inflateMethod);
@@ -218,7 +330,6 @@ export default class InflatorRepository {
 
   static unregister(id: string) {
     maybeInit();
-    global.__wishlistInflatorRegistry?.unregisterInflator(id);
     createRunInWishlistFn(() => {
       'worklet';
       getUIInflatorRegistry().unregisterInflator(id);
@@ -232,12 +343,6 @@ export default class InflatorRepository {
     inflateMethod: MappingInflateMethod,
   ) {
     maybeInit();
-    global.__wishlistInflatorRegistry?.registerMapping(
-      inflatorId,
-      nativeId,
-      templateType,
-      inflateMethod,
-    );
     createRunInWishlistFn(() => {
       'worklet';
       getUIInflatorRegistry().registerMapping(
