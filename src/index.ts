@@ -1,7 +1,9 @@
 import './EventHandler';
 import WishListManager from './Specs/NativeWishlistManager';
+import { bindNativeWishlistContext } from './WishlistJsRuntime';
 
 WishListManager.install();
+bindNativeWishlistContext();
 
 export { useTemplateValue, TemplateValue } from './TemplateValue';
 export { createTemplateComponent } from './createTemplateComponent';

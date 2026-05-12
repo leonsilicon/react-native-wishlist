@@ -1,17 +1,16 @@
 /**
- * A small Babel pre-pass for react-native-wishlist that auto-workletizes the
- * callbacks passed to a configurable set of wishlist hooks (e.g.
- * `useTemplateValue`). The react-native-worklets 0.8.x plugin only
- * auto-workletizes a hard-coded list of reanimated APIs and no longer exposes
- * the `functionsToWorkletize` option, so we have to ensure the callbacks land
- * at the worklets plugin with a `'worklet';` directive already attached.
+ * Babel pre-pass for react-native-wishlist that adds a `'worklet';` directive
+ * to the callbacks passed to a configurable set of wishlist hooks (e.g.
+ * `useTemplateValue`). It also recursively marks nested helpers — including
+ * functions hoisted to module top-level by Babel/React Compiler — so the
+ * react-native-worklets-core plugin can serialise them.
  *
  * Configure via plugin options:
  *
  *   ['./babel-plugin-wishlist-worklets', { hooks: ['useTemplateValue'] }]
  *
- * The plugin must be listed BEFORE 'react-native-worklets/plugin' so the
- * directive is in place when worklets walks the tree.
+ * The plugin must be listed BEFORE 'react-native-worklets-core/plugin' so the
+ * directive is in place when worklets-core walks the tree.
  */
 module.exports = function ({ types: t }) {
   const DEFAULT_HOOKS = ['useTemplateValue'];
@@ -26,8 +25,6 @@ module.exports = function ({ types: t }) {
       return false;
     }
     let body = fnPath.get('body');
-    // Concise arrow bodies (`(x) => expr`) need to become block bodies so we
-    // can attach a directive.
     if (!body.isBlockStatement()) {
       const expr = body.node;
       const block = t.blockStatement([t.returnStatement(expr)]);
@@ -45,20 +42,9 @@ module.exports = function ({ types: t }) {
   };
 
   const workletizeFunctionAndCallees = (fnPath, visited) => {
-    if (!fnPath || !fnPath.node || visited.has(fnPath.node)) {
-      return;
-    }
+    if (!fnPath || !fnPath.node || visited.has(fnPath.node)) return;
     visited.add(fnPath.node);
-    if (!ensureWorkletDirectiveOnFunction(fnPath)) {
-      return;
-    }
-    // Walk the body of this newly-marked worklet and mark every helper it
-    // touches as a worklet too — inline function arguments (e.g. the callback
-    // passed to `arr.reduce((acc, i) => ...)`) as well as identifier callees
-    // that resolve to hoisted top-level definitions (React Compiler / Babel
-    // hoisting routinely splits arrow-body helpers out into top-level
-    // `function _tempN(...)` declarations). Without this the helpers stay
-    // non-worklet on the UI runtime and worklets aborts the call.
+    if (!ensureWorkletDirectiveOnFunction(fnPath)) return;
     const bodyPath = fnPath.get('body');
     if (!bodyPath || !bodyPath.node) return;
     const handleCalleeIdentifier = (calleePath) => {
@@ -123,9 +109,7 @@ module.exports = function ({ types: t }) {
   };
 
   const matchHookCallee = (callee) => {
-    if (t.isIdentifier(callee)) {
-      return callee.name;
-    }
+    if (t.isIdentifier(callee)) return callee.name;
     if (
       (t.isMemberExpression(callee) || t.isOptionalMemberExpression(callee)) &&
       t.isIdentifier(callee.property)
@@ -134,9 +118,7 @@ module.exports = function ({ types: t }) {
     }
     if (t.isSequenceExpression(callee)) {
       const last = callee.expressions[callee.expressions.length - 1];
-      if (t.isIdentifier(last)) {
-        return last.name;
-      }
+      if (t.isIdentifier(last)) return last.name;
       if (
         (t.isMemberExpression(last) || t.isOptionalMemberExpression(last)) &&
         t.isIdentifier(last.property)
@@ -150,10 +132,6 @@ module.exports = function ({ types: t }) {
   return {
     name: 'wishlist-worklets',
     visitor: {
-      // Traverse on Program.enter so we run before React Compiler's hoisting
-      // pass (which converts `useTemplateValue(arg => ...)` callbacks into
-      // top-level function declarations and would otherwise leave us nothing
-      // to mark).
       Program: {
         enter(programPath, state) {
           const hooks = new Set(
@@ -162,9 +140,7 @@ module.exports = function ({ types: t }) {
           programPath.traverse({
             CallExpression(path) {
               const name = matchHookCallee(path.node.callee);
-              if (!name || !hooks.has(name)) {
-                return;
-              }
+              if (!name || !hooks.has(name)) return;
               const args = path.get('arguments');
               if (args.length === 0) return;
               ensureWorkletDirectiveOnArg(args[0]);

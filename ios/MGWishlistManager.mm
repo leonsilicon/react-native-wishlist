@@ -11,9 +11,7 @@
 #include <jsi/jsi.h>
 #include <react/renderer/components/view/ViewEventEmitter.h>
 #include <react/renderer/core/EventListener.h>
-#import <worklets/apple/WorkletsModule.h>
-#include <worklets/NativeModules/WorkletsModuleProxy.h>
-#include <worklets/WorkletRuntime/WorkletRuntime.h>
+#include "WKTJsiWorkletContext.h"
 #include "MGContentContainerComponent.h"
 #include "MGObjCJSIUtils.h"
 #include "MGTemplateContainerComponent.h"
@@ -55,7 +53,6 @@ RCT_EXPORT_MODULE(WishlistManager);
 - (void)setBridge:(RCTBridge *)bridge
 {
   _bridge = bridge;
-  _surfacePresenter = _bridge.surfacePresenter;
   __weak __typeof(self) weakSelf = self;
   _eventListener = std::make_shared<EventListener>([weakSelf](const RawEvent &event) -> bool {
     __typeof(self) strongSelf = weakSelf;
@@ -64,11 +61,17 @@ RCT_EXPORT_MODULE(WishlistManager);
     }
     return [strongSelf handleFabricEvent:event];
   });
-  [_surfacePresenter.scheduler addEventListener:_eventListener];
+  // In bridgeless mode the real surface presenter arrives via
+  // `setSurfacePresenter:` — the eventListener and UIManager hook-up happen
+  // there. In the legacy bridge path we still see a usable presenter here.
+  RCTSurfacePresenter *presenter = (RCTSurfacePresenter *)_bridge.surfacePresenter;
+  if ([presenter isKindOfClass:[RCTSurfacePresenter class]]) {
+    _surfacePresenter = presenter;
+    [_surfacePresenter.scheduler addEventListener:_eventListener];
+    MGUIManagerHolder::getInstance().setUIManager(_surfacePresenter.scheduler.uiManager);
+  }
 
   [[bridge.moduleRegistry moduleForName:"EventDispatcher" lazilyLoadIfNecessary:YES] addDispatchObserver:self];
-
-  MGUIManagerHolder::getInstance().setUIManager(_surfacePresenter.scheduler.uiManager);
 }
 
 - (void)installWishlistRuntime
@@ -77,41 +80,68 @@ RCT_EXPORT_MODULE(WishlistManager);
   auto callInvoker = cxxBridge.jsCallInvoker;
   facebook::jsi::Runtime *jsRuntime = (facebook::jsi::Runtime *)cxxBridge.runtime;
 
-  // Pull the worklets UI runtime so wishlist's native code shares state with
-  // the runtime where worklet inflators actually execute. Without this the
-  // registry installed by `InflatorRepository.maybeInit` (worklets UI runtime)
-  // is invisible to `WishlistJsRuntime` (the JS runtime).
-  facebook::jsi::Runtime *uiRuntime = nullptr;
-  std::shared_ptr<worklets::WorkletRuntime> uiWorkletRuntime;
-  WorkletsModule *workletsModule = [_bridge moduleForName:@"WorkletsModule" lazilyLoadIfNecessary:YES];
-  if (workletsModule != nil) {
-    auto moduleProxy = [workletsModule getWorkletsModuleProxy];
-    if (moduleProxy) {
-      uiWorkletRuntime = moduleProxy->getUIWorkletRuntime();
-      if (uiWorkletRuntime) {
-        uiRuntime = &uiWorkletRuntime->getJSIRuntime();
-      }
+  // Install a JSI helper that lets the JS side hand us the
+  // `react-native-worklets-core` context (created via `Worklets.createContext`)
+  // it intends wishlist to run on. We unwrap the C++ `JsiWorkletContext`
+  // shared_ptr from the host object and use its worklet runtime as
+  // `WishlistJsRuntime`, so native and JS share global state. Without this the
+  // registry/handlers installed by the worklet context are invisible to
+  // wishlist's native code.
+  auto setupWishlistRuntime = [callInvoker](
+                                  facebook::jsi::Runtime &rt,
+                                  const facebook::jsi::Value & /*thisVal*/,
+                                  const facebook::jsi::Value *args,
+                                  size_t count) -> facebook::jsi::Value {
+    if (count < 1 || !args[0].isObject()) {
+      throw facebook::jsi::JSError(
+          rt, "MGWishlistManager._setWishlistContext expects a worklet context");
+    }
+    auto hostObject = args[0].asObject(rt).asHostObject(rt);
+    auto context = std::dynamic_pointer_cast<RNWorklet::JsiWorkletContext>(hostObject);
+    if (!context) {
+      throw facebook::jsi::JSError(
+          rt, "MGWishlistManager._setWishlistContext: argument is not a JsiWorkletContext");
+    }
+    facebook::jsi::Runtime &workletRuntime = context->getWorkletRuntime();
+    auto contextWeak = std::weak_ptr<RNWorklet::JsiWorkletContext>(context);
+    Wishlist::WishlistJsRuntime::getInstance().initialize(
+        &workletRuntime,
+        [=](std::function<void()> &&f) { callInvoker->invokeAsync(std::move(f)); },
+        [=](std::function<void()> &&f) {
+          __block auto retainedWork = std::move(f);
+          MGExecuteOnWishlistQueue(^{
+            retainedWork();
+          });
+        },
+        [contextWeak](std::function<void(facebook::jsi::Runtime &)> &&job) {
+          if (auto ctx = contextWeak.lock()) {
+            ctx->invokeOnWorkletThread(
+                [job = std::move(job)](RNWorklet::JsiWorkletContext * /*c*/,
+                                       facebook::jsi::Runtime &rt) { job(rt); });
+          }
+        });
+    return facebook::jsi::Value::undefined();
+  };
+
+  jsRuntime->global().setProperty(
+      *jsRuntime,
+      "__mgWishlistSetContext",
+      facebook::jsi::Function::createFromHostFunction(
+          *jsRuntime,
+          facebook::jsi::PropNameID::forAscii(*jsRuntime, "__mgWishlistSetContext"),
+          1,
+          setupWishlistRuntime));
+
+  // In bridgeless mode RN sets the real surface presenter on us via
+  // `setSurfacePresenter:` (separately from `setBridge:`), which also seeds
+  // `MGUIManagerHolder`. Capture again here as a fallback for the legacy
+  // bridge path — the scheduler's uiManager is finally wired up by the time
+  // JS reaches `install()`.
+  if (_surfacePresenter != nil) {
+    if (MGUIManagerHolder::getInstance().getUIManager() == nullptr) {
+      MGUIManagerHolder::getInstance().setUIManager(_surfacePresenter.scheduler.uiManager);
     }
   }
-
-  std::function<void(std::function<void(facebook::jsi::Runtime &)> &&)> runtimeAccessor;
-  if (uiWorkletRuntime) {
-    auto runtime = uiWorkletRuntime;
-    runtimeAccessor = [runtime](std::function<void(facebook::jsi::Runtime &)> &&job) {
-      runtime->schedule(std::move(job));
-    };
-  }
-
-  WishlistJsRuntime::getInstance().initialize(
-      uiRuntime != nullptr ? uiRuntime : jsRuntime,
-      [=](std::function<void()> &&f) { callInvoker->invokeAsync(std::move(f)); },
-      [=](std::function<void()> &&f) {
-        __block auto retainedWork = std::move(f);
-        MGExecuteOnWishlistQueue(^{
-          retainedWork();
-        });
-      },
-      std::move(runtimeAccessor));
 }
 
 - (void)eventDispatcherWillDispatchEvent:(id<RCTEvent>)event
@@ -126,7 +156,14 @@ RCT_EXPORT_MODULE(WishlistManager);
     return false;
   }
   std::string type = event.type;
-  int tag = event.eventTarget->getTag();
+  int tag;
+  try {
+    tag = event.eventTarget->getTag();
+  } catch (...) {
+    // RN 0.83 ImageEventEmitter can dispatch events with a null InstanceHandle
+    // which makes `getTag()` segfault — guard so it can't take wishlist down.
+    return false;
+  }
   if (tag >= 0)
     return false;
 
@@ -169,10 +206,20 @@ RCT_EXPORT_MODULE(WishlistManager);
 {
 }
 
-// TODO()
+// In bridgeless mode RN calls this method on the TurboModule with the
+// real surface presenter (the one set on `RCTBridge` is unusable here). We
+// keep this reference and re-attach the wishlist event listener / refresh the
+// cached UIManager.
 - (void)setSurfacePresenter:(id<RCTSurfacePresenterStub>)surfacePresenter
 {
-  // NOOP
+  if (![surfacePresenter isKindOfClass:[RCTSurfacePresenter class]]) {
+    return;
+  }
+  _surfacePresenter = (RCTSurfacePresenter *)surfacePresenter;
+  if (_eventListener != nullptr) {
+    [_surfacePresenter.scheduler addEventListener:_eventListener];
+  }
+  MGUIManagerHolder::getInstance().setUIManager(_surfacePresenter.scheduler.uiManager);
 }
 
 - (void)invalidate

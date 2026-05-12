@@ -125,6 +125,7 @@ PODS:
     - React-graphics
     - React-ImageManager
     - React-jsi
+    - react-native-worklets-core
     - React-NativeModulesApple
     - React-RCTFabric
     - React-renderercss
@@ -134,7 +135,6 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
-    - RNWorklets
     - Yoga
   - RCTDeprecation (0.83.6)
   - RCTRequired (0.83.6)
@@ -1599,6 +1599,28 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
+  - react-native-worklets-core (1.6.3):
+    - hermes-engine
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-Core-prebuilt
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - ReactNativeDependencies
+    - Yoga
   - React-NativeModulesApple (0.83.6):
     - hermes-engine
     - React-callinvoker
@@ -2271,6 +2293,7 @@ DEPENDENCIES:
   - "React-Mapbuffer (from `../../node_modules/.pnpm/react-native@0.83.6_@babel+core@7.29.0_@react-native+metro-config@0.85.3_@babel+core@7._2ea480782d3a4356ba195255d14b7e00/node_modules/react-native/ReactCommon`)"
   - "React-microtasksnativemodule (from `../../node_modules/.pnpm/react-native@0.83.6_@babel+core@7.29.0_@react-native+metro-config@0.85.3_@babel+core@7._2ea480782d3a4356ba195255d14b7e00/node_modules/react-native/ReactCommon/react/nativemodule/microtasks`)"
   - "react-native-safe-area-context (from `../../node_modules/.pnpm/react-native-safe-area-context@5.6.2_react-native@0.83.6_@babel+core@7.29.0_@react-nati_7fa153a40facf28a2cdedff70514372f/node_modules/react-native-safe-area-context`)"
+  - "react-native-worklets-core (from `../../node_modules/.pnpm/react-native-worklets-core@1.6.3_react-native@0.83.6_@babel+core@7.29.0_@react-native+m_9e12664f82c3c7a20674dcc83a23ea30/node_modules/react-native-worklets-core`)"
   - "React-NativeModulesApple (from `../../node_modules/.pnpm/react-native@0.83.6_@babel+core@7.29.0_@react-native+metro-config@0.85.3_@babel+core@7._2ea480782d3a4356ba195255d14b7e00/node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios`)"
   - "React-networking (from `../../node_modules/.pnpm/react-native@0.83.6_@babel+core@7.29.0_@react-native+metro-config@0.85.3_@babel+core@7._2ea480782d3a4356ba195255d14b7e00/node_modules/react-native/ReactCommon/react/networking`)"
   - "React-oscompat (from `../../node_modules/.pnpm/react-native@0.83.6_@babel+core@7.29.0_@react-native+metro-config@0.85.3_@babel+core@7._2ea480782d3a4356ba195255d14b7e00/node_modules/react-native/ReactCommon/oscompat`)"
@@ -2441,6 +2464,8 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/.pnpm/react-native@0.83.6_@babel+core@7.29.0_@react-native+metro-config@0.85.3_@babel+core@7._2ea480782d3a4356ba195255d14b7e00/node_modules/react-native/ReactCommon/react/nativemodule/microtasks"
   react-native-safe-area-context:
     :path: "../../node_modules/.pnpm/react-native-safe-area-context@5.6.2_react-native@0.83.6_@babel+core@7.29.0_@react-nati_7fa153a40facf28a2cdedff70514372f/node_modules/react-native-safe-area-context"
+  react-native-worklets-core:
+    :path: "../../node_modules/.pnpm/react-native-worklets-core@1.6.3_react-native@0.83.6_@babel+core@7.29.0_@react-native+m_9e12664f82c3c7a20674dcc83a23ea30/node_modules/react-native-worklets-core"
   React-NativeModulesApple:
     :path: "../../node_modules/.pnpm/react-native@0.83.6_@babel+core@7.29.0_@react-native+metro-config@0.85.3_@babel+core@7._2ea480782d3a4356ba195255d14b7e00/node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios"
   React-networking:
@@ -2545,7 +2570,7 @@ SPEC CHECKSUMS:
   libavif: 5f8e715bea24debec477006f21ef9e95432e254d
   libdav1d: 23581a4d8ec811ff171ed5e2e05cd27bad64c39f
   libwebp: 02b23773aedb6ff1fd38cec7a77b81414c6842a8
-  MGWishList: d2626d7a985f930f81d9c7ddde0b14cacf829db8
+  MGWishList: 8c30fb1e805a2f1d8985c5a6197643094f27b574
   RCTDeprecation: 9502b5eb8e3c9eb75ff5a333b2c591bab9d91e28
   RCTRequired: 0268a5d86aef1defea2e04289d74fdf3570197c1
   RCTSwiftUI: cff211c5e4d94e491dda240d663b8effd25296d7
@@ -2583,6 +2608,7 @@ SPEC CHECKSUMS:
   React-Mapbuffer: bcd9f00a498b2981c7b390f00fd2b7cd6e0ead29
   React-microtasksnativemodule: 203b41906d627dac7d697bccba6137b630951fae
   react-native-safe-area-context: 37e680fc4cace3c0030ee46e8987d24f5d3bdab2
+  react-native-worklets-core: 3a098cd17188379c1a0ecbdea1f7d28f70dbb2a0
   React-NativeModulesApple: 9068613f7650828eed29ead6fc0d0a1620117e6a
   React-networking: 233dd85e1b890ca191f64f0896153165571b3039
   React-oscompat: 05afae2c7689405dbb4f6458110d501d55357980

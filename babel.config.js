@@ -6,16 +6,17 @@ module.exports = function (api) {
   return {
     presets: ['babel-preset-expo'],
     plugins: [
-      // Must run BEFORE the worklets plugin so the callbacks already carry the
-      // 'worklet' directive when worklets walks them.
+      // Must run BEFORE the worklets-core plugin so the callbacks already
+      // carry the 'worklet' directive when worklets-core walks them — this
+      // also covers helpers React Compiler hoists out of the call arguments.
       [
         path.join(__dirname, 'babel-plugin-wishlist-worklets.js'),
         { hooks: ['useTemplateValue'] },
       ],
       [
-        'react-native-worklets/plugin',
+        'react-native-worklets-core/plugin',
         {
-          globals: ['_log', '_chronoNow'],
+          functionsToWorkletize: [{ name: 'useTemplateValue', args: [0] }],
         },
       ],
     ],
