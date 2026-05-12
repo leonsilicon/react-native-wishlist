@@ -152,25 +152,35 @@ RCT_EXPORT_MODULE(WishlistManager);
 
 - (bool)handleFabricEvent:(const RawEvent &)event
 {
-  static int eventCount = 0;
-  if (eventCount < 5) {
-    NSLog(@"[Wishlist] fabric event #%d type=%s target=%p", eventCount,
-          event.type.c_str(), event.eventTarget.get());
-    eventCount++;
-  }
   if (event.eventTarget == nullptr) {
     // TODO Scheduler reset
     return false;
   }
-  // RN 0.83 ImageEventEmitter can dispatch events whose `EventTarget`
-  // holds an empty `InstanceHandle::Shared`; `EventTarget::getTag()`
-  // dereferences that shared_ptr and segfaults. The shared_ptr's underlying
-  // raw pointer sits at offset 0 of `EventTarget`, so peek before calling
-  // `getTag()` to short-circuit those broken events. We return `true` to
-  // interrupt the default dispatch and prevent RN's own event queue from
-  // touching the bad InstanceHandle later (which would crash in
-  // `EventTarget::retain`).
-  if (*reinterpret_cast<const void *const *>(event.eventTarget.get()) == nullptr) {
+  // RN 0.83 dispatches some Fabric events (notably the image lifecycle
+  // events from RCTImageComponentView) whose `EventTarget::instanceHandle_`
+  // is a `shared_ptr<const InstanceHandle>` whose underlying
+  // `jsi::WeakObject` was already invalidated. Calling `EventTarget::getTag`
+  // walks into `WeakObject::lock` and segfaults. We can't safely call
+  // `getTag` for those events, AND if we forward them to `dispatchEvent`'s
+  // default path, `EventQueueProcessor::flushEvents` later does the same
+  // crashing dereference on the JS thread.
+  //
+  // Read the raw layout of `EventTarget` to detect the bad case before
+  // touching the broken InstanceHandle:
+  //   [0] InstanceHandle::Shared instanceHandle_;        // 16 bytes
+  //         [+0] InstanceHandle*
+  //         [+8] control block ptr
+  // and the first field of `InstanceHandle` is `jsi::WeakObject`, whose
+  // single `PointerValue*` is at offset 0.
+  const auto *eventTargetRaw =
+      reinterpret_cast<const void *const *>(event.eventTarget.get());
+  const auto *instanceHandlePtr =
+      reinterpret_cast<const void *const *>(eventTargetRaw[0]);
+  if (instanceHandlePtr == nullptr ||
+      reinterpret_cast<const void *>(instanceHandlePtr[0]) == nullptr) {
+    // Return `true` so `EventDispatcher::dispatchEvent` skips
+    // `EventQueue::enqueueEvent` — otherwise RN would still crash later
+    // while flushing the queued event.
     return true;
   }
   std::string type = event.type;
@@ -223,19 +233,26 @@ RCT_EXPORT_MODULE(WishlistManager);
 // cached UIManager.
 - (void)setSurfacePresenter:(id<RCTSurfacePresenterStub>)surfacePresenter
 {
-  NSLog(@"[Wishlist] setSurfacePresenter called class=%s expected=%s",
-        object_getClassName(surfacePresenter),
-        class_getName([RCTSurfacePresenter class]));
-  // Cast through `id` (without isKindOfClass) because the prebuilt RN ships
-  // `RCTSurfacePresenter` as a class that doesn't survive `isKindOfClass:`
-  // against the locally-linked declaration. Treat any conforming object as a
-  // surface presenter — we only use methods declared on the public protocol.
   _surfacePresenter = (RCTSurfacePresenter *)surfacePresenter;
-  if (_eventListener != nullptr) {
-    [_surfacePresenter.scheduler addEventListener:_eventListener];
-    NSLog(@"[Wishlist] event listener registered on scheduler %p", _surfacePresenter.scheduler);
+
+  // Ensure the event listener exists (setBridge: may not have set it up under
+  // bridgeless mode).
+  if (_eventListener == nullptr) {
+    __weak __typeof(self) weakSelf = self;
+    _eventListener = std::make_shared<EventListener>([weakSelf](const RawEvent &event) -> bool {
+      __typeof(self) strongSelf = weakSelf;
+      if (!strongSelf) {
+        return false;
+      }
+      return [strongSelf handleFabricEvent:event];
+    });
   }
-  MGUIManagerHolder::getInstance().setUIManager(_surfacePresenter.scheduler.uiManager);
+
+  RCTScheduler *scheduler = _surfacePresenter.scheduler;
+  if (scheduler != nil) {
+    [scheduler addEventListener:_eventListener];
+    MGUIManagerHolder::getInstance().setUIManager(scheduler.uiManager);
+  }
 }
 
 - (void)invalidate
