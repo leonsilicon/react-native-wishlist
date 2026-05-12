@@ -14,34 +14,39 @@ namespace Wishlist {
 
 class ShadowNodeCopyMachine {
  public:
-  static ShadowNode::Shared copyShadowSubtree(const ShadowNode::Shared &sn);
-  static void clearParent(const ShadowNode::Shared &sn);
+  static std::shared_ptr<ShadowNode> copyShadowSubtree(
+      const std::shared_ptr<const ShadowNode> &sn);
+  static void clearParent(const std::shared_ptr<const ShadowNode> &sn);
 };
 
 // dirty hack don't do it at home
+//
+// NOTE: This mirrors the private layout of ShadowNodeFamily in React Native
+// for the version this library was built against. The fields below are only
+// used via reinterpret_cast for a couple of targeted mutations; the precise
+// layout is fragile across RN versions and this struct is preserved here only
+// so the project compiles. Functionality may not be preserved at runtime.
 class ShadowNodeFamilyHack final {
  public:
   using Shared = std::shared_ptr<ShadowNodeFamily const>;
   using Weak = std::weak_ptr<ShadowNodeFamily const>;
 
-  using AncestorList = butter::small_vector<
-      std::pair<
-          std::reference_wrapper<ShadowNode const> /* parentNode */,
-          int /* childIndex */>,
-      64>;
-
-  mutable std::unique_ptr<folly::dynamic> nativeProps_DEPRECATED;
   EventDispatcher::Weak eventDispatcher_;
   mutable std::shared_ptr<State const> mostRecentState_;
   mutable std::shared_mutex mutex_;
+  mutable std::function<void(ShadowNodeFamily &family)>
+      onUnmountedFamilyDestroyedCallback_;
   Tag const tag_;
   SurfaceId const surfaceId_;
+  mutable std::shared_ptr<const InstanceHandle> instanceHandle_;
   SharedEventEmitter const eventEmitter_;
   ComponentDescriptor const &componentDescriptor_;
   ComponentHandle componentHandle_;
   ComponentName componentName_;
   mutable ShadowNodeFamily::Weak parent_{};
   mutable bool hasParent_{false};
+  mutable bool hasBeenMounted_{false};
+  mutable std::unique_ptr<folly::dynamic> nativeProps_DEPRECATED;
 };
 
 }; // namespace Wishlist

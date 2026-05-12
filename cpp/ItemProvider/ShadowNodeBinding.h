@@ -36,7 +36,7 @@ class ShadowNodeBinding
 
   std::string getType() const;
   std::string getKey() const;
-  ShadowNode::Shared getShadowNode() const;
+  std::shared_ptr<ShadowNode const> getShadowNode() const;
 
  private:
   void describe(

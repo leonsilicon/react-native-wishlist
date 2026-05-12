@@ -34,7 +34,7 @@ std::string ShadowNodeBinding::getKey() const {
   return key_;
 }
 
-ShadowNode::Shared ShadowNodeBinding::getShadowNode() const {
+std::shared_ptr<ShadowNode const> ShadowNodeBinding::getShadowNode() const {
   return sn_;
 }
 
@@ -129,8 +129,8 @@ Value ShadowNodeBinding::get(Runtime &rt, const PropNameID &nameProp) {
           PropsParserContext propsParserContext{
               sn_->getFamily().getSurfaceId(), *cd.getContextContainer().get()};
 
-          auto nextProps =
-              cd.cloneProps(propsParserContext, sn_->getProps(), rawProps);
+          auto nextProps = cd.cloneProps(
+              propsParserContext, sn_->getProps(), std::move(rawProps));
 
           auto clonedShadowNode = cd.cloneShadowNode(
               *sn_,
@@ -155,7 +155,7 @@ Value ShadowNodeBinding::get(Runtime &rt, const PropNameID &nameProp) {
             currentSN = cd.cloneShadowNode(
                 *(currentParent->sn_),
                 {nullptr,
-                 std::make_shared<ShadowNode::ListOfShared>(children)});
+                 std::make_shared<std::vector<std::shared_ptr<const ShadowNode>>>(children)});
             currentParent->sn_ = currentSN;
             currentParent = currentParent->parent_;
           }
@@ -180,8 +180,8 @@ Value ShadowNodeBinding::get(Runtime &rt, const PropNameID &nameProp) {
 
           auto &cd = sn_->getComponentDescriptor();
 
-          ShadowNode::UnsharedListOfShared newChildren =
-              std::make_shared<ShadowNode::ListOfShared>();
+          auto newChildren =
+              std::make_shared<std::vector<std::shared_ptr<const ShadowNode>>>();
 
           for (int i = 0; i < subItems.size(rt); ++i) {
             std::shared_ptr<ShadowNodeBinding> child =
@@ -224,7 +224,7 @@ Value ShadowNodeBinding::get(Runtime &rt, const PropNameID &nameProp) {
             currentSN = cd.cloneShadowNode(
                 *(currentParent->sn_),
                 {nullptr,
-                 std::make_shared<ShadowNode::ListOfShared>(children)});
+                 std::make_shared<std::vector<std::shared_ptr<const ShadowNode>>>(children)});
             currentParent->sn_ = currentSN;
             currentParent = currentParent->parent_;
           }

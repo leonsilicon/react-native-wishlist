@@ -1,68 +1,102 @@
 #include "WishlistJsRuntime.h"
 
-#include <react-native-worklets/WKTJsiWorkletContext.h>
+#include <chrono>
 #include <iostream>
 #include <mutex>
 
 namespace Wishlist {
+
+WishlistDispatchQueue::WishlistDispatchQueue() {
+  thread_ = std::thread([this]() {
+    while (true) {
+      std::function<void()> work;
+      {
+        std::unique_lock<std::mutex> lock(mutex_);
+        cv_.wait(lock, [this] { return quit_ || !queue_.empty(); });
+        if (quit_ && queue_.empty()) {
+          return;
+        }
+        work = std::move(queue_.front());
+        queue_.pop();
+      }
+      work();
+    }
+  });
+}
+
+WishlistDispatchQueue::~WishlistDispatchQueue() {
+  {
+    std::lock_guard<std::mutex> lock(mutex_);
+    quit_ = true;
+  }
+  cv_.notify_all();
+  if (thread_.joinable()) {
+    thread_.join();
+  }
+}
+
+void WishlistDispatchQueue::dispatch(std::function<void()> work) {
+  {
+    std::lock_guard<std::mutex> lock(mutex_);
+    queue_.push(std::move(work));
+  }
+  cv_.notify_one();
+}
 
 WishlistJsRuntime &WishlistJsRuntime::getInstance() {
   static WishlistJsRuntime instance;
   return instance;
 }
 
-WishlistJsRuntime::WishlistJsRuntime() : workletContext_(nullptr) {}
+WishlistJsRuntime::WishlistJsRuntime() : runtime_(nullptr) {}
 
 void WishlistJsRuntime::initialize(
     jsi::Runtime *runtime,
     std::function<void(std::function<void()> &&)> jsCallInvoker,
     std::function<void(std::function<void()> &&)> workletCallInvoker) {
-  workletContext_ = std::make_shared<RNWorklet::JsiWorkletContext>();
-  workletContext_->initialize(
-      "wishlist",
-      runtime,
-      std::move(jsCallInvoker),
-      std::move(workletCallInvoker));
-  workletContext_->addDecorator(std::make_shared<Decorator>());
+  runtime_ = runtime;
+  jsCallInvoker_ = std::move(jsCallInvoker);
+  workletCallInvoker_ = std::move(workletCallInvoker);
 
-  runtime->global().setProperty(
-      *runtime,
-      "__wishlistWorkletContext",
-      jsi::Object::createFromHostObject(*runtime, workletContext_));
+  decorateRuntime(*runtime_);
 }
 
 jsi::Runtime &WishlistJsRuntime::getRuntime() const {
-  return workletContext_->getWorkletRuntime();
+  return *runtime_;
 }
 
 void WishlistJsRuntime::accessRuntime(
     std::function<void(jsi::Runtime &)> &&f) const {
-  workletContext_->invokeOnWorkletThread(
-      [=, ff = std::move(f)](
-          RNWorklet::JsiWorkletContext *context, jsi::Runtime &runtime) {
-        ff(runtime);
-      });
+  auto runtime = runtime_;
+  auto ff = std::move(f);
+  jsCallInvoker_([runtime, ff = std::move(ff)]() mutable {
+    if (runtime) {
+      ff(*runtime);
+    }
+  });
 }
 
 void WishlistJsRuntime::accessRuntimeSync(
     std::function<void(jsi::Runtime &)> &&f) const {
   static std::mutex mutex;
   mutex.lock();
-  workletContext_->invokeOnWorkletThread(
-      [=, ff = std::move(f)](
-          RNWorklet::JsiWorkletContext *context, jsi::Runtime &runtime) {
-        ff(runtime);
-        mutex.unlock();
-      });
+  auto runtime = runtime_;
+  auto ff = std::move(f);
+  jsCallInvoker_([runtime, ff = std::move(ff)]() mutable {
+    if (runtime) {
+      ff(*runtime);
+    }
+    mutex.unlock();
+  });
   mutex.lock();
   mutex.unlock();
 }
 
-void WishlistJsRuntime::Decorator::decorateRuntime(jsi::Runtime &rt) {
+void WishlistJsRuntime::decorateRuntime(jsi::Runtime &rt) {
   auto callback = [](jsi::Runtime &rt,
-                     const jsi::Value &thisValue,
+                     const jsi::Value & /*thisValue*/,
                      const jsi::Value *args,
-                     size_t count) -> jsi::Value {
+                     size_t /*count*/) -> jsi::Value {
     const jsi::Value *value = &args[0];
     if (value->isString()) {
       std::cout << value->getString(rt).utf8(rt).c_str() << std::endl;
@@ -79,10 +113,10 @@ void WishlistJsRuntime::Decorator::decorateRuntime(jsi::Runtime &rt) {
       rt, jsi::PropNameID::forAscii(rt, "_log"), 1, callback);
   rt.global().setProperty(rt, "_log", log);
 
-  auto chronoNow = [](jsi::Runtime &rt,
-                      const jsi::Value &thisValue,
-                      const jsi::Value *args,
-                      size_t count) -> jsi::Value {
+  auto chronoNow = [](jsi::Runtime & /*rt*/,
+                      const jsi::Value & /*thisValue*/,
+                      const jsi::Value * /*args*/,
+                      size_t /*count*/) -> jsi::Value {
     double now = std::chrono::system_clock::now().time_since_epoch() /
         std::chrono::milliseconds(1);
     return jsi::Value(now);

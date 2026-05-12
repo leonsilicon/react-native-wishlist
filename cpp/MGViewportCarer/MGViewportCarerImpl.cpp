@@ -369,7 +369,7 @@ void MGViewportCarerImpl::pushChildren(float contentOffset) {
                   sWishList->getFamily(),
                   [&](const ShadowNode &sn) -> std::shared_ptr<ShadowNode> {
                     auto children =
-                        std::make_shared<ShadowNode::ListOfShared>();
+                        std::make_shared<std::vector<std::shared_ptr<const ShadowNode>>>();
 
                     children->push_back(getOffseter(window_[0].offset));
 
@@ -402,8 +402,8 @@ void MGViewportCarerImpl::pushChildren(float contentOffset) {
                     newContentContainer->setWishlistChildren(children);
 
                     auto wishlistChildren =
-                        std::make_shared<ShadowNode::ListOfShared>(
-                            ShadowNode::ListOfShared{newContentContainer});
+                        std::make_shared<std::vector<std::shared_ptr<const ShadowNode>>>(
+                            std::vector<std::shared_ptr<const ShadowNode>>{newContentContainer});
 
                     auto newWishlistSn =
                         std::static_pointer_cast<MGWishlistShadowNode>(

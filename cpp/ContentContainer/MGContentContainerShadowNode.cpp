@@ -9,7 +9,7 @@ namespace react {
 extern const char MGContentContainerComponentName[] = "MGContentContainer";
 
 void MGContentContainerShadowNode::setWishlistChildren(
-    const ShadowNode::SharedListOfShared &wishlistChildren) {
+    const std::shared_ptr<WishlistChildrenList> &wishlistChildren) {
   auto state = getStateData();
   if (state.wishlistChildren != wishlistChildren) {
     state.wishlistChildren = wishlistChildren;

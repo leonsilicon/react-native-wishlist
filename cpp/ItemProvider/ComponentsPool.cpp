@@ -15,11 +15,11 @@ void ComponentsPool::setNames(const std::vector<std::string> &names) {
 }
 
 void ComponentsPool::setRegisteredViews(
-    std::vector<ShadowNode::Shared> registeredViews) {
+    std::vector<std::shared_ptr<ShadowNode const>> registeredViews) {
   registeredViews_ = registeredViews;
 }
 
-void ComponentsPool::returnToPool(ShadowNode::Shared sn) {
+void ComponentsPool::returnToPool(std::shared_ptr<ShadowNode const> sn) {
   if (sn == nullptr) {
     return;
   }
@@ -35,7 +35,7 @@ void ComponentsPool::templatesUpdated() {
   reusable_.clear();
 }
 
-ShadowNode::Shared ComponentsPool::getNodeForType(const std::string &type) {
+std::shared_ptr<ShadowNode const> ComponentsPool::getNodeForType(const std::string &type) {
   if (reusable_[type].size() > 0) {
     auto res = reusable_[type].back();
     reusable_[type].pop_back();

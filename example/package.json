@@ -6,28 +6,33 @@
     "android": "react-native run-android --active-arch-only",
     "ios": "react-native run-ios",
     "start": "react-native start",
-    "pods": "pod-install --quiet",
-    "postinstall": "patch-package"
+    "pods": "pod-install --quiet"
   },
   "dependencies": {
-    "react": "^18.2.0",
-    "react-native": "^0.72.3",
-    "react-native-gesture-handler": "^2.12.0",
+    "react": "19.2.0",
+    "react-native": "0.83.9",
+    "react-native-gesture-handler": "^2.31.2",
     "react-native-wishlist": "link:../",
-    "react-native-worklets": "janicduplessis/react-native-worklets#react-native-worklets-v0.1.0-alpha.4-gitpkg"
+    "react-native-worklets": "^0.8.3"
   },
   "devDependencies": {
-    "@babel/core": "^7.20.0",
-    "@babel/runtime": "^7.20.0",
-    "@react-native/metro-config": "^0.72.9",
-    "metro-react-native-babel-preset": "0.76.7",
-    "string-hash-64": "^1.0.3",
+    "@babel/core": "^7.25.2",
+    "@babel/preset-env": "^7.25.3",
+    "@babel/runtime": "^7.25.0",
+    "@react-native-community/cli": "20.0.0",
+    "@react-native-community/cli-platform-android": "20.0.0",
+    "@react-native-community/cli-platform-ios": "20.0.0",
+    "@react-native/babel-preset": "0.83.9",
+    "@react-native/metro-config": "0.83.9",
+    "@react-native/typescript-config": "0.83.9",
+    "@types/react": "^19.2.0",
+    "@typescript/native-preview": "^7.0.0-dev.20260421.2",
     "babel-plugin-module-resolver": "^4.1.0",
-    "patch-package": "^6.4.7",
-    "postinstall-postinstall": "^2.1.0"
+    "string-hash-64": "^1.0.3",
+    "typescript": "^5.8.3"
   },
   "engines": {
-    "node": ">=22"
+    "node": ">=20"
   },
   "packageManager": "yarn@1.22.22"
 }

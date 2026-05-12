@@ -23,7 +23,7 @@ class JSI_EXPORT MGContentContainerShadowNode final
 
  public:
   void setWishlistChildren(
-      const ShadowNode::SharedListOfShared &wishlistChildren);
+      const std::shared_ptr<WishlistChildrenList> &wishlistChildren);
 };
 
 } // namespace react

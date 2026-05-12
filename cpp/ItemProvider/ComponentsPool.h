@@ -17,13 +17,13 @@ class ComponentsPool : public std::enable_shared_from_this<ComponentsPool> {
  public:
   void setNames(const std::vector<std::string> &names);
 
-  void setRegisteredViews(std::vector<ShadowNode::Shared> registeredViews);
+  void setRegisteredViews(std::vector<std::shared_ptr<ShadowNode const>> registeredViews);
 
-  void returnToPool(ShadowNode::Shared sn);
+  void returnToPool(std::shared_ptr<ShadowNode const> sn);
 
   void templatesUpdated();
 
-  ShadowNode::Shared getNodeForType(const std::string &type);
+  std::shared_ptr<ShadowNode const> getNodeForType(const std::string &type);
 
   Object prepareProxy(Runtime &rt);
 
@@ -41,8 +41,8 @@ class ComponentsPool : public std::enable_shared_from_this<ComponentsPool> {
  private:
   std::map<std::string, int> nameToIndex_;
   std::map<int, std::string> tagToType_;
-  std::map<std::string, std::vector<ShadowNode::Shared>> reusable_;
-  std::vector<ShadowNode::Shared> registeredViews_;
+  std::map<std::string, std::vector<std::shared_ptr<ShadowNode const>>> reusable_;
+  std::vector<std::shared_ptr<ShadowNode const>> registeredViews_;
   std::shared_ptr<HostObject> proxy_;
 };
 

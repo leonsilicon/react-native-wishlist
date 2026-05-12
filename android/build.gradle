@@ -8,13 +8,11 @@ buildscript {
 
     dependencies {
         classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version")
-        classpath("com.android.tools.build:gradle:7.3.1")
-        classpath("com.diffplug.spotless:spotless-plugin-gradle:6.11.0")
+        classpath("com.android.tools.build:gradle:8.7.2")
     }
 }
 
 if (project == rootProject) {
-    apply from: "spotless.gradle"
     return
 }
 
@@ -30,7 +28,18 @@ apply plugin: "com.android.library"
 apply plugin: "kotlin-android"
 apply plugin: "com.facebook.react"
 
+// This package only supports the New Architecture.
+// As of React Native 0.82+, the New Architecture is the default. We only fail
+// if it was explicitly disabled.
+if (project.hasProperty("newArchEnabled") && project.newArchEnabled == "false") {
+    throw new GradleException(
+        "react-native-wishlist requires the New Architecture. " +
+        "Remove newArchEnabled=false from your android/gradle.properties."
+    )
+}
+
 android {
+    namespace "com.wishlist"
     compileSdkVersion getExtOrIntegerDefault("compileSdkVersion")
     ndkVersion getExtOrDefault("ndkVersion")
 
@@ -40,8 +49,12 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+
+    kotlinOptions {
+        jvmTarget = "17"
     }
 
     buildFeatures {

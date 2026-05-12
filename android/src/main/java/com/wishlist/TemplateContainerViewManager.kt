@@ -2,7 +2,10 @@ package com.wishlist
 
 import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.module.annotations.ReactModule
-import com.facebook.react.uimanager.*
+import com.facebook.react.uimanager.ReactStylesDiffMap
+import com.facebook.react.uimanager.StateWrapper
+import com.facebook.react.uimanager.ThemedReactContext
+import com.facebook.react.uimanager.ViewGroupManager
 import com.facebook.react.uimanager.annotations.ReactProp
 import com.facebook.react.viewmanagers.MGTemplateContainerManagerDelegate
 import com.facebook.react.viewmanagers.MGTemplateContainerManagerInterface
@@ -26,7 +29,7 @@ class TemplateContainerViewManager :
       props: ReactStylesDiffMap?,
       stateWrapper: StateWrapper?
   ): Any? {
-    view.fabricViewStateManager.setStateWrapper(stateWrapper)
+    view.stateWrapper = stateWrapper
     view.updateWishlist()
     return null
   }
@@ -51,7 +54,7 @@ class TemplateContainerViewManager :
     if (value != null) {
       val names = ArrayList<String>(value.size())
       for (i in 0 until value.size()) {
-        names.add(value.getString(i))
+        value.getString(i)?.let { names.add(it) }
       }
       view.names = names
     } else {

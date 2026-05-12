@@ -6,8 +6,8 @@ namespace Wishlist {
 
 int tag = -2;
 
-ShadowNode::Shared ShadowNodeCopyMachine::copyShadowSubtree(
-    const ShadowNode::Shared &sn) {
+std::shared_ptr<ShadowNode> ShadowNodeCopyMachine::copyShadowSubtree(
+    const std::shared_ptr<const ShadowNode> &sn) {
   auto const &cd = sn->getComponentDescriptor();
 
   PropsParserContext propsParserContext{
@@ -19,26 +19,11 @@ ShadowNode::Shared ShadowNodeCopyMachine::copyShadowSubtree(
 
   auto const fragment =
       ShadowNodeFamilyFragment{tag -= 2, sn->getSurfaceId(), nullptr};
-  auto &rt = WishlistJsRuntime::getInstance().getRuntime();
-  auto const eventTarget =
-      std::make_shared<EventTarget>(rt, jsi::Object(rt), tag);
 
-  auto const family = cd.createFamily(fragment, eventTarget);
-  auto const props = cd.cloneProps(
-      propsParserContext,
-      sn->getProps(),
-#ifdef ANDROID
-      sn->getProps()->rawProps
-#else
-      {}
-#endif
-  );
-  auto const state = cd.createInitialState(ShadowNodeFragment{props}, family);
-
-  // prevent fabric from clearing EventTarget
-  auto const *familyH =
-      reinterpret_cast<const ShadowNodeFamilyHack *>(family.get());
-  familyH->eventEmitter_->setEnabled(true);
+  auto const family = cd.createFamily(fragment);
+  auto const props =
+      cd.cloneProps(propsParserContext, sn->getProps(), RawProps());
+  auto const state = cd.createInitialState(props, family);
 
   auto shadowNode = cd.createShadowNode(
       ShadowNodeFragment{
@@ -57,7 +42,8 @@ ShadowNode::Shared ShadowNodeCopyMachine::copyShadowSubtree(
   return shadowNode;
 }
 
-void ShadowNodeCopyMachine::clearParent(const ShadowNode::Shared &sn) {
+void ShadowNodeCopyMachine::clearParent(
+    const std::shared_ptr<const ShadowNode> &sn) {
   auto *family =
       reinterpret_cast<const ShadowNodeFamilyHack *>(&sn->getFamily());
   family->hasParent_ = false;

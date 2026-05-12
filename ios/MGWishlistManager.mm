@@ -83,8 +83,10 @@ RCT_EXPORT_MODULE(WishlistManager);
   if (tag >= 0)
     return false;
 
+  auto eventPayload = event.eventPayload;
   WishlistJsRuntime::getInstance().accessRuntime([=](jsi::Runtime &rt) {
-    [self sendEventWithType:jsi::String::createFromUtf8(rt, type) tag:tag payload:event.payloadFactory(rt)];
+    jsi::Value payload = eventPayload ? eventPayload->asJSIValue(rt) : jsi::Value::null();
+    [self sendEventWithType:jsi::String::createFromUtf8(rt, type) tag:tag payload:payload];
   });
 
   return true;

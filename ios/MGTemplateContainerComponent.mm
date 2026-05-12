@@ -61,11 +61,11 @@ using namespace facebook::react;
   if (!_wishList || !_state) {
     return;
   }
-  auto props = *std::static_pointer_cast<const MGTemplateContainerProps>(_props);
+  auto props = std::static_pointer_cast<const MGTemplateContainerProps>(_props);
   auto state = std::static_pointer_cast<MGTemplateContainerShadowNode::ConcreteState const>(_state);
-  [_wishList setWishlistId:props.wishlistId];
-  [_wishList setInflatorId:props.inflatorId];
-  [_wishList setTemplates:state->getData().getTemplates() withNames:props.names];
+  [_wishList setWishlistId:props->wishlistId];
+  [_wishList setInflatorId:props->inflatorId];
+  [_wishList setTemplates:state->getData().getTemplates() withNames:props->names];
 }
 
 @end

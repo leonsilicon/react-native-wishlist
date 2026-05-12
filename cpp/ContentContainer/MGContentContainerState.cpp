@@ -4,26 +4,26 @@ namespace facebook {
 namespace react {
 
 MGContentContainerState::MGContentContainerState()
-    : wishlistChildren(nullptr){};
+    : wishlistChildren(nullptr) {}
 
 MGContentContainerState::MGContentContainerState(
-    const ShadowNode::SharedListOfShared &wishlistChildren)
+    const std::shared_ptr<WishlistChildrenList> &wishlistChildren)
     : wishlistChildren(wishlistChildren) {}
 
 #ifdef ANDROID
 
 MGContentContainerState::MGContentContainerState(
     MGContentContainerState const &previousState,
-    folly::dynamic data)
-    : wishlistChildren(previousState.wishlistChildren){};
+    folly::dynamic /*data*/)
+    : wishlistChildren(previousState.wishlistChildren) {}
 
 folly::dynamic MGContentContainerState::getDynamic() const {
   return folly::dynamic::object;
-};
+}
 
 MapBuffer MGContentContainerState::getMapBuffer() const {
   return MapBufferBuilder::EMPTY();
-};
+}
 
 #endif
 

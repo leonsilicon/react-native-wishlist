@@ -12,7 +12,7 @@ class MGContentContainerComponentDescriptor
     : public ConcreteComponentDescriptor<MGContentContainerShadowNode> {
   using ConcreteComponentDescriptor::ConcreteComponentDescriptor;
 
-  ShadowNode::Unshared cloneShadowNode(
+  std::shared_ptr<ShadowNode> cloneShadowNode(
       const ShadowNode &sourceShadowNode,
       const ShadowNodeFragment &fragment) const override {
     // React holds on to old shadow nodes so we need to make sure to get the
@@ -21,16 +21,17 @@ class MGContentContainerComponentDescriptor
     auto &mostRecentStateData = static_cast<ConcreteState const *>(
                                     sourceShadowNode.getMostRecentState().get())
                                     ->getData();
+    auto wishlistChildren = mostRecentStateData.wishlistChildren;
+    auto children =
+        wishlistChildren
+            ? std::make_shared<std::vector<std::shared_ptr<const ShadowNode>>>(
+                  *wishlistChildren)
+            : fragment.children;
     auto shadowNode = std::make_shared<MGContentContainerShadowNode>(
         sourceShadowNode,
-        ShadowNodeFragment{
-            fragment.props,
-            mostRecentStateData.wishlistChildren
-                ? mostRecentStateData.wishlistChildren
-                : fragment.children,
-            fragment.state});
+        ShadowNodeFragment{fragment.props, children, fragment.state});
 
-    adopt(shadowNode);
+    adopt(*shadowNode);
     return shadowNode;
   }
 };

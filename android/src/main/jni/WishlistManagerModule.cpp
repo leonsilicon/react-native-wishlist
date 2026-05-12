@@ -1,6 +1,7 @@
 #include "WishlistManagerModule.hpp"
 
 #include <fbjni/fbjni.h>
+#include <react/fabric/FabricUIManagerBinding.h>
 #include "MGUIManagerHolder.h"
 #include "WishlistJsRuntime.h"
 
@@ -39,23 +40,32 @@ void WishlistManagerModule::nativeInstall(
           return false;
         }
 
-        WishlistJsRuntime::getInstance().accessRuntime([this, event, tag](
-                                                           jsi::Runtime &rt) {
-          try {
-            auto handleEvent = rt.global()
-                                   .getPropertyAsObject(rt, "global")
-                                   .getPropertyAsFunction(rt, "handleEvent");
-            handleEvent.call(rt, event.type, tag, event.payloadFactory(rt));
-          } catch (std::exception &error) {
-            errorHandler_->reportError(error.what());
-          }
-        });
+        auto eventPayload = event.eventPayload;
+        std::string type = event.type;
+        WishlistJsRuntime::getInstance().accessRuntime(
+            [this, type = std::move(type), tag, eventPayload](
+                jsi::Runtime &rt) {
+              try {
+                auto handleEvent =
+                    rt.global()
+                        .getPropertyAsObject(rt, "global")
+                        .getPropertyAsFunction(rt, "handleEvent");
+                jsi::Value payload = eventPayload
+                    ? eventPayload->asJSIValue(rt)
+                    : jsi::Value::null();
+                handleEvent.call(rt, type, tag, payload);
+              } catch (std::exception &error) {
+                if (errorHandler_) {
+                  errorHandler_->reportError(error.what());
+                }
+              }
+            });
 
         return true;
       });
   scheduler_->addEventListener(eventListener_);
 
-  wishlistQueue_ = std::make_shared<RNWorklet::DispatchQueue>("wishlistqueue");
+  wishlistQueue_ = std::make_shared<WishlistDispatchQueue>();
 
   WishlistJsRuntime::getInstance().initialize(
       jsiRuntime,

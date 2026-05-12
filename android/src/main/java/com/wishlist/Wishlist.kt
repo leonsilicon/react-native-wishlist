@@ -2,12 +2,10 @@ package com.wishlist
 
 import android.content.Context
 import android.view.View
-import com.facebook.react.uimanager.FabricViewStateManager
 import com.facebook.react.uimanager.PixelUtil
 import com.facebook.react.views.scroll.ReactScrollView
 
-class Wishlist(reactContext: Context) :
-    ReactScrollView(reactContext), FabricViewStateManager.HasFabricViewStateManager {
+class Wishlist(reactContext: Context) : ReactScrollView(reactContext) {
   var inflatorId: String? = null
   var wishlistId: String? = null
   var initialIndex: Int = 0
@@ -35,9 +33,8 @@ class Wishlist(reactContext: Context) :
 
     var orchestrator = this.orchestrator
     if (orchestrator == null) {
-      orchestrator =
-          Orchestrator(
-              this, wishlistId!!, fabricViewStateManager.stateData!!.getInt("viewportCarer"))
+      val viewportCarer = stateWrapper?.stateData?.getInt("viewportCarer") ?: return
+      orchestrator = Orchestrator(this, wishlistId!!, viewportCarer)
       this.orchestrator = orchestrator
     }
 
@@ -64,7 +61,7 @@ class Wishlist(reactContext: Context) :
   }
 
   override fun onLayoutChange(
-      v: View?,
+      v: View,
       left: Int,
       top: Int,
       right: Int,

@@ -2,11 +2,11 @@
 
 #include <ReactCommon/CallInvokerHolder.h>
 #include <fbjni/fbjni.h>
-#include <react-native-worklets/WKTDispatchQueue.h>
 #include <react/fabric/JFabricUIManager.h>
 #include <react/renderer/core/EventListener.h>
 #include <react/renderer/scheduler/Scheduler.h>
 #include "ErrorHandlerAndroid.h"
+#include "WishlistJsRuntime.h"
 
 using namespace facebook::react;
 using namespace facebook::jni;
@@ -34,7 +34,7 @@ class WishlistManagerModule : public HybridClass<WishlistManagerModule> {
  private:
   friend HybridBase;
 
-  std::shared_ptr<RNWorklet::DispatchQueue> wishlistQueue_;
+  std::shared_ptr<WishlistDispatchQueue> wishlistQueue_;
   std::shared_ptr<Scheduler> scheduler_;
   std::shared_ptr<EventListener> eventListener_;
   std::shared_ptr<ErrorHandlerAndroid> errorHandler_;

@@ -18,7 +18,7 @@ MGTemplateContainerShadowNode::MGTemplateContainerShadowNode(
 }
 
 void MGTemplateContainerShadowNode::appendChild(
-    ShadowNode::Shared const &childNode) {
+    std::shared_ptr<ShadowNode const> const &childNode) {
   this->templates.push_back(childNode);
 }
 

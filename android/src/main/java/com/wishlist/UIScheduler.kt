@@ -8,7 +8,7 @@ class UIScheduler {
   companion object {
     @DoNotStrip
     @JvmStatic
-    fun scheduleOnUI(runnable: Runnable?) {
+    fun scheduleOnUI(runnable: Runnable) {
       UiThreadUtil.runOnUiThread(runnable)
     }
   }

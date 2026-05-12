@@ -30,7 +30,9 @@ class WishlistViewManager : ViewGroupManager<Wishlist>(), MGWishlistManagerInter
       props: ReactStylesDiffMap?,
       stateWrapper: StateWrapper?
   ): Any? {
-    view.fabricViewStateManager.setStateWrapper(stateWrapper)
+    if (stateWrapper != null) {
+      view.setStateWrapper(stateWrapper)
+    }
     val stateData = stateWrapper?.stateData
     if (stateData != null && stateData.hasKey("contentOffset")) {
       view.scrollToOffsetForContentChange(stateData.getDouble("contentOffset").toFloat())
@@ -52,14 +54,14 @@ class WishlistViewManager : ViewGroupManager<Wishlist>(), MGWishlistManagerInter
     view.scrollToItem(index, animated)
   }
 
-  override fun receiveCommand(root: Wishlist, commandId: String?, args: ReadableArray?) {
+  override fun receiveCommand(root: Wishlist, commandId: String, args: ReadableArray?) {
     mDelegate.receiveCommand(root, commandId, args)
   }
 
-  override fun getExportedCustomDirectEventTypeConstants(): MutableMap<String, Any>? {
-    return MapBuilder.builder<String, Any>()
-        .put("topStartReached", MapBuilder.of("registrationName", "onStartReached"))
-        .put("topEndReached", MapBuilder.of("registrationName", "onEndReached"))
-        .build()
+  override fun getExportedCustomDirectEventTypeConstants(): MutableMap<String, Any> {
+    val map: MutableMap<String, Any> = mutableMapOf()
+    map["topStartReached"] = MapBuilder.of("registrationName", "onStartReached")
+    map["topEndReached"] = MapBuilder.of("registrationName", "onEndReached")
+    return map
   }
 }

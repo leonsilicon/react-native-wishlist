@@ -1,6 +1,8 @@
 #pragma once
 
 #include <react/renderer/components/view/ConcreteViewShadowNode.h>
+#include <memory>
+#include <vector>
 
 #ifdef ANDROID
 #include <folly/dynamic.h>
@@ -11,16 +13,18 @@
 namespace facebook {
 namespace react {
 
+using WishlistChildrenList = std::vector<std::shared_ptr<const ShadowNode>>;
+
 /*
  * State for <MGContentContainer> component.
  */
 class JSI_EXPORT MGContentContainerState final {
  public:
-  ShadowNode::SharedListOfShared wishlistChildren;
+  std::shared_ptr<WishlistChildrenList> wishlistChildren;
 
   MGContentContainerState();
   MGContentContainerState(
-      const ShadowNode::SharedListOfShared &wishlistChildren);
+      const std::shared_ptr<WishlistChildrenList> &wishlistChildren);
 
 #ifdef ANDROID
   MGContentContainerState(
