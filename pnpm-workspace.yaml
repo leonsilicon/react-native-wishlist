@@ -1,7 +1,7 @@
 packages:
   - example
-patchedDependencies:
-  react-native-reanimated@4.3.1: patches/react-native-reanimated@4.3.1.patch
+# patchedDependencies:
+#   react-native-reanimated@4.3.1: patches/react-native-reanimated@4.3.1.patch
 
 catalog:
   "react-native": 0.83.9

@@ -62,7 +62,6 @@ xample android exit with 0.
   old gesture-handler patch is no longer needed against 2.31)
   - example/babel.config.js: switched preset to
   module:@react-native/babel-preset
-  - Removed example/patches/
 
   Builds verified:
   - yarn example android → exit 0
