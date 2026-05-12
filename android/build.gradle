@@ -33,7 +33,7 @@ apply plugin: "com.facebook.react"
 // if it was explicitly disabled.
 if (project.hasProperty("newArchEnabled") && project.newArchEnabled == "false") {
     throw new GradleException(
-        "react-native-wishlist requires the New Architecture. " +
+        "@leonsilicon/react-native-wishlist requires the New Architecture. " +
         "Remove newArchEnabled=false from your android/gradle.properties."
     )
 }

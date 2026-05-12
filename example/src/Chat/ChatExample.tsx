@@ -4,7 +4,7 @@ import {
   createRunInJsFn,
   useWishlistData,
   WishListInstance,
-} from 'react-native-wishlist';
+} from '@leonsilicon/react-native-wishlist';
 import { ChatHeader } from './ChatHeader';
 import { ChatListView } from './ChatList';
 import { ChatItem, fetchData, getSendedMessage } from './Data';

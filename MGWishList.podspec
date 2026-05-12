@@ -6,7 +6,7 @@ package = JSON.parse(File.read(File.join(__dir__, "package.json")))
 # As of React Native 0.82+, the New Architecture is the default. We only fail
 # if it was explicitly disabled.
 if ENV["RCT_NEW_ARCH_ENABLED"] == "0"
-  raise "react-native-wishlist requires the New Architecture. " \
+  raise "@leonsilicon/react-native-wishlist requires the New Architecture. " \
         "Please remove RCT_NEW_ARCH_ENABLED=0 before running `pod install`."
 end
 

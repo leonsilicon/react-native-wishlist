@@ -4,7 +4,7 @@ import {
   Wishlist,
   WishlistData,
   WishListInstance,
-} from 'react-native-wishlist';
+} from '@leonsilicon/react-native-wishlist';
 import { ChatItemView } from './ChatItem';
 import type { ChatItem } from './Data';
 import { LoadingView } from './LoadingView';

@@ -2,7 +2,7 @@
   "compilerOptions": {
     "paths": {
       "*": ["./*"],
-      "react-native-wishlist": ["./src/index"]
+      "@leonsilicon/react-native-wishlist": ["./src/index"]
     },
     "allowUnreachableCode": false,
     "allowUnusedLabels": false,

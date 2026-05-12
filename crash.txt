@@ -1,0 +1,693 @@
+-------------------------------------
+Translated Report (Full Report Below)
+-------------------------------------
+Process:             example [45761]
+Path:                /Users/USER/Library/Developer/CoreSimulator/Devices/EED08502-8AD7-4FCB-B83B-36197DA19D23/data/Containers/Bundle/Application/A28D352B-577C-41DD-966C-9D0E74DBE2B3/example.app/example
+Identifier:          com.leonsilicon.wishlist
+Version:             1.0.0 (1)
+Code Type:           ARM-64 (Native)
+Role:                Foreground
+Parent Process:      launchd_sim [6344]
+Coalition:           com.apple.CoreSimulator.SimDevice.EED08502-8AD7-4FCB-B83B-36197DA19D23 [1358]
+Responsible Process: SimulatorTrampoline [5410]
+User ID:             501
+
+Date/Time:           2026-05-12 14:58:30.6412 -0400
+Launch Time:         2026-05-12 14:55:56.7072 -0400
+Hardware Model:      Mac14,6
+OS Version:          macOS 26.2 (25C56)
+Release Type:        User
+
+Crash Reporter Key:  08C26A77-6D63-7CEA-F637-778515536C7F
+Incident Identifier: C3C3D799-E998-48C5-B572-8BFEFE11B1E0
+
+Time Awake Since Boot: 1300 seconds
+
+System Integrity Protection: disabled
+
+Triggered by Thread: 2  com.facebook.react.runtime.JavaScript
+
+Exception Type:    EXC_CRASH (SIGABRT)
+Exception Codes:   0x0000000000000000, 0x0000000000000000
+
+Termination Reason:  Namespace SIGNAL, Code 6, Abort trap: 6
+Terminating Process: example [45761]
+
+
+Thread 0::  Dispatch queue: com.apple.main-thread
+0   libsystem_kernel.dylib        	       0x100ec4b70 mach_msg2_trap + 8
+1   libsystem_kernel.dylib        	       0x100ed590c mach_msg2_internal + 72
+2   libsystem_kernel.dylib        	       0x100eccc10 mach_msg_overwrite + 480
+3   libsystem_kernel.dylib        	       0x100ec4ee4 mach_msg + 20
+4   CoreFoundation                	       0x18044cd3c __CFRunLoopServiceMachPort + 156
+5   CoreFoundation                	       0x18044bef4 __CFRunLoopRun + 1128
+6   CoreFoundation                	       0x180446e24 _CFRunLoopRunSpecificWithOptions + 496
+7   GraphicsServices              	       0x1925319bc GSEventRunModal + 116
+8   UIKitCore                     	       0x18625fc3c -[UIApplication _run] + 772
+9   UIKitCore                     	       0x186263e64 UIApplicationMain + 124
+10  UIKitCore                     	       0x1854dc098 0x185156000 + 3694744
+11  example.debug.dylib           	       0x103a202ec static UIApplicationDelegate.main() + 128
+12  example.debug.dylib           	       0x103a2025c static AppDelegate.$main() + 44
+13  example.debug.dylib           	       0x103a20d68 __debug_main_executable_dylib_entry_point + 28
+14  ???                           	       0x100b293d0 ???
+15  dyld                          	       0x100c4cd54 start + 7184
+
+Thread 1:: com.apple.uikit.eventfetch-thread
+0   libsystem_kernel.dylib        	       0x100ec4b70 mach_msg2_trap + 8
+1   libsystem_kernel.dylib        	       0x100ed590c mach_msg2_internal + 72
+2   libsystem_kernel.dylib        	       0x100eccc10 mach_msg_overwrite + 480
+3   libsystem_kernel.dylib        	       0x100ec4ee4 mach_msg + 20
+4   CoreFoundation                	       0x18044cd3c __CFRunLoopServiceMachPort + 156
+5   CoreFoundation                	       0x18044bef4 __CFRunLoopRun + 1128
+6   CoreFoundation                	       0x180446e24 _CFRunLoopRunSpecificWithOptions + 496
+7   Foundation                    	       0x1810f1cac -[NSRunLoop(NSRunLoop) runMode:beforeDate:] + 208
+8   Foundation                    	       0x1810f1ecc -[NSRunLoop(NSRunLoop) runUntilDate:] + 60
+9   UIKitCore                     	       0x1863170f8 -[UIEventFetcher threadMain] + 392
+10  Foundation                    	       0x181118b78 __NSThread__start__ + 716
+11  libsystem_pthread.dylib       	       0x100aca5ac _pthread_start + 104
+12  libsystem_pthread.dylib       	       0x100ac5998 thread_start + 8
+
+Thread 2 Crashed:: com.facebook.react.runtime.JavaScript
+0   libsystem_kernel.dylib        	       0x100ecc85c __pthread_kill + 8
+1   libsystem_pthread.dylib       	       0x100aca2a8 pthread_kill + 264
+2   libsystem_c.dylib             	       0x1801ad950 abort + 100
+3   libsystem_c.dylib             	       0x1801accd4 __assert_rtn + 268
+4   React                         	       0x10aa0c6a8 facebook::react::ShadowNodeFamily::setParent(std::__1::shared_ptr<facebook::react::ShadowNodeFamily const> const&) const + 468
+5   React                         	       0x10aa024e8 facebook::react::ShadowNode::ShadowNode(facebook::react::ShadowNode const&, facebook::react::ShadowNodeFragment const&) + 1052
+6   React                         	       0x10a9e5bc4 facebook::react::LayoutableShadowNode::LayoutableShadowNode(facebook::react::ShadowNode const&, facebook::react::ShadowNodeFragment const&) + 44
+7   React                         	       0x10a9ae630 facebook::react::YogaLayoutableShadowNode::YogaLayoutableShadowNode(facebook::react::ShadowNode const&, facebook::react::ShadowNodeFragment const&) + 52
+8   React                         	       0x10a9ad2b8 facebook::react::ConcreteShadowNode<&facebook::react::ViewComponentName, facebook::react::YogaLayoutableShadowNode, facebook::react::ViewShadowNodeProps, facebook::react::BaseViewEventEmitter, facebook::react::StateData>::ConcreteShadowNode(facebook::react::ShadowNode const&, facebook::react::ShadowNodeFragment const&) + 44
+9   React                         	       0x10a9ac88c facebook::react::ConcreteViewShadowNode<&facebook::react::ViewComponentName, facebook::react::ViewShadowNodeProps, facebook::react::BaseViewEventEmitter, facebook::react::StateData>::ConcreteViewShadowNode(facebook::react::ShadowNode const&, facebook::react::ShadowNodeFragment const&) + 44
+10  React                         	       0x10a9ac830 facebook::react::ViewShadowNode::ViewShadowNode(facebook::react::ShadowNode const&, facebook::react::ShadowNodeFragment const&) + 44
+11  React                         	       0x10a9ac8e8 facebook::react::ViewShadowNode::ViewShadowNode(facebook::react::ShadowNode const&, facebook::react::ShadowNodeFragment const&) + 44
+12  React                         	       0x10ac4a368 facebook::react::ViewShadowNode* std::__1::construct_at[abi:de180100]<facebook::react::ViewShadowNode, facebook::react::ShadowNode const&, facebook::react::ShadowNodeFragment const&, facebook::react::ViewShadowNode*>(facebook::react::ViewShadowNode*, facebook::react::ShadowNode const&, facebook::react::ShadowNodeFragment const&) + 72
+13  React                         	       0x10ac4a314 facebook::react::ViewShadowNode* std::__1::__construct_at[abi:de180100]<facebook::react::ViewShadowNode, facebook::react::ShadowNode const&, facebook::react::ShadowNodeFragment const&, facebook::react::ViewShadowNode*>(facebook::react::ViewShadowNode*, facebook::react::ShadowNode const&, facebook::react::ShadowNodeFragment const&) + 40
+14  React                         	       0x10ac4a2e0 void std::__1::allocator_traits<std::__1::allocator<facebook::react::ViewShadowNode>>::construct[abi:de180100]<facebook::react::ViewShadowNode, facebook::react::ShadowNode const&, facebook::react::ShadowNodeFragment const&, void, void>(std::__1::allocator<facebook::react::ViewShadowNode>&, facebook::react::ViewShadowNode*, facebook::react::ShadowNode const&, facebook::react::ShadowNodeFragment const&) + 44
+15  React                         	       0x10ac4a260 std::__1::__shared_ptr_emplace<facebook::react::ViewShadowNode, std::__1::allocator<facebook::react::ViewShadowNode>>::__shared_ptr_emplace[abi:de180100]<facebook::react::ShadowNode const&, facebook::react::ShadowNodeFragment const&, std::__1::allocator<facebook::react::ViewShadowNode>, 0>(std::__1::allocator<facebook::react::ViewShadowNode>, facebook::react::ShadowNode const&, facebook::react::ShadowNodeFragment const&) + 112
+16  React                         	       0x10ac4a1e0 std::__1::__shared_ptr_emplace<facebook::react::ViewShadowNode, std::__1::allocator<facebook::react::ViewShadowNode>>::__shared_ptr_emplace[abi:de180100]<facebook::react::ShadowNode const&, facebook::react::ShadowNodeFragment const&, std::__1::allocator<facebook::react::ViewShadowNode>, 0>(std::__1::allocator<facebook::react::ViewShadowNode>, facebook::react::ShadowNode const&, facebook::react::ShadowNodeFragment const&) + 44
+17  React                         	       0x10ac4a158 std::__1::shared_ptr<facebook::react::ViewShadowNode> std::__1::allocate_shared[abi:de180100]<facebook::react::ViewShadowNode, std::__1::allocator<facebook::react::ViewShadowNode>, facebook::react::ShadowNode const&, facebook::react::ShadowNodeFragment const&, void>(std::__1::allocator<facebook::react::ViewShadowNode> const&, facebook::react::ShadowNode const&, facebook::react::ShadowNodeFragment const&) + 68
+18  React                         	       0x10ac4a0bc std::__1::shared_ptr<facebook::react::ViewShadowNode> std::__1::make_shared[abi:de180100]<facebook::react::ViewShadowNode, facebook::react::ShadowNode const&, facebook::react::ShadowNodeFragment const&, void>(facebook::react::ShadowNode const&, facebook::react::ShadowNodeFragment const&) + 60
+19  React                         	       0x10ac48aa0 facebook::react::ConcreteComponentDescriptor<facebook::react::ViewShadowNode>::cloneShadowNode(facebook::react::ShadowNode const&, facebook::react::ShadowNodeFragment const&) const + 60
+20  React                         	       0x10aa02868 facebook::react::ShadowNode::clone(facebook::react::ShadowNodeFragment const&) const + 632
+21  React                         	       0x10aa38b68 facebook::react::progressState(facebook::react::ShadowNode const&) + 720
+22  React                         	       0x10aa389d4 facebook::react::progressState(facebook::react::ShadowNode const&) + 316
+23  React                         	       0x10aa389d4 facebook::react::progressState(facebook::react::ShadowNode const&) + 316
+24  React                         	       0x10aa389d4 facebook::react::progressState(facebook::react::ShadowNode const&) + 316
+25  React                         	       0x10aa37204 facebook::react::progressState(facebook::react::ShadowNode const&, facebook::react::ShadowNode const&) + 660
+26  React                         	       0x10aa37148 facebook::react::progressState(facebook::react::ShadowNode const&, facebook::react::ShadowNode const&) + 472
+-------- RECURSION LEVEL 13
+27  React                         	       0x10aa37148 facebook::react::progressState(facebook::react::ShadowNode const&, facebook::react::ShadowNode const&) + 472
+-------- RECURSION LEVEL 12
+28  React                         	       0x10aa37148 facebook::react::progressState(facebook::react::ShadowNode const&, facebook::react::ShadowNode const&) + 472
+-------- RECURSION LEVEL 11
+--------
+-------- ELIDED 7 LEVELS OF RECURSION THROUGH 0x10aa37148 facebook::react::progressState(facebook::react::ShadowNode const&, facebook::react::ShadowNode const&) + 472
+--------
+36  React                         	       0x10aa37148 facebook::react::progressState(facebook::react::ShadowNode const&, facebook::react::ShadowNode const&) + 472
+-------- RECURSION LEVEL 3
+37  React                         	       0x10aa37148 facebook::react::progressState(facebook::react::ShadowNode const&, facebook::react::ShadowNode const&) + 472
+-------- RECURSION LEVEL 2
+38  React                         	       0x10aa37148 facebook::react::progressState(facebook::react::ShadowNode const&, facebook::react::ShadowNode const&) + 472
+-------- RECURSION LEVEL 1
+39  React                         	       0x10aa36a64 facebook::react::ShadowTree::tryCommit(std::__1::function<std::__1::shared_ptr<facebook::react::RootShadowNode> (facebook::react::RootShadowNode const&)> const&, facebook::react::ShadowTreeCommitOptions const&) const + 464
+40  React                         	       0x10aa36784 facebook::react::ShadowTree::commit(std::__1::function<std::__1::shared_ptr<facebook::react::RootShadowNode> (facebook::react::RootShadowNode const&)> const&, facebook::react::ShadowTreeCommitOptions const&) const + 256
+41  React                         	       0x10aaf1888 facebook::react::UIManager::completeSurface(int, std::__1::shared_ptr<std::__1::vector<std::__1::shared_ptr<facebook::react::ShadowNode const>, std::__1::allocator<std::__1::shared_ptr<facebook::react::ShadowNode const>>>> const&, facebook::react::ShadowTreeCommitOptions)::$_0::operator()(facebook::react::ShadowTree const&) const + 108
+42  React                         	       0x10aaf1810 decltype(std::declval<facebook::react::UIManager::completeSurface(int, std::__1::shared_ptr<std::__1::vector<std::__1::shared_ptr<facebook::react::ShadowNode const>, std::__1::allocator<std::__1::shared_ptr<facebook::react::ShadowNode const>>>> const&, facebook::react::ShadowTreeCommitOptions)::$_0&>()(std::declval<facebook::react::ShadowTree const&>())) std::__1::__invoke[abi:de180100]<facebook::react::UIManager::completeSurface(int, std::__1::shared_ptr<std::__1::vector<std::__1::shared_ptr<facebook::react::ShadowNode const>, std::__1::allocator<std::__1::shared_ptr<facebook::react::ShadowNode const>>>> const&, facebook::react::ShadowTreeCommitOptions)::$_0&, facebook::react::ShadowTree const&>(facebook::react::UIManager::completeSurface(int, std::__1::shared_ptr<std::__1::vector<std::__1::shared_ptr<facebook::react::ShadowNode const>, std::__1::allocator<std::__1::shared_ptr<facebook::react::ShadowNode const>>>> const&, facebook::react::ShadowTreeCommitOptions)::$_0&, facebook::react::ShadowTree const&) + 32
+43  React                         	       0x10aaf17c0 void std::__1::__invoke_void_return_wrapper<void, true>::__call[abi:de180100]<facebook::react::UIManager::completeSurface(int, std::__1::shared_ptr<std::__1::vector<std::__1::shared_ptr<facebook::react::ShadowNode const>, std::__1::allocator<std::__1::shared_ptr<facebook::react::ShadowNode const>>>> const&, facebook::react::ShadowTreeCommitOptions)::$_0&, facebook::react::ShadowTree const&>(facebook::react::UIManager::completeSurface(int, std::__1::shared_ptr<std::__1::vector<std::__1::shared_ptr<facebook::react::ShadowNode const>, std::__1::allocator<std::__1::shared_ptr<facebook::react::ShadowNode const>>>> const&, facebook::react::ShadowTreeCommitOptions)::$_0&, facebook::react::ShadowTree const&) + 32
+44  React                         	       0x10aaf1794 std::__1::__function::__alloc_func<facebook::react::UIManager::completeSurface(int, std::__1::shared_ptr<std::__1::vector<std::__1::shared_ptr<facebook::react::ShadowNode const>, std::__1::allocator<std::__1::shared_ptr<facebook::react::ShadowNode const>>>> const&, facebook::react::ShadowTreeCommitOptions)::$_0, std::__1::allocator<facebook::react::UIManager::completeSurface(int, std::__1::shared_ptr<std::__1::vector<std::__1::shared_ptr<facebook::react::ShadowNode const>, std::__1::allocator<std::__1::shared_ptr<facebook::react::ShadowNode const>>>> const&, facebook::react::ShadowTreeCommitOptions)::$_0>, void (facebook::react::ShadowTree const&)>::operator()[abi:de180100](facebook::react::ShadowTree const&) + 36
+45  React                         	       0x10aaf0794 std::__1::__function::__func<facebook::react::UIManager::completeSurface(int, std::__1::shared_ptr<std::__1::vector<std::__1::shared_ptr<facebook::react::ShadowNode const>, std::__1::allocator<std::__1::shared_ptr<facebook::react::ShadowNode const>>>> const&, facebook::react::ShadowTreeCommitOptions)::$_0, std::__1::allocator<facebook::react::UIManager::completeSurface(int, std::__1::shared_ptr<std::__1::vector<std::__1::shared_ptr<facebook::react::ShadowNode const>, std::__1::allocator<std::__1::shared_ptr<facebook::react::ShadowNode const>>>> const&, facebook::react::ShadowTreeCommitOptions)::$_0>, void (facebook::react::ShadowTree const&)>::operator()(facebook::react::ShadowTree const&) + 36
+46  React                         	       0x10aa44874 std::__1::__function::__value_func<void (facebook::react::ShadowTree const&)>::operator()[abi:de180100](facebook::react::ShadowTree const&) const + 76
+47  React                         	       0x10aa41a70 std::__1::function<void (facebook::react::ShadowTree const&)>::operator()(facebook::react::ShadowTree const&) const + 32
+48  React                         	       0x10aa41a10 facebook::react::ShadowTreeRegistry::visit(int, std::__1::function<void (facebook::react::ShadowTree const&)> const&) const + 248
+49  React                         	       0x10aae5c14 facebook::react::UIManager::completeSurface(int, std::__1::shared_ptr<std::__1::vector<std::__1::shared_ptr<facebook::react::ShadowNode const>, std::__1::allocator<std::__1::shared_ptr<facebook::react::ShadowNode const>>>> const&, facebook::react::ShadowTreeCommitOptions) + 168
+50  React                         	       0x10ab2de2c facebook::react::UIManagerBinding::get(facebook::jsi::Runtime&, facebook::jsi::PropNameID const&)::$_9::operator()(facebook::jsi::Runtime&, facebook::jsi::Value const&, facebook::jsi::Value const*, unsigned long) const + 176
+51  React                         	       0x10ab2dd70 decltype(std::declval<facebook::react::UIManagerBinding::get(facebook::jsi::Runtime&, facebook::jsi::PropNameID const&)::$_9&>()(std::declval<facebook::jsi::Runtime&>(), std::declval<facebook::jsi::Value const&>(), std::declval<facebook::jsi::Value const*>(), std::declval<unsigned long>())) std::__1::__invoke[abi:de180100]<facebook::react::UIManagerBinding::get(facebook::jsi::Runtime&, facebook::jsi::PropNameID const&)::$_9&, facebook::jsi::Runtime&, facebook::jsi::Value const&, facebook::jsi::Value const*, unsigned long>(facebook::react::UIManagerBinding::get(facebook::jsi::Runtime&, facebook::jsi::PropNameID const&)::$_9&, facebook::jsi::Runtime&, facebook::jsi::Value const&, facebook::jsi::Value const*&&, unsigned long&&) + 72
+52  React                         	       0x10ab2dcf8 facebook::jsi::Value std::__1::__invoke_void_return_wrapper<facebook::jsi::Value, false>::__call[abi:de180100]<facebook::react::UIManagerBinding::get(facebook::jsi::Runtime&, facebook::jsi::PropNameID const&)::$_9&, facebook::jsi::Runtime&, facebook::jsi::Value const&, facebook::jsi::Value const*, unsigned long>(facebook::react::UIManagerBinding::get(facebook::jsi::Runtime&, facebook::jsi::PropNameID const&)::$_9&, facebook::jsi::Runtime&, facebook::jsi::Value const&, facebook::jsi::Value const*&&, unsigned long&&) + 64
+53  React                         	       0x10ab2dcac std::__1::__function::__alloc_func<facebook::react::UIManagerBinding::get(facebook::jsi::Runtime&, facebook::jsi::PropNameID const&)::$_9, std::__1::allocator<facebook::react::UIManagerBinding::get(facebook::jsi::Runtime&, facebook::jsi::PropNameID const&)::$_9>, facebook::jsi::Value (facebook::jsi::Runtime&, facebook::jsi::Value const&, facebook::jsi::Value const*, unsigned long)>::operator()[abi:de180100](facebook::jsi::Runtime&, facebook::jsi::Value const&, facebook::jsi::Value const*&&, unsigned long&&) + 72
+54  React                         	       0x10ab2ca2c std::__1::__function::__func<facebook::react::UIManagerBinding::get(facebook::jsi::Runtime&, facebook::jsi::PropNameID const&)::$_9, std::__1::allocator<facebook::react::UIManagerBinding::get(facebook::jsi::Runtime&, facebook::jsi::PropNameID const&)::$_9>, facebook::jsi::Value (facebook::jsi::Runtime&, facebook::jsi::Value const&, facebook::jsi::Value const*, unsigned long)>::operator()(facebook::jsi::Runtime&, facebook::jsi::Value const&, facebook::jsi::Value const*&&, unsigned long&&) + 68
+55  hermesvm                      	       0x101b27428 facebook::hermes::(anonymous namespace)::HermesRuntimeImpl::HFContext::func(void*, hermes::vm::Runtime&, hermes::vm::NativeArgs) + 284
+56  hermesvm                      	       0x101be1414 hermes::vm::NativeFunction::_nativeCall(hermes::vm::NativeFunction*, hermes::vm::Runtime&) + 144
+57  hermesvm                      	       0x101bfb2f4 hermes::vm::CallResult<hermes::vm::HermesValue, (hermes::vm::detail::CallResultSpecialize)2> hermes::vm::Interpreter::interpretFunction<false, false>(hermes::vm::Runtime&, hermes::vm::InterpreterState&) + 9636
+58  hermesvm                      	       0x101bf8d1c hermes::vm::Runtime::interpretFunctionImpl(hermes::vm::CodeBlock*) + 132
+59  hermesvm                      	       0x101be16e8 hermes::vm::JSFunction::_callImpl(hermes::vm::Handle<hermes::vm::Callable>, hermes::vm::Runtime&) + 40
+60  hermesvm                      	       0x101be0fa8 hermes::vm::BoundFunction::_boundCall(hermes::vm::BoundFunction*, hermes::inst::Inst const*, hermes::vm::Runtime&) + 492
+61  hermesvm                      	       0x101b1db14 facebook::hermes::(anonymous namespace)::HermesRuntimeImpl::call(facebook::jsi::Function const&, facebook::jsi::Value const&, facebook::jsi::Value const*, unsigned long) + 748
+62  React                         	       0x10ae0d91c facebook::jsi::Function::call(facebook::jsi::Runtime&, facebook::jsi::Value const*, unsigned long) const + 100
+63  React                         	       0x10ae0d86c facebook::jsi::Function::call(facebook::jsi::Runtime&, std::initializer_list<facebook::jsi::Value>) const + 112
+64  React                         	       0x10ae44208 facebook::react::Task::execute(facebook::jsi::Runtime&, bool) + 292
+65  React                         	       0x10ae3913c facebook::react::RuntimeScheduler_Modern::executeTask(facebook::jsi::Runtime&, facebook::react::Task&, bool) const + 160
+66  React                         	       0x10ae39c84 facebook::react::RuntimeScheduler_Modern::runEventLoopTick(facebook::jsi::Runtime&, facebook::react::Task&) + 244
+67  React                         	       0x10ae399b4 facebook::react::RuntimeScheduler_Modern::runEventLoop(facebook::jsi::Runtime&) + 168
+68  React                         	       0x10ae433f0 facebook::react::RuntimeScheduler_Modern::scheduleEventLoop()::$_0::operator()(facebook::jsi::Runtime&) const + 36
+69  React                         	       0x10ae433c0 decltype(std::declval<facebook::react::RuntimeScheduler_Modern::scheduleEventLoop()::$_0&>()(std::declval<facebook::jsi::Runtime&>())) std::__1::__invoke[abi:de180100]<facebook::react::RuntimeScheduler_Modern::scheduleEventLoop()::$_0&, facebook::jsi::Runtime&>(facebook::react::RuntimeScheduler_Modern::scheduleEventLoop()::$_0&, facebook::jsi::Runtime&) + 32
+70  React                         	       0x10ae43370 void std::__1::__invoke_void_return_wrapper<void, true>::__call[abi:de180100]<facebook::react::RuntimeScheduler_Modern::scheduleEventLoop()::$_0&, facebook::jsi::Runtime&>(facebook::react::RuntimeScheduler_Modern::scheduleEventLoop()::$_0&, facebook::jsi::Runtime&) + 32
+71  React                         	       0x10ae43344 std::__1::__function::__alloc_func<facebook::react::RuntimeScheduler_Modern::scheduleEventLoop()::$_0, std::__1::allocator<facebook::react::RuntimeScheduler_Modern::scheduleEventLoop()::$_0>, void (facebook::jsi::Runtime&)>::operator()[abi:de180100](facebook::jsi::Runtime&) + 36
+72  React                         	       0x10ae421d0 std::__1::__function::__func<facebook::react::RuntimeScheduler_Modern::scheduleEventLoop()::$_0, std::__1::allocator<facebook::react::RuntimeScheduler_Modern::scheduleEventLoop()::$_0>, void (facebook::jsi::Runtime&)>::operator()(facebook::jsi::Runtime&) + 36
+73  React                         	       0x10aea9668 std::__1::__function::__value_func<void (facebook::jsi::Runtime&)>::operator()[abi:de180100](facebook::jsi::Runtime&) const + 76
+74  React                         	       0x10aea7600 std::__1::function<void (facebook::jsi::Runtime&)>::operator()(facebook::jsi::Runtime&) const + 32
+75  React                         	       0x10aea7280 _ZZZN8facebook5react13ReactInstanceC1ENSt3__110unique_ptrINS0_9JSRuntimeENS2_14default_deleteIS4_EEEENS2_10shared_ptrINS0_18MessageQueueThreadEEENS8_INS0_12TimerManagerEEENS2_8functionIFvRNS_3jsi7RuntimeERKNS0_14JsErrorHandler14ProcessedErrorEEEEPNS0_18jsinspector_modern10HostTargetEENK3$_0clINSD_IFvSG_EEEEEDaT_ENKUlvE_clEv + 148
+76  React                         	       0x10aea71e0 _ZNSt3__18__invokeB8de180100IRZZN8facebook5react13ReactInstanceC1ENS_10unique_ptrINS2_9JSRuntimeENS_14default_deleteIS5_EEEENS_10shared_ptrINS2_18MessageQueueThreadEEENS9_INS2_12TimerManagerEEENS_8functionIFvRNS1_3jsi7RuntimeERKNS2_14JsErrorHandler14ProcessedErrorEEEEPNS2_18jsinspector_modern10HostTargetEENK3$_0clINSE_IFvSH_EEEEEDaT_EUlvE_JEEEDTclclsr3stdE7declvalISW_EEspclsr3stdE7declvalIT0_EEEEOSW_DpOSZ_ + 24
+77  React                         	       0x10aea7198 _ZNSt3__128__invoke_void_return_wrapperIvLb1EE6__callB8de180100IJRZZN8facebook5react13ReactInstanceC1ENS_10unique_ptrINS4_9JSRuntimeENS_14default_deleteIS7_EEEENS_10shared_ptrINS4_18MessageQueueThreadEEENSB_INS4_12TimerManagerEEENS_8functionIFvRNS3_3jsi7RuntimeERKNS4_14JsErrorHandler14ProcessedErrorEEEEPNS4_18jsinspector_modern10HostTargetEENK3$_0clINSG_IFvSJ_EEEEEDaT_EUlvE_EEEvDpOT_ + 24
+78  React                         	       0x10aea7174 _ZNSt3__110__function12__alloc_funcIZZN8facebook5react13ReactInstanceC1ENS_10unique_ptrINS3_9JSRuntimeENS_14default_deleteIS6_EEEENS_10shared_ptrINS3_18MessageQueueThreadEEENSA_INS3_12TimerManagerEEENS_8functionIFvRNS2_3jsi7RuntimeERKNS3_14JsErrorHandler14ProcessedErrorEEEEPNS3_18jsinspector_modern10HostTargetEENK3$_0clINSF_IFvSI_EEEEEDaT_EUlvE_NS_9allocatorISY_EEFvvEEclB8de180100Ev + 28
+79  React                         	       0x10aea5eac _ZNSt3__110__function6__funcIZZN8facebook5react13ReactInstanceC1ENS_10unique_ptrINS3_9JSRuntimeENS_14default_deleteIS6_EEEENS_10shared_ptrINS3_18MessageQueueThreadEEENSA_INS3_12TimerManagerEEENS_8functionIFvRNS2_3jsi7RuntimeERKNS3_14JsErrorHandler14ProcessedErrorEEEEPNS3_18jsinspector_modern10HostTargetEENK3$_0clINSF_IFvSI_EEEEEDaT_EUlvE_NS_9allocatorISY_EEFvvEEclEv + 28
+80  React                         	       0x10a63eebc std::__1::__function::__value_func<void ()>::operator()[abi:de180100]() const + 68
+81  React                         	       0x10a63eddc std::__1::function<void ()>::operator()() const + 24
+82  React                         	       0x10a6d21c8 facebook::react::tryAndReturnError(std::__1::function<void ()> const&) + 24
+83  React                         	       0x10a6ba9dc facebook::react::RCTMessageThread::tryFunc(std::__1::function<void ()> const&) + 36
+84  React                         	       0x10a6bf744 facebook::react::RCTMessageThread::runOnQueue(std::__1::function<void ()>&&)::$_0::operator()() const + 80
+85  React                         	       0x10a6bf6e8 decltype(std::declval<facebook::react::RCTMessageThread::runOnQueue(std::__1::function<void ()>&&)::$_0&>()()) std::__1::__invoke[abi:de180100]<facebook::react::RCTMessageThread::runOnQueue(std::__1::function<void ()>&&)::$_0&>(facebook::react::RCTMessageThread::runOnQueue(std::__1::function<void ()>&&)::$_0&) + 24
+86  React                         	       0x10a6bf6a0 void std::__1::__invoke_void_return_wrapper<void, true>::__call[abi:de180100]<facebook::react::RCTMessageThread::runOnQueue(std::__1::function<void ()>&&)::$_0&>(facebook::react::RCTMessageThread::runOnQueue(std::__1::function<void ()>&&)::$_0&) + 24
+87  React                         	       0x10a6bf67c std::__1::__function::__alloc_func<facebook::react::RCTMessageThread::runOnQueue(std::__1::function<void ()>&&)::$_0, std::__1::allocator<facebook::react::RCTMessageThread::runOnQueue(std::__1::function<void ()>&&)::$_0>, void ()>::operator()[abi:de180100]() + 28
+88  React                         	       0x10a6be39c std::__1::__function::__func<facebook::react::RCTMessageThread::runOnQueue(std::__1::function<void ()>&&)::$_0, std::__1::allocator<facebook::react::RCTMessageThread::runOnQueue(std::__1::function<void ()>&&)::$_0>, void ()>::operator()() + 28
+89  React                         	       0x10a63eebc std::__1::__function::__value_func<void ()>::operator()[abi:de180100]() const + 68
+90  React                         	       0x10a63eddc std::__1::function<void ()>::operator()() const + 24
+91  React                         	       0x10a6ba774 invocation function for block in facebook::react::RCTMessageThread::runAsync(std::__1::function<void ()>) + 48
+92  CoreFoundation                	       0x18044d2a8 __CFRUNLOOP_IS_CALLING_OUT_TO_A_BLOCK__ + 20
+93  CoreFoundation                	       0x18044ca30 __CFRunLoopDoBlocks + 340
+94  CoreFoundation                	       0x18044c374 __CFRunLoopRun + 2280
+95  CoreFoundation                	       0x180446e24 _CFRunLoopRunSpecificWithOptions + 496
+96  React                         	       0x10af3e92c +[RCTJSThreadManager runRunLoop] + 292
+97  Foundation                    	       0x181118b78 __NSThread__start__ + 716
+98  libsystem_pthread.dylib       	       0x100aca5ac _pthread_start + 104
+99  libsystem_pthread.dylib       	       0x100ac5998 thread_start + 8
+
+Thread 3:: hades
+0   libsystem_kernel.dylib        	       0x100ec8020 __psynch_cvwait + 8
+1   libsystem_pthread.dylib       	       0x100acaa74 _pthread_cond_wait + 976
+2   libc++.1.dylib                	       0x18032c70c std::__1::condition_variable::wait(std::__1::unique_lock<std::__1::mutex>&) + 28
+3   hermesvm                      	       0x101c8d2c4 hermes::vm::HadesGC::Executor::worker() + 108
+4   hermesvm                      	       0x101c8d22c void* std::__1::__thread_proxy[abi:nn190102]<std::__1::tuple<std::__1::unique_ptr<std::__1::__thread_struct, std::__1::default_delete<std::__1::__thread_struct>>, hermes::vm::HadesGC::Executor::Executor()::'lambda'()>>(void*) + 44
+5   libsystem_pthread.dylib       	       0x100aca5ac _pthread_start + 104
+6   libsystem_pthread.dylib       	       0x100ac5998 thread_start + 8
+
+Thread 4:: com.apple.CFStream.LegacyThread
+0   libsystem_kernel.dylib        	       0x100ec4b70 mach_msg2_trap + 8
+1   libsystem_kernel.dylib        	       0x100ed590c mach_msg2_internal + 72
+2   libsystem_kernel.dylib        	       0x100eccc10 mach_msg_overwrite + 480
+3   libsystem_kernel.dylib        	       0x100ec4ee4 mach_msg + 20
+4   CoreFoundation                	       0x18044cd3c __CFRunLoopServiceMachPort + 156
+5   CoreFoundation                	       0x18044bef4 __CFRunLoopRun + 1128
+6   CoreFoundation                	       0x180446e24 _CFRunLoopRunSpecificWithOptions + 496
+7   CoreFoundation                	       0x18046b2bc _legacyStreamRunLoop_workThread + 260
+8   libsystem_pthread.dylib       	       0x100aca5ac _pthread_start + 104
+9   libsystem_pthread.dylib       	       0x100ac5998 thread_start + 8
+
+Thread 5:: com.facebook.SocketRocket.NetworkThread
+0   libsystem_kernel.dylib        	       0x100ec4b70 mach_msg2_trap + 8
+1   libsystem_kernel.dylib        	       0x100ed590c mach_msg2_internal + 72
+2   libsystem_kernel.dylib        	       0x100eccc10 mach_msg_overwrite + 480
+3   libsystem_kernel.dylib        	       0x100ec4ee4 mach_msg + 20
+4   CoreFoundation                	       0x18044cd3c __CFRunLoopServiceMachPort + 156
+5   CoreFoundation                	       0x18044bef4 __CFRunLoopRun + 1128
+6   CoreFoundation                	       0x180446e24 _CFRunLoopRunSpecificWithOptions + 496
+7   Foundation                    	       0x1810f1cac -[NSRunLoop(NSRunLoop) runMode:beforeDate:] + 208
+8   ReactNativeDependencies       	       0x101155cd8 -[SRRunLoopThread main] + 260
+9   Foundation                    	       0x181118b78 __NSThread__start__ + 716
+10  libsystem_pthread.dylib       	       0x100aca5ac _pthread_start + 104
+11  libsystem_pthread.dylib       	       0x100ac5998 thread_start + 8
+
+Thread 6:: com.apple.NSURLConnectionLoader
+0   libsystem_kernel.dylib        	       0x100ec4b70 mach_msg2_trap + 8
+1   libsystem_kernel.dylib        	       0x100ed590c mach_msg2_internal + 72
+2   libsystem_kernel.dylib        	       0x100eccc10 mach_msg_overwrite + 480
+3   libsystem_kernel.dylib        	       0x100ec4ee4 mach_msg + 20
+4   CoreFoundation                	       0x18044cd3c __CFRunLoopServiceMachPort + 156
+5   CoreFoundation                	       0x18044bef4 __CFRunLoopRun + 1128
+6   CoreFoundation                	       0x180446e24 _CFRunLoopRunSpecificWithOptions + 496
+7   CFNetwork                     	       0x184e8590c +[__CFN_CoreSchedulingSetRunnable _run:] + 368
+8   Foundation                    	       0x181118b78 __NSThread__start__ + 716
+9   libsystem_pthread.dylib       	       0x100aca5ac _pthread_start + 104
+10  libsystem_pthread.dylib       	       0x100ac5998 thread_start + 8
+
+Thread 7:: com.apple.CFSocket.private
+0   libsystem_kernel.dylib        	       0x100ecef80 __select + 8
+1   CoreFoundation                	       0x18045b9e4 __CFSocketManager + 680
+2   libsystem_pthread.dylib       	       0x100aca5ac _pthread_start + 104
+3   libsystem_pthread.dylib       	       0x100ac5998 thread_start + 8
+
+Thread 8:: hades
+0   libsystem_kernel.dylib        	       0x100ec8020 __psynch_cvwait + 8
+1   libsystem_pthread.dylib       	       0x100acaa74 _pthread_cond_wait + 976
+2   libc++.1.dylib                	       0x18032c70c std::__1::condition_variable::wait(std::__1::unique_lock<std::__1::mutex>&) + 28
+3   hermesvm                      	       0x101c8d2c4 hermes::vm::HadesGC::Executor::worker() + 108
+4   hermesvm                      	       0x101c8d22c void* std::__1::__thread_proxy[abi:nn190102]<std::__1::tuple<std::__1::unique_ptr<std::__1::__thread_struct, std::__1::default_delete<std::__1::__thread_struct>>, hermes::vm::HadesGC::Executor::Executor()::'lambda'()>>(void*) + 44
+5   libsystem_pthread.dylib       	       0x100aca5ac _pthread_start + 104
+6   libsystem_pthread.dylib       	       0x100ac5998 thread_start + 8
+
+Thread 9:
+0   libsystem_kernel.dylib        	       0x100ec8020 __psynch_cvwait + 8
+1   libsystem_pthread.dylib       	       0x100acaa74 _pthread_cond_wait + 976
+2   libc++.1.dylib                	       0x18032c70c std::__1::condition_variable::wait(std::__1::unique_lock<std::__1::mutex>&) + 28
+3   example.debug.dylib           	       0x1045493bc void std::__1::condition_variable::wait<RNWorklet::DispatchQueue::dispatch_thread_handler()::$_0>(std::__1::unique_lock<std::__1::mutex>&, RNWorklet::DispatchQueue::dispatch_thread_handler()::$_0) + 64 (condition_variable.h:147)
+4   example.debug.dylib           	       0x104549070 RNWorklet::DispatchQueue::dispatch_thread_handler() + 84 (WKTDispatchQueue.cpp:49)
+5   example.debug.dylib           	       0x104549950 decltype(*std::declval<RNWorklet::DispatchQueue*>().*std::declval<void (RNWorklet::DispatchQueue::*)()>()()) std::__1::__invoke[abi:de200100]<void (RNWorklet::DispatchQueue::*)(), RNWorklet::DispatchQueue*, void>(void (RNWorklet::DispatchQueue::*&&)(), RNWorklet::DispatchQueue*&&) + 124 (invoke.h:147)
+6   example.debug.dylib           	       0x1045498c8 void std::__1::__thread_execute[abi:de200100]<std::__1::unique_ptr<std::__1::__thread_struct, std::__1::default_delete<std::__1::__thread_struct>>, void (RNWorklet::DispatchQueue::*)(), RNWorklet::DispatchQueue*, 2ul>(std::__1::tuple<std::__1::unique_ptr<std::__1::__thread_struct, std::__1::default_delete<std::__1::__thread_struct>>, void (RNWorklet::DispatchQueue::*)(), RNWorklet::DispatchQueue*>&, std::__1::__tuple_indices<2ul>) + 48 (thread.h:205)
+7   example.debug.dylib           	       0x10454967c void* std::__1::__thread_proxy[abi:de200100]<std::__1::tuple<std::__1::unique_ptr<std::__1::__thread_struct, std::__1::default_delete<std::__1::__thread_struct>>, void (RNWorklet::DispatchQueue::*)(), RNWorklet::DispatchQueue*>>(void*) + 84 (thread.h:214)
+8   libsystem_pthread.dylib       	       0x100aca5ac _pthread_start + 104
+9   libsystem_pthread.dylib       	       0x100ac5998 thread_start + 8
+
+Thread 10:: hades
+0   libsystem_kernel.dylib        	       0x100ec8020 __psynch_cvwait + 8
+1   libsystem_pthread.dylib       	       0x100acaa74 _pthread_cond_wait + 976
+2   libc++.1.dylib                	       0x18032c70c std::__1::condition_variable::wait(std::__1::unique_lock<std::__1::mutex>&) + 28
+3   hermesvm                      	       0x101c8d2c4 hermes::vm::HadesGC::Executor::worker() + 108
+4   hermesvm                      	       0x101c8d22c void* std::__1::__thread_proxy[abi:nn190102]<std::__1::tuple<std::__1::unique_ptr<std::__1::__thread_struct, std::__1::default_delete<std::__1::__thread_struct>>, hermes::vm::HadesGC::Executor::Executor()::'lambda'()>>(void*) + 44
+5   libsystem_pthread.dylib       	       0x100aca5ac _pthread_start + 104
+6   libsystem_pthread.dylib       	       0x100ac5998 thread_start + 8
+
+Thread 11:
+0   libsystem_kernel.dylib        	       0x100ec8020 __psynch_cvwait + 8
+1   libsystem_pthread.dylib       	       0x100acaa74 _pthread_cond_wait + 976
+2   libc++.1.dylib                	       0x18032c70c std::__1::condition_variable::wait(std::__1::unique_lock<std::__1::mutex>&) + 28
+3   example.debug.dylib           	       0x1045493bc void std::__1::condition_variable::wait<RNWorklet::DispatchQueue::dispatch_thread_handler()::$_0>(std::__1::unique_lock<std::__1::mutex>&, RNWorklet::DispatchQueue::dispatch_thread_handler()::$_0) + 64 (condition_variable.h:147)
+4   example.debug.dylib           	       0x104549070 RNWorklet::DispatchQueue::dispatch_thread_handler() + 84 (WKTDispatchQueue.cpp:49)
+5   example.debug.dylib           	       0x104549950 decltype(*std::declval<RNWorklet::DispatchQueue*>().*std::declval<void (RNWorklet::DispatchQueue::*)()>()()) std::__1::__invoke[abi:de200100]<void (RNWorklet::DispatchQueue::*)(), RNWorklet::DispatchQueue*, void>(void (RNWorklet::DispatchQueue::*&&)(), RNWorklet::DispatchQueue*&&) + 124 (invoke.h:147)
+6   example.debug.dylib           	       0x1045498c8 void std::__1::__thread_execute[abi:de200100]<std::__1::unique_ptr<std::__1::__thread_struct, std::__1::default_delete<std::__1::__thread_struct>>, void (RNWorklet::DispatchQueue::*)(), RNWorklet::DispatchQueue*, 2ul>(std::__1::tuple<std::__1::unique_ptr<std::__1::__thread_struct, std::__1::default_delete<std::__1::__thread_struct>>, void (RNWorklet::DispatchQueue::*)(), RNWorklet::DispatchQueue*>&, std::__1::__tuple_indices<2ul>) + 48 (thread.h:205)
+7   example.debug.dylib           	       0x10454967c void* std::__1::__thread_proxy[abi:de200100]<std::__1::tuple<std::__1::unique_ptr<std::__1::__thread_struct, std::__1::default_delete<std::__1::__thread_struct>>, void (RNWorklet::DispatchQueue::*)(), RNWorklet::DispatchQueue*>>(void*) + 84 (thread.h:214)
+8   libsystem_pthread.dylib       	       0x100aca5ac _pthread_start + 104
+9   libsystem_pthread.dylib       	       0x100ac5998 thread_start + 8
+
+Thread 12:: hades
+0   libsystem_kernel.dylib        	       0x100ec8020 __psynch_cvwait + 8
+1   libsystem_pthread.dylib       	       0x100acaa74 _pthread_cond_wait + 976
+2   libc++.1.dylib                	       0x18032c70c std::__1::condition_variable::wait(std::__1::unique_lock<std::__1::mutex>&) + 28
+3   hermesvm                      	       0x101c8d2c4 hermes::vm::HadesGC::Executor::worker() + 108
+4   hermesvm                      	       0x101c8d22c void* std::__1::__thread_proxy[abi:nn190102]<std::__1::tuple<std::__1::unique_ptr<std::__1::__thread_struct, std::__1::default_delete<std::__1::__thread_struct>>, hermes::vm::HadesGC::Executor::Executor()::'lambda'()>>(void*) + 44
+5   libsystem_pthread.dylib       	       0x100aca5ac _pthread_start + 104
+6   libsystem_pthread.dylib       	       0x100ac5998 thread_start + 8
+
+Thread 13:
+
+Thread 14:
+
+
+Thread 2 crashed with ARM Thread State (64-bit):
+    x0: 0x0000000000000000   x1: 0x0000000000000000   x2: 0x0000000000000000   x3: 0x0000000000000000
+    x4: 0x0000000000000000   x5: 0x000000000000002e   x6: 0x00058901000589c0   x7: 0x0000000000058900
+    x8: 0x000000016f863000   x9: 0xe4ef426f1ad05cba  x10: 0x000000000000000a  x11: 0x0000000000000000
+   x12: 0x0000000000000033  x13: 0x0000000000058901  x14: 0x0000000000058983  x15: 0x0000000000200001
+   x16: 0x0000000000000148  x17: 0x0000000000000000  x18: 0x0000000000000000  x19: 0x0000000000000006
+   x20: 0x0000000000005e03  x21: 0x000000016f8630e0  x22: 0x00000001015fc000  x23: 0x000000010b290633
+   x24: 0x00000001f29bc000  x25: 0x0000000000000002  x26: 0x000000016f860eb0  x27: 0x000000016f861188
+   x28: 0x0000000102842800   fp: 0x000000016f85dff0   lr: 0x0000000100aca2a8
+    sp: 0x000000016f85dfd0   pc: 0x0000000100ecc85c cpsr: 0x40001000
+   far: 0x0000000000000000  esr: 0x56000080 (Syscall)
+
+Binary Images:
+       0x100c44000 -        0x100ce3fff dyld (*) <0975afba-c46b-364c-bd84-a75daa9e455a> /usr/lib/dyld
+       0x100a78000 -        0x100a7bfff com.leonsilicon.wishlist (1.0.0) <873ffd15-f16c-3bbd-a72b-ada4f9ea47e8> /Users/USER/Library/Developer/CoreSimulator/Devices/EED08502-8AD7-4FCB-B83B-36197DA19D23/data/Containers/Bundle/Application/A28D352B-577C-41DD-966C-9D0E74DBE2B3/example.app/example
+       0x100ab0000 -        0x100ab3fff libArgentInjectionBootstrap.dylib (*) <21437a51-84ee-315b-9833-10fb54adca2c> /Users/USER/*/libArgentInjectionBootstrap.dylib
+       0x103a1c000 -        0x10477bfff example.debug.dylib (*) <b74d6688-9ebf-3551-bbc6-aae44d9b91de> /Users/USER/Library/Developer/CoreSimulator/Devices/EED08502-8AD7-4FCB-B83B-36197DA19D23/data/Containers/Bundle/Application/A28D352B-577C-41DD-966C-9D0E74DBE2B3/example.app/example.debug.dylib
+       0x10a380000 -        0x10b35bfff react-native.React (1.0) <37ec3d1f-4aff-35a2-aa23-d8a038f8d30c> /Users/USER/Library/Developer/CoreSimulator/Devices/EED08502-8AD7-4FCB-B83B-36197DA19D23/data/Containers/Bundle/Application/A28D352B-577C-41DD-966C-9D0E74DBE2B3/example.app/Frameworks/React.framework/React
+       0x101100000 -        0x101263fff third-party.ReactNativeDependencies (1.0) <446be7d2-6a43-3162-bbc0-f1af1f871170> /Users/USER/Library/Developer/CoreSimulator/Devices/EED08502-8AD7-4FCB-B83B-36197DA19D23/data/Containers/Bundle/Application/A28D352B-577C-41DD-966C-9D0E74DBE2B3/example.app/Frameworks/ReactNativeDependencies.framework/ReactNativeDependencies
+       0x101b14000 -        0x101e63fff dev.hermesengine.iphonesimulator (0.12.0) <9e5e71bd-b9b3-3f8c-9bd6-05b2c9eeb5a1> /Users/USER/Library/Developer/CoreSimulator/Devices/EED08502-8AD7-4FCB-B83B-36197DA19D23/data/Containers/Bundle/Application/A28D352B-577C-41DD-966C-9D0E74DBE2B3/example.app/Frameworks/hermesvm.framework/hermesvm
+       0x100a90000 -        0x100a97fff libsystem_platform.dylib (*) <de4033bb-4a6b-317a-bda6-b3a408656844> /usr/lib/system/libsystem_platform.dylib
+       0x100ec4000 -        0x100efffff libsystem_kernel.dylib (*) <8f54f386-9b41-376a-9ba3-9423bbabb1b6> /usr/lib/system/libsystem_kernel.dylib
+       0x100ac4000 -        0x100ad3fff libsystem_pthread.dylib (*) <48ca2121-5ca2-3e04-bc91-a33151256e77> /usr/lib/system/libsystem_pthread.dylib
+       0x100f30000 -        0x100f47fff libNativeDevtoolsIos.dylib (*) <593bd89d-293f-3b91-a33c-091f74b2f8f4> /Users/USER/*/libNativeDevtoolsIos.dylib
+       0x100f60000 -        0x100f63fff libKeyboardPatch.dylib (*) <759c6239-f93b-3b7e-a586-0a5fbcfbb62c> /Users/USER/*/libKeyboardPatch.dylib
+       0x100f74000 -        0x100f7ffff libobjc-trampolines.dylib (*) <78c22921-6ad3-3681-bedb-525a69493719> /Volumes/VOLUME/*/libobjc-trampolines.dylib
+       0x1803ba000 -        0x1807dae3f com.apple.CoreFoundation (6.9) <6e5cfb28-dd41-3756-9786-3ef0adcd9d38> /Volumes/VOLUME/*/CoreFoundation.framework/CoreFoundation
+       0x19252f000 -        0x192536dbf com.apple.GraphicsServices (1.0) <02f377dd-50ff-356a-bcea-2c061ebe5045> /Volumes/VOLUME/*/GraphicsServices.framework/GraphicsServices
+       0x185156000 -        0x1872d0b5f com.apple.UIKitCore (1.0) <f3921c0a-1332-3779-97c7-62d9f3fa6b77> /Volumes/VOLUME/*/UIKitCore.framework/UIKitCore
+               0x0 - 0xffffffffffffffff ??? (*) <00000000-0000-0000-0000-000000000000> ???
+       0x18085a000 -        0x1815b48ff com.apple.Foundation (6.9) <7f5d43f6-db50-3a9c-be1f-9993bcba10d0> /Volumes/VOLUME/*/Foundation.framework/Foundation
+       0x180139000 -        0x1801b627b libsystem_c.dylib (*) <d591507f-069e-335b-a3ba-95dbac2e9dfa> /Volumes/VOLUME/*/libsystem_c.dylib
+       0x18030b000 -        0x1803944df libc++.1.dylib (*) <61c639c7-646c-3a47-9983-184033c61f3c> /Volumes/VOLUME/*/libc++.1.dylib
+       0x184c85000 -        0x184ff6a1f com.apple.CFNetwork (1.0) <f0ceabdf-83b6-3099-a27c-d19791fa7cbf> /Volumes/VOLUME/*/CFNetwork.framework/CFNetwork
+
+External Modification Summary:
+  Calls made by other processes targeting this process:
+    task_for_pid: 0
+    thread_create: 0
+    thread_set_state: 0
+  Calls made by this process:
+    task_for_pid: 0
+    thread_create: 0
+    thread_set_state: 0
+  Calls made by all processes on this machine:
+    task_for_pid: 0
+    thread_create: 0
+    thread_set_state: 0
+
+VM Region Summary:
+ReadOnly portion of Libraries: Total=1.8G resident=0K(0%) swapped_out_or_unallocated=1.8G(100%)
+Writable regions: Total=3.6G written=3189K(0%) resident=3189K(0%) swapped_out=0K(0%) unallocated=3.6G(100%)
+
+                                VIRTUAL   REGION
+REGION TYPE                        SIZE    COUNT (non-coalesced)
+===========                     =======  =======
+Activity Tracing                   256K        1
+AttributeGraph Data               1024K        1
+CG raster data                     816K       21
+ColorSync                          128K        5
+CoreAnimation                     6016K       83
+Foundation                          16K        1
+Image IO                            64K        4
+Kernel Alloc Once                   32K        1
+MALLOC                             3.5G      274
+MALLOC guard page                  288K       18
+SQLite page cache                  384K        3
+STACK GUARD                       56.2M       15
+Stack                             15.9M       15
+VM_ALLOCATE                       56.2M       47
+__DATA                            45.8M      927
+__DATA_CONST                     111.7M      954
+__DATA_DIRTY                       139K       13
+__FONT_DATA                        2352        1
+__LINKEDIT                       779.8M       14
+__OBJC_RO                         62.5M        1
+__OBJC_RW                         2768K        1
+__TEXT                             1.1G      969
+__TPRO_CONST                       148K        2
+dyld private memory                2.2G       80
+mapped file                      385.0M      120
+page table in kernel              3189K        1
+shared memory                       16K        1
+===========                     =======  =======
+TOTAL                              8.3G     3573
+
+
+-----------
+Full Report
+-----------
+
+{"app_name":"example","timestamp":"2026-05-12 14:58:39.00 -0400","app_version":"1.0.0","slice_uuid":"873ffd15-f16c-3bbd-a72b-ada4f9ea47e8","build_version":"1","platform":7,"bundleID":"com.leonsilicon.wishlist","share_with_app_devs":1,"is_first_party":0,"bug_type":"309","os_version":"macOS 26.2 (25C56)","roots_installed":0,"name":"example","incident_id":"C3C3D799-E998-48C5-B572-8BFEFE11B1E0"}
+{
+  "uptime" : 1300,
+  "procRole" : "Foreground",
+  "version" : 2,
+  "userID" : 501,
+  "deployVersion" : 210,
+  "modelCode" : "Mac14,6",
+  "coalitionID" : 1358,
+  "osVersion" : {
+    "train" : "macOS 26.2",
+    "build" : "25C56",
+    "releaseType" : "User"
+  },
+  "captureTime" : "2026-05-12 14:58:30.6412 -0400",
+  "codeSigningMonitor" : 2,
+  "incident" : "C3C3D799-E998-48C5-B572-8BFEFE11B1E0",
+  "pid" : 45761,
+  "translated" : false,
+  "cpuType" : "ARM-64",
+  "procLaunch" : "2026-05-12 14:55:56.7072 -0400",
+  "procStartAbsTime" : 27645557119,
+  "procExitAbsTime" : 31339929104,
+  "procName" : "example",
+  "procPath" : "\/Users\/USER\/Library\/Developer\/CoreSimulator\/Devices\/EED08502-8AD7-4FCB-B83B-36197DA19D23\/data\/Containers\/Bundle\/Application\/A28D352B-577C-41DD-966C-9D0E74DBE2B3\/example.app\/example",
+  "bundleInfo" : {"CFBundleShortVersionString":"1.0.0","CFBundleVersion":"1","CFBundleIdentifier":"com.leonsilicon.wishlist"},
+  "storeInfo" : {"deviceIdentifierForVendor":"C0AC6DD3-230E-5154-9C4D-14DC6939A44B","thirdParty":true},
+  "parentProc" : "launchd_sim",
+  "parentPid" : 6344,
+  "coalitionName" : "com.apple.CoreSimulator.SimDevice.EED08502-8AD7-4FCB-B83B-36197DA19D23",
+  "crashReporterKey" : "08C26A77-6D63-7CEA-F637-778515536C7F",
+  "appleIntelligenceStatus" : {"state":"available"},
+  "developerMode" : 1,
+  "responsiblePid" : 5410,
+  "responsibleProc" : "SimulatorTrampoline",
+  "codeSigningID" : "com.leonsilicon.wishlist",
+  "codeSigningTeamID" : "",
+  "codeSigningFlags" : 570425857,
+  "codeSigningValidationCategory" : 10,
+  "codeSigningTrustLevel" : 4294967295,
+  "codeSigningAuxiliaryInfo" : 0,
+  "instructionByteStream" : {"beforePC":"4wAAVP17v6n9AwCRKeP\/l78DAJH9e8GowANf1sADX9YQKYDSARAA1A==","atPC":"4wAAVP17v6n9AwCRH+P\/l78DAJH9e8GowANf1sADX9ZwCoDSARAA1A=="},
+  "bootSessionUUID" : "FB12574F-2AF5-430F-AC47-D9ADBCACD430",
+  "sip" : "disabled",
+  "exception" : {"codes":"0x0000000000000000, 0x0000000000000000","rawCodes":[0,0],"type":"EXC_CRASH","signal":"SIGABRT"},
+  "termination" : {"flags":0,"code":6,"namespace":"SIGNAL","indicator":"Abort trap: 6","byProc":"example","byPid":45761},
+  "extMods" : {"caller":{"thread_create":0,"thread_set_state":0,"task_for_pid":0},"system":{"thread_create":0,"thread_set_state":0,"task_for_pid":0},"targeted":{"thread_create":0,"thread_set_state":0,"task_for_pid":0},"warnings":0},
+  "faultingThread" : 2,
+  "threads" : [{"id":170577,"threadState":{"x":[{"value":268451845},{"value":21592279046},{"value":8589934592},{"value":45092861640704},{"value":0},{"value":45092861640704},{"value":2},{"value":4294967295},{"value":0},{"value":17179869184},{"value":0},{"value":2},{"value":0},{"value":0},{"value":10499},{"value":3072},{"value":18446744073709551569},{"value":626721627978242},{"value":0},{"value":4294967295},{"value":2},{"value":45092861640704},{"value":0},{"value":45092861640704},{"value":6160927928},{"value":8589934592},{"value":21592279046},{"value":18446744073709550527},{"value":4412409862}],"flavor":"ARM_THREAD_STATE64","lr":{"value":4310522124},"cpsr":{"value":4096},"fp":{"value":6160927776},"sp":{"value":6160927696},"esr":{"value":1442840704,"description":"(Syscall)"},"pc":{"value":4310453104},"far":{"value":0}},"queue":"com.apple.main-thread","frames":[{"imageOffset":2928,"symbol":"mach_msg2_trap","symbolLocation":8,"imageIndex":8},{"imageOffset":71948,"symbol":"mach_msg2_internal","symbolLocation":72,"imageIndex":8},{"imageOffset":35856,"symbol":"mach_msg_overwrite","symbolLocation":480,"imageIndex":8},{"imageOffset":3812,"symbol":"mach_msg","symbolLocation":20,"imageIndex":8},{"imageOffset":601404,"symbol":"__CFRunLoopServiceMachPort","symbolLocation":156,"imageIndex":13},{"imageOffset":597748,"symbol":"__CFRunLoopRun","symbolLocation":1128,"imageIndex":13},{"imageOffset":577060,"symbol":"_CFRunLoopRunSpecificWithOptions","symbolLocation":496,"imageIndex":13},{"imageOffset":10684,"symbol":"GSEventRunModal","symbolLocation":116,"imageIndex":14},{"imageOffset":17865788,"symbol":"-[UIApplication _run]","symbolLocation":772,"imageIndex":15},{"imageOffset":17882724,"symbol":"UIApplicationMain","symbolLocation":124,"imageIndex":15},{"imageOffset":3694744,"imageIndex":15},{"imageOffset":17132,"sourceFile":"\/<compiler-generated>","symbol":"static UIApplicationDelegate.main()","symbolLocation":128,"imageIndex":3},{"imageOffset":16988,"sourceFile":"\/<compiler-generated>","symbol":"static AppDelegate.$main()","symbolLocation":44,"imageIndex":3},{"imageOffset":19816,"sourceFile":"\/<compiler-generated>","symbol":"__debug_main_executable_dylib_entry_point","symbolLocation":28,"imageIndex":3},{"imageOffset":4306670544,"imageIndex":16},{"imageOffset":36180,"symbol":"start","symbolLocation":7184,"imageIndex":0}]},{"id":170602,"name":"com.apple.uikit.eventfetch-thread","threadState":{"x":[{"value":268451845},{"value":21592279046},{"value":8589934592},{"value":48391396524032},{"value":0},{"value":48391396524032},{"value":2},{"value":4294967295},{"value":0},{"value":17179869184},{"value":0},{"value":2},{"value":0},{"value":0},{"value":11267},{"value":3072},{"value":18446744073709551569},{"value":2},{"value":0},{"value":4294967295},{"value":2},{"value":48391396524032},{"value":0},{"value":48391396524032},{"value":6163783048},{"value":8589934592},{"value":21592279046},{"value":18446744073709550527},{"value":4412409862}],"flavor":"ARM_THREAD_STATE64","lr":{"value":4310522124},"cpsr":{"value":4096},"fp":{"value":6163782896},"sp":{"value":6163782816},"esr":{"value":1442840704,"description":"(Syscall)"},"pc":{"value":4310453104},"far":{"value":0}},"frames":[{"imageOffset":2928,"symbol":"mach_msg2_trap","symbolLocation":8,"imageIndex":8},{"imageOffset":71948,"symbol":"mach_msg2_internal","symbolLocation":72,"imageIndex":8},{"imageOffset":35856,"symbol":"mach_msg_overwrite","symbolLocation":480,"imageIndex":8},{"imageOffset":3812,"symbol":"mach_msg","symbolLocation":20,"imageIndex":8},{"imageOffset":601404,"symbol":"__CFRunLoopServiceMachPort","symbolLocation":156,"imageIndex":13},{"imageOffset":597748,"symbol":"__CFRunLoopRun","symbolLocation":1128,"imageIndex":13},{"imageOffset":577060,"symbol":"_CFRunLoopRunSpecificWithOptions","symbolLocation":496,"imageIndex":13},{"imageOffset":9010348,"symbol":"-[NSRunLoop(NSRunLoop) runMode:beforeDate:]","symbolLocation":208,"imageIndex":17},{"imageOffset":9010892,"symbol":"-[NSRunLoop(NSRunLoop) runUntilDate:]","symbolLocation":60,"imageIndex":17},{"imageOffset":18616568,"symbol":"-[UIEventFetcher threadMain]","symbolLocation":392,"imageIndex":15},{"imageOffset":9169784,"symbol":"__NSThread__start__","symbolLocation":716,"imageIndex":17},{"imageOffset":26028,"symbol":"_pthread_start","symbolLocation":104,"imageIndex":9},{"imageOffset":6552,"symbol":"thread_start","symbolLocation":8,"imageIndex":9}]},{"frames":[{"imageOffset":34908,"symbol":"__pthread_kill","symbolLocation":8,"imageIndex":8},{"imageOffset":25256,"symbol":"pthread_kill","symbolLocation":264,"imageIndex":9},{"imageOffset":477520,"symbol":"abort","symbolLocation":100,"imageIndex":18},{"imageOffset":474324,"symbol":"__assert_rtn","symbolLocation":268,"imageIndex":18},{"imageOffset":6866600,"symbol":"facebook::react::ShadowNodeFamily::setParent(std::__1::shared_ptr<facebook::react::ShadowNodeFamily const> const&) const","symbolLocation":468,"imageIndex":4},{"imageOffset":6825192,"symbol":"facebook::react::ShadowNode::ShadowNode(facebook::react::ShadowNode const&, facebook::react::ShadowNodeFragment const&)","symbolLocation":1052,"imageIndex":4},{"imageOffset":6708164,"symbol":"facebook::react::LayoutableShadowNode::LayoutableShadowNode(facebook::react::ShadowNode const&, facebook::react::ShadowNodeFragment const&)","symbolLocation":44,"imageIndex":4},{"imageOffset":6481456,"symbol":"facebook::react::YogaLayoutableShadowNode::YogaLayoutableShadowNode(facebook::react::ShadowNode const&, facebook::react::ShadowNodeFragment const&)","symbolLocation":52,"imageIndex":4},{"imageOffset":6476472,"symbol":"facebook::react::ConcreteShadowNode<&facebook::react::ViewComponentName, facebook::react::YogaLayoutableShadowNode, facebook::react::ViewShadowNodeProps, facebook::react::BaseViewEventEmitter, facebook::react::StateData>::ConcreteShadowNode(facebook::react::ShadowNode const&, facebook::react::ShadowNodeFragment const&)","symbolLocation":44,"imageIndex":4},{"imageOffset":6473868,"symbol":"facebook::react::ConcreteViewShadowNode<&facebook::react::ViewComponentName, facebook::react::ViewShadowNodeProps, facebook::react::BaseViewEventEmitter, facebook::react::StateData>::ConcreteViewShadowNode(facebook::react::ShadowNode const&, facebook::react::ShadowNodeFragment const&)","symbolLocation":44,"imageIndex":4},{"imageOffset":6473776,"symbol":"facebook::react::ViewShadowNode::ViewShadowNode(facebook::react::ShadowNode const&, facebook::react::ShadowNodeFragment const&)","symbolLocation":44,"imageIndex":4},{"imageOffset":6473960,"symbol":"facebook::react::ViewShadowNode::ViewShadowNode(facebook::react::ShadowNode const&, facebook::react::ShadowNodeFragment const&)","symbolLocation":44,"imageIndex":4},{"imageOffset":9216872,"symbol":"facebook::react::ViewShadowNode* std::__1::construct_at[abi:de180100]<facebook::react::ViewShadowNode, facebook::react::ShadowNode const&, facebook::react::ShadowNodeFragment const&, facebook::react::ViewShadowNode*>(facebook::react::ViewShadowNode*, facebook::react::ShadowNode const&, facebook::react::ShadowNodeFragment const&)","symbolLocation":72,"imageIndex":4},{"imageOffset":9216788,"symbol":"facebook::react::ViewShadowNode* std::__1::__construct_at[abi:de180100]<facebook::react::ViewShadowNode, facebook::react::ShadowNode const&, facebook::react::ShadowNodeFragment const&, facebook::react::ViewShadowNode*>(facebook::react::ViewShadowNode*, facebook::react::ShadowNode const&, facebook::react::ShadowNodeFragment const&)","symbolLocation":40,"imageIndex":4},{"imageOffset":9216736,"symbol":"void std::__1::allocator_traits<std::__1::allocator<facebook::react::ViewShadowNode>>::construct[abi:de180100]<facebook::react::ViewShadowNode, facebook::react::ShadowNode const&, facebook::react::ShadowNodeFragment const&, void, void>(std::__1::allocator<facebook::react::ViewShadowNode>&, facebook::react::ViewShadowNode*, facebook::react::ShadowNode const&, facebook::react::ShadowNodeFragment const&)","symbolLocation":44,"imageIndex":4},{"imageOffset":9216608,"symbol":"std::__1::__shared_ptr_emplace<facebook::react::ViewShadowNode, std::__1::allocator<facebook::react::ViewShadowNode>>::__shared_ptr_emplace[abi:de180100]<facebook::react::ShadowNode const&, facebook::react::ShadowNodeFragment const&, std::__1::allocator<facebook::react::ViewShadowNode>, 0>(std::__1::allocator<facebook::react::ViewShadowNode>, facebook::react::ShadowNode const&, facebook::react::ShadowNodeFragment const&)","symbolLocation":112,"imageIndex":4},{"imageOffset":9216480,"symbol":"std::__1::__shared_ptr_emplace<facebook::react::ViewShadowNode, std::__1::allocator<facebook::react::ViewShadowNode>>::__shared_ptr_emplace[abi:de180100]<facebook::react::ShadowNode const&, facebook::react::ShadowNodeFragment const&, std::__1::allocator<facebook::react::ViewShadowNode>, 0>(std::__1::allocator<facebook::react::ViewShadowNode>, facebook::react::ShadowNode const&, facebook::react::ShadowNodeFragment const&)","symbolLocation":44,"imageIndex":4},{"imageOffset":9216344,"symbol":"std::__1::shared_ptr<facebook::react::ViewShadowNode> std::__1::allocate_shared[abi:de180100]<facebook::react::ViewShadowNode, std::__1::allocator<facebook::react::ViewShadowNode>, facebook::react::ShadowNode const&, facebook::react::ShadowNodeFragment const&, void>(std::__1::allocator<facebook::react::ViewShadowNode> const&, facebook::react::ShadowNode const&, facebook::react::ShadowNodeFragment const&)","symbolLocation":68,"imageIndex":4},{"imageOffset":9216188,"symbol":"std::__1::shared_ptr<facebook::react::ViewShadowNode> std::__1::make_shared[abi:de180100]<facebook::react::ViewShadowNode, facebook::react::ShadowNode const&, facebook::react::ShadowNodeFragment const&, void>(facebook::react::ShadowNode const&, facebook::react::ShadowNodeFragment const&)","symbolLocation":60,"imageIndex":4},{"imageOffset":9210528,"symbol":"facebook::react::ConcreteComponentDescriptor<facebook::react::ViewShadowNode>::cloneShadowNode(facebook::react::ShadowNode const&, facebook::react::ShadowNodeFragment const&) const","symbolLocation":60,"imageIndex":4},{"imageOffset":6826088,"symbol":"facebook::react::ShadowNode::clone(facebook::react::ShadowNodeFragment const&) const","symbolLocation":632,"imageIndex":4},{"imageOffset":7048040,"symbol":"facebook::react::progressState(facebook::react::ShadowNode const&)","symbolLocation":720,"imageIndex":4},{"imageOffset":7047636,"symbol":"facebook::react::progressState(facebook::react::ShadowNode const&)","symbolLocation":316,"imageIndex":4},{"imageOffset":7047636,"symbol":"facebook::react::progressState(facebook::react::ShadowNode const&)","symbolLocation":316,"imageIndex":4},{"imageOffset":7047636,"symbol":"facebook::react::progressState(facebook::react::ShadowNode const&)","symbolLocation":316,"imageIndex":4},{"imageOffset":7041540,"symbol":"facebook::react::progressState(facebook::react::ShadowNode const&, facebook::react::ShadowNode const&)","symbolLocation":660,"imageIndex":4},{"imageOffset":7041352,"symbol":"facebook::react::progressState(facebook::react::ShadowNode const&, facebook::react::ShadowNode const&)","symbolLocation":472,"imageIndex":4},{"imageOffset":7041352,"symbol":"facebook::react::progressState(facebook::react::ShadowNode const&, facebook::react::ShadowNode const&)","symbolLocation":472,"imageIndex":4},{"imageOffset":7041352,"symbol":"facebook::react::progressState(facebook::react::ShadowNode const&, facebook::react::ShadowNode const&)","symbolLocation":472,"imageIndex":4},{"imageOffset":7041352,"symbol":"facebook::react::progressState(facebook::react::ShadowNode const&, facebook::react::ShadowNode const&)","symbolLocation":472,"imageIndex":4},{"imageOffset":7041352,"symbol":"facebook::react::progressState(facebook::react::ShadowNode const&, facebook::react::ShadowNode const&)","symbolLocation":472,"imageIndex":4},{"imageOffset":7041352,"symbol":"facebook::react::progressState(facebook::react::ShadowNode const&, facebook::react::ShadowNode const&)","symbolLocation":472,"imageIndex":4},{"imageOffset":7039588,"symbol":"facebook::react::ShadowTree::tryCommit(std::__1::function<std::__1::shared_ptr<facebook::react::RootShadowNode> (facebook::react::RootShadowNode const&)> const&, facebook::react::ShadowTreeCommitOptions const&) const","symbolLocation":464,"imageIndex":4},{"imageOffset":7038852,"symbol":"facebook::react::ShadowTree::commit(std::__1::function<std::__1::shared_ptr<facebook::react::RootShadowNode> (facebook::react::RootShadowNode const&)> const&, facebook::react::ShadowTreeCommitOptions const&) const","symbolLocation":256,"imageIndex":4},{"imageOffset":7805064,"symbol":"facebook::react::UIManager::completeSurface(int, std::__1::shared_ptr<std::__1::vector<std::__1::shared_ptr<facebook::react::ShadowNode const>, std::__1::allocator<std::__1::shared_ptr<facebook::react::ShadowNode const>>>> const&, facebook::react::ShadowTreeCommitOptions)::$_0::operator()(facebook::react::ShadowTree const&) const","symbolLocation":108,"imageIndex":4},{"imageOffset":7804944,"symbol":"decltype(std::declval<facebook::react::UIManager::completeSurface(int, std::__1::shared_ptr<std::__1::vector<std::__1::shared_ptr<facebook::react::ShadowNode const>, std::__1::allocator<std::__1::shared_ptr<facebook::react::ShadowNode const>>>> const&, facebook::react::ShadowTreeCommitOptions)::$_0&>()(std::declval<facebook::react::ShadowTree const&>())) std::__1::__invoke[abi:de180100]<facebook::react::UIManager::completeSurface(int, std::__1::shared_ptr<std::__1::vector<std::__1::shared_ptr<facebook::react::ShadowNode const>, std::__1::allocator<std::__1::shared_ptr<facebook::react::ShadowNode const>>>> const&, facebook::react::ShadowTreeCommitOptions)::$_0&, facebook::react::ShadowTree const&>(facebook::react::UIManager::completeSurface(int, std::__1::shared_ptr<std::__1::vector<std::__1::shared_ptr<facebook::react::ShadowNode const>, std::__1::allocator<std::__1::shared_ptr<facebook::react::ShadowNode const>>>> const&, facebook::react::ShadowTreeCommitOptions)::$_0&, facebook::react::ShadowTree const&)","symbolLocation":32,"imageIndex":4},{"imageOffset":7804864,"symbol":"void std::__1::__invoke_void_return_wrapper<void, true>::__call[abi:de180100]<facebook::react::UIManager::completeSurface(int, std::__1::shared_ptr<std::__1::vector<std::__1::shared_ptr<facebook::react::ShadowNode const>, std::__1::allocator<std::__1::shared_ptr<facebook::react::ShadowNode const>>>> const&, facebook::react::ShadowTreeCommitOptions)::$_0&, facebook::react::ShadowTree const&>(facebook::react::UIManager::completeSurface(int, std::__1::shared_ptr<std::__1::vector<std::__1::shared_ptr<facebook::react::ShadowNode const>, std::__1::allocator<std::__1::shared_ptr<facebook::react::ShadowNode const>>>> const&, facebook::react::ShadowTreeCommitOptions)::$_0&, facebook::react::ShadowTree const&)","symbolLocation":32,"imageIndex":4},{"imageOffset":7804820,"symbol":"std::__1::__function::__alloc_func<facebook::react::UIManager::completeSurface(int, std::__1::shared_ptr<std::__1::vector<std::__1::shared_ptr<facebook::react::ShadowNode const>, std::__1::allocator<std::__1::shared_ptr<facebook::react::ShadowNode const>>>> const&, facebook::react::ShadowTreeCommitOptions)::$_0, std::__1::allocator<facebook::react::UIManager::completeSurface(int, std::__1::shared_ptr<std::__1::vector<std::__1::shared_ptr<facebook::react::ShadowNode const>, std::__1::allocator<std::__1::shared_ptr<facebook::react::ShadowNode const>>>> const&, facebook::react::ShadowTreeCommitOptions)::$_0>, void (facebook::react::ShadowTree const&)>::operator()[abi:de180100](facebook::react::ShadowTree const&)","symbolLocation":36,"imageIndex":4},{"imageOffset":7800724,"symbol":"std::__1::__function::__func<facebook::react::UIManager::completeSurface(int, std::__1::shared_ptr<std::__1::vector<std::__1::shared_ptr<facebook::react::ShadowNode const>, std::__1::allocator<std::__1::shared_ptr<facebook::react::ShadowNode const>>>> const&, facebook::react::ShadowTreeCommitOptions)::$_0, std::__1::allocator<facebook::react::UIManager::completeSurface(int, std::__1::shared_ptr<std::__1::vector<std::__1::shared_ptr<facebook::react::ShadowNode const>, std::__1::allocator<std::__1::shared_ptr<facebook::react::ShadowNode const>>>> const&, facebook::react::ShadowTreeCommitOptions)::$_0>, void (facebook::react::ShadowTree const&)>::operator()(facebook::react::ShadowTree const&)","symbolLocation":36,"imageIndex":4},{"imageOffset":7096436,"symbol":"std::__1::__function::__value_func<void (facebook::react::ShadowTree const&)>::operator()[abi:de180100](facebook::react::ShadowTree const&) const","symbolLocation":76,"imageIndex":4},{"imageOffset":7084656,"symbol":"std::__1::function<void (facebook::react::ShadowTree const&)>::operator()(facebook::react::ShadowTree const&) const","symbolLocation":32,"imageIndex":4},{"imageOffset":7084560,"symbol":"facebook::react::ShadowTreeRegistry::visit(int, std::__1::function<void (facebook::react::ShadowTree const&)> const&) const","symbolLocation":248,"imageIndex":4},{"imageOffset":7756820,"symbol":"facebook::react::UIManager::completeSurface(int, std::__1::shared_ptr<std::__1::vector<std::__1::shared_ptr<facebook::react::ShadowNode const>, std::__1::allocator<std::__1::shared_ptr<facebook::react::ShadowNode const>>>> const&, facebook::react::ShadowTreeCommitOptions)","symbolLocation":168,"imageIndex":4},{"imageOffset":8052268,"symbol":"facebook::react::UIManagerBinding::get(facebook::jsi::Runtime&, facebook::jsi::PropNameID const&)::$_9::operator()(facebook::jsi::Runtime&, facebook::jsi::Value const&, facebook::jsi::Value const*, unsigned long) const","symbolLocation":176,"imageIndex":4},{"imageOffset":8052080,"symbol":"decltype(std::declval<facebook::react::UIManagerBinding::get(facebook::jsi::Runtime&, facebook::jsi::PropNameID const&)::$_9&>()(std::declval<facebook::jsi::Runtime&>(), std::declval<facebook::jsi::Value const&>(), std::declval<facebook::jsi::Value const*>(), std::declval<unsigned long>())) std::__1::__invoke[abi:de180100]<facebook::react::UIManagerBinding::get(facebook::jsi::Runtime&, facebook::jsi::PropNameID const&)::$_9&, facebook::jsi::Runtime&, facebook::jsi::Value const&, facebook::jsi::Value const*, unsigned long>(facebook::react::UIManagerBinding::get(facebook::jsi::Runtime&, facebook::jsi::PropNameID const&)::$_9&, facebook::jsi::Runtime&, facebook::jsi::Value const&, facebook::jsi::Value const*&&, unsigned long&&)","symbolLocation":72,"imageIndex":4},{"imageOffset":8051960,"symbol":"facebook::jsi::Value std::__1::__invoke_void_return_wrapper<facebook::jsi::Value, false>::__call[abi:de180100]<facebook::react::UIManagerBinding::get(facebook::jsi::Runtime&, facebook::jsi::PropNameID const&)::$_9&, facebook::jsi::Runtime&, facebook::jsi::Value const&, facebook::jsi::Value const*, unsigned long>(facebook::react::UIManagerBinding::get(facebook::jsi::Runtime&, facebook::jsi::PropNameID const&)::$_9&, facebook::jsi::Runtime&, facebook::jsi::Value const&, facebook::jsi::Value const*&&, unsigned long&&)","symbolLocation":64,"imageIndex":4},{"imageOffset":8051884,"symbol":"std::__1::__function::__alloc_func<facebook::react::UIManagerBinding::get(facebook::jsi::Runtime&, facebook::jsi::PropNameID const&)::$_9, std::__1::allocator<facebook::react::UIManagerBinding::get(facebook::jsi::Runtime&, facebook::jsi::PropNameID const&)::$_9>, facebook::jsi::Value (facebook::jsi::Runtime&, facebook::jsi::Value const&, facebook::jsi::Value const*, unsigned long)>::operator()[abi:de180100](facebook::jsi::Runtime&, facebook::jsi::Value const&, facebook::jsi::Value const*&&, unsigned long&&)","symbolLocation":72,"imageIndex":4},{"imageOffset":8047148,"symbol":"std::__1::__function::__func<facebook::react::UIManagerBinding::get(facebook::jsi::Runtime&, facebook::jsi::PropNameID const&)::$_9, std::__1::allocator<facebook::react::UIManagerBinding::get(facebook::jsi::Runtime&, facebook::jsi::PropNameID const&)::$_9>, facebook::jsi::Value (facebook::jsi::Runtime&, facebook::jsi::Value const&, facebook::jsi::Value const*, unsigned long)>::operator()(facebook::jsi::Runtime&, facebook::jsi::Value const&, facebook::jsi::Value const*&&, unsigned long&&)","symbolLocation":68,"imageIndex":4},{"imageOffset":78888,"symbol":"facebook::hermes::(anonymous namespace)::HermesRuntimeImpl::HFContext::func(void*, hermes::vm::Runtime&, hermes::vm::NativeArgs)","symbolLocation":284,"imageIndex":6},{"imageOffset":840724,"symbol":"hermes::vm::NativeFunction::_nativeCall(hermes::vm::NativeFunction*, hermes::vm::Runtime&)","symbolLocation":144,"imageIndex":6},{"imageOffset":946932,"symbol":"hermes::vm::CallResult<hermes::vm::HermesValue, (hermes::vm::detail::CallResultSpecialize)2> hermes::vm::Interpreter::interpretFunction<false, false>(hermes::vm::Runtime&, hermes::vm::InterpreterState&)","symbolLocation":9636,"imageIndex":6},{"imageOffset":937244,"symbol":"hermes::vm::Runtime::interpretFunctionImpl(hermes::vm::CodeBlock*)","symbolLocation":132,"imageIndex":6},{"imageOffset":841448,"symbol":"hermes::vm::JSFunction::_callImpl(hermes::vm::Handle<hermes::vm::Callable>, hermes::vm::Runtime&)","symbolLocation":40,"imageIndex":6},{"imageOffset":839592,"symbol":"hermes::vm::BoundFunction::_boundCall(hermes::vm::BoundFunction*, hermes::inst::Inst const*, hermes::vm::Runtime&)","symbolLocation":492,"imageIndex":6},{"imageOffset":39700,"symbol":"facebook::hermes::(anonymous namespace)::HermesRuntimeImpl::call(facebook::jsi::Function const&, facebook::jsi::Value const&, facebook::jsi::Value const*, unsigned long)","symbolLocation":748,"imageIndex":6},{"imageOffset":11065628,"symbol":"facebook::jsi::Function::call(facebook::jsi::Runtime&, facebook::jsi::Value const*, unsigned long) const","symbolLocation":100,"imageIndex":4},{"imageOffset":11065452,"symbol":"facebook::jsi::Function::call(facebook::jsi::Runtime&, std::initializer_list<facebook::jsi::Value>) const","symbolLocation":112,"imageIndex":4},{"imageOffset":11289096,"symbol":"facebook::react::Task::execute(facebook::jsi::Runtime&, bool)","symbolLocation":292,"imageIndex":4},{"imageOffset":11243836,"symbol":"facebook::react::RuntimeScheduler_Modern::executeTask(facebook::jsi::Runtime&, facebook::react::Task&, bool) const","symbolLocation":160,"imageIndex":4},{"imageOffset":11246724,"symbol":"facebook::react::RuntimeScheduler_Modern::runEventLoopTick(facebook::jsi::Runtime&, facebook::react::Task&)","symbolLocation":244,"imageIndex":4},{"imageOffset":11246004,"symbol":"facebook::react::RuntimeScheduler_Modern::runEventLoop(facebook::jsi::Runtime&)","symbolLocation":168,"imageIndex":4},{"imageOffset":11285488,"symbol":"facebook::react::RuntimeScheduler_Modern::scheduleEventLoop()::$_0::operator()(facebook::jsi::Runtime&) const","symbolLocation":36,"imageIndex":4},{"imageOffset":11285440,"symbol":"decltype(std::declval<facebook::react::RuntimeScheduler_Modern::scheduleEventLoop()::$_0&>()(std::declval<facebook::jsi::Runtime&>())) std::__1::__invoke[abi:de180100]<facebook::react::RuntimeScheduler_Modern::scheduleEventLoop()::$_0&, facebook::jsi::Runtime&>(facebook::react::RuntimeScheduler_Modern::scheduleEventLoop()::$_0&, facebook::jsi::Runtime&)","symbolLocation":32,"imageIndex":4},{"imageOffset":11285360,"symbol":"void std::__1::__invoke_void_return_wrapper<void, true>::__call[abi:de180100]<facebook::react::RuntimeScheduler_Modern::scheduleEventLoop()::$_0&, facebook::jsi::Runtime&>(facebook::react::RuntimeScheduler_Modern::scheduleEventLoop()::$_0&, facebook::jsi::Runtime&)","symbolLocation":32,"imageIndex":4},{"imageOffset":11285316,"symbol":"std::__1::__function::__alloc_func<facebook::react::RuntimeScheduler_Modern::scheduleEventLoop()::$_0, std::__1::allocator<facebook::react::RuntimeScheduler_Modern::scheduleEventLoop()::$_0>, void (facebook::jsi::Runtime&)>::operator()[abi:de180100](facebook::jsi::Runtime&)","symbolLocation":36,"imageIndex":4},{"imageOffset":11280848,"symbol":"std::__1::__function::__func<facebook::react::RuntimeScheduler_Modern::scheduleEventLoop()::$_0, std::__1::allocator<facebook::react::RuntimeScheduler_Modern::scheduleEventLoop()::$_0>, void (facebook::jsi::Runtime&)>::operator()(facebook::jsi::Runtime&)","symbolLocation":36,"imageIndex":4},{"imageOffset":11703912,"symbol":"std::__1::__function::__value_func<void (facebook::jsi::Runtime&)>::operator()[abi:de180100](facebook::jsi::Runtime&) const","symbolLocation":76,"imageIndex":4},{"imageOffset":11695616,"symbol":"std::__1::function<void (facebook::jsi::Runtime&)>::operator()(facebook::jsi::Runtime&) const","symbolLocation":32,"imageIndex":4},{"imageOffset":11694720,"symbol":"_ZZZN8facebook5react13ReactInstanceC1ENSt3__110unique_ptrINS0_9JSRuntimeENS2_14default_deleteIS4_EEEENS2_10shared_ptrINS0_18MessageQueueThreadEEENS8_INS0_12TimerManagerEEENS2_8functionIFvRNS_3jsi7RuntimeERKNS0_14JsErrorHandler14ProcessedErrorEEEEPNS0_18jsinspector_modern10HostTargetEENK3$_0clINSD_IFvSG_EEEEEDaT_ENKUlvE_clEv","symbolLocation":148,"imageIndex":4},{"imageOffset":11694560,"symbol":"_ZNSt3__18__invokeB8de180100IRZZN8facebook5react13ReactInstanceC1ENS_10unique_ptrINS2_9JSRuntimeENS_14default_deleteIS5_EEEENS_10shared_ptrINS2_18MessageQueueThreadEEENS9_INS2_12TimerManagerEEENS_8functionIFvRNS1_3jsi7RuntimeERKNS2_14JsErrorHandler14ProcessedErrorEEEEPNS2_18jsinspector_modern10HostTargetEENK3$_0clINSE_IFvSH_EEEEEDaT_EUlvE_JEEEDTclclsr3stdE7declvalISW_EEspclsr3stdE7declvalIT0_EEEEOSW_DpOSZ_","symbolLocation":24,"imageIndex":4},{"imageOffset":11694488,"symbol":"_ZNSt3__128__invoke_void_return_wrapperIvLb1EE6__callB8de180100IJRZZN8facebook5react13ReactInstanceC1ENS_10unique_ptrINS4_9JSRuntimeENS_14default_deleteIS7_EEEENS_10shared_ptrINS4_18MessageQueueThreadEEENSB_INS4_12TimerManagerEEENS_8functionIFvRNS3_3jsi7RuntimeERKNS4_14JsErrorHandler14ProcessedErrorEEEEPNS4_18jsinspector_modern10HostTargetEENK3$_0clINSG_IFvSJ_EEEEEDaT_EUlvE_EEEvDpOT_","symbolLocation":24,"imageIndex":4},{"imageOffset":11694452,"symbol":"_ZNSt3__110__function12__alloc_funcIZZN8facebook5react13ReactInstanceC1ENS_10unique_ptrINS3_9JSRuntimeENS_14default_deleteIS6_EEEENS_10shared_ptrINS3_18MessageQueueThreadEEENSA_INS3_12TimerManagerEEENS_8functionIFvRNS2_3jsi7RuntimeERKNS3_14JsErrorHandler14ProcessedErrorEEEEPNS3_18jsinspector_modern10HostTargetEENK3$_0clINSF_IFvSI_EEEEEDaT_EUlvE_NS_9allocatorISY_EEFvvEEclB8de180100Ev","symbolLocation":28,"imageIndex":4},{"imageOffset":11689644,"symbol":"_ZNSt3__110__function6__funcIZZN8facebook5react13ReactInstanceC1ENS_10unique_ptrINS3_9JSRuntimeENS_14default_deleteIS6_EEEENS_10shared_ptrINS3_18MessageQueueThreadEEENSA_INS3_12TimerManagerEEENS_8functionIFvRNS2_3jsi7RuntimeERKNS3_14JsErrorHandler14ProcessedErrorEEEEPNS3_18jsinspector_modern10HostTargetEENK3$_0clINSF_IFvSI_EEEEEDaT_EUlvE_NS_9allocatorISY_EEFvvEEclEv","symbolLocation":28,"imageIndex":4},{"imageOffset":2879164,"symbol":"std::__1::__function::__value_func<void ()>::operator()[abi:de180100]() const","symbolLocation":68,"imageIndex":4},{"imageOffset":2878940,"symbol":"std::__1::function<void ()>::operator()() const","symbolLocation":24,"imageIndex":4},{"imageOffset":3482056,"symbol":"facebook::react::tryAndReturnError(std::__1::function<void ()> const&)","symbolLocation":24,"imageIndex":4},{"imageOffset":3385820,"symbol":"facebook::react::RCTMessageThread::tryFunc(std::__1::function<void ()> const&)","symbolLocation":36,"imageIndex":4},{"imageOffset":3405636,"symbol":"facebook::react::RCTMessageThread::runOnQueue(std::__1::function<void ()>&&)::$_0::operator()() const","symbolLocation":80,"imageIndex":4},{"imageOffset":3405544,"symbol":"decltype(std::declval<facebook::react::RCTMessageThread::runOnQueue(std::__1::function<void ()>&&)::$_0&>()()) std::__1::__invoke[abi:de180100]<facebook::react::RCTMessageThread::runOnQueue(std::__1::function<void ()>&&)::$_0&>(facebook::react::RCTMessageThread::runOnQueue(std::__1::function<void ()>&&)::$_0&)","symbolLocation":24,"imageIndex":4},{"imageOffset":3405472,"symbol":"void std::__1::__invoke_void_return_wrapper<void, true>::__call[abi:de180100]<facebook::react::RCTMessageThread::runOnQueue(std::__1::function<void ()>&&)::$_0&>(facebook::react::RCTMessageThread::runOnQueue(std::__1::function<void ()>&&)::$_0&)","symbolLocation":24,"imageIndex":4},{"imageOffset":3405436,"symbol":"std::__1::__function::__alloc_func<facebook::react::RCTMessageThread::runOnQueue(std::__1::function<void ()>&&)::$_0, std::__1::allocator<facebook::react::RCTMessageThread::runOnQueue(std::__1::function<void ()>&&)::$_0>, void ()>::operator()[abi:de180100]()","symbolLocation":28,"imageIndex":4},{"imageOffset":3400604,"symbol":"std::__1::__function::__func<facebook::react::RCTMessageThread::runOnQueue(std::__1::function<void ()>&&)::$_0, std::__1::allocator<facebook::react::RCTMessageThread::runOnQueue(std::__1::function<void ()>&&)::$_0>, void ()>::operator()()","symbolLocation":28,"imageIndex":4},{"imageOffset":2879164,"symbol":"std::__1::__function::__value_func<void ()>::operator()[abi:de180100]() const","symbolLocation":68,"imageIndex":4},{"imageOffset":2878940,"symbol":"std::__1::function<void ()>::operator()() const","symbolLocation":24,"imageIndex":4},{"imageOffset":3385204,"symbol":"invocation function for block in facebook::react::RCTMessageThread::runAsync(std::__1::function<void ()>)","symbolLocation":48,"imageIndex":4},{"imageOffset":602792,"symbol":"__CFRUNLOOP_IS_CALLING_OUT_TO_A_BLOCK__","symbolLocation":20,"imageIndex":13},{"imageOffset":600624,"symbol":"__CFRunLoopDoBlocks","symbolLocation":340,"imageIndex":13},{"imageOffset":598900,"symbol":"__CFRunLoopRun","symbolLocation":2280,"imageIndex":13},{"imageOffset":577060,"symbol":"_CFRunLoopRunSpecificWithOptions","symbolLocation":496,"imageIndex":13},{"imageOffset":12314924,"symbol":"+[RCTJSThreadManager runRunLoop]","symbolLocation":292,"imageIndex":4},{"imageOffset":9169784,"symbol":"__NSThread__start__","symbolLocation":716,"imageIndex":17},{"imageOffset":26028,"symbol":"_pthread_start","symbolLocation":104,"imageIndex":9},{"imageOffset":6552,"symbol":"thread_start","symbolLocation":8,"imageIndex":9}],"id":170608,"recursionInfoArray":[{"hottestElided":29,"coldestElided":35,"depth":13,"keyFrame":{"imageOffset":7041352,"symbol":"facebook::react::progressState(facebook::react::ShadowNode const&, facebook::react::ShadowNode const&)","symbolLocation":472,"imageIndex":4}}],"originalLength":100,"triggered":true,"name":"com.facebook.react.runtime.JavaScript","threadState":{"x":[{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":46},{"value":1558012271888832},{"value":362752},{"value":6166032384},{"value":16496477005040082106},{"value":10},{"value":0},{"value":51},{"value":362753},{"value":362883},{"value":2097153},{"value":328},{"value":0},{"value":0},{"value":6},{"value":24067},{"value":6166032608},{"value":4318019584},{"value":4482205235},{"value":8365260800,"symbolLocation":56,"symbol":"_OBJC_PROTOCOL_$_OS_xpc_file_transfer"},{"value":2},{"value":6166023856},{"value":6166024584},{"value":4337182720}],"flavor":"ARM_THREAD_STATE64","lr":{"value":4306281128},"cpsr":{"value":1073745920},"fp":{"value":6166011888},"sp":{"value":6166011856},"esr":{"value":1442840704,"description":"(Syscall)"},"pc":{"value":4310485084,"matchesCrashFrame":1},"far":{"value":0}}},{"id":170609,"name":"hades","threadState":{"x":[{"value":260},{"value":0},{"value":0},{"value":0},{"value":0},{"value":160},{"value":0},{"value":0},{"value":6166605480},{"value":0},{"value":0},{"value":2},{"value":2},{"value":0},{"value":0},{"value":0},{"value":305},{"value":0},{"value":0},{"value":105553171891584},{"value":105553171891648},{"value":6166606048},{"value":0},{"value":0},{"value":0},{"value":1},{"value":256},{"value":0},{"value":0}],"flavor":"ARM_THREAD_STATE64","lr":{"value":4306283124},"cpsr":{"value":1610616832},"fp":{"value":6166605600},"sp":{"value":6166605456},"esr":{"value":1442840704,"description":"(Syscall)"},"pc":{"value":4310466592},"far":{"value":0}},"frames":[{"imageOffset":16416,"symbol":"__psynch_cvwait","symbolLocation":8,"imageIndex":8},{"imageOffset":27252,"symbol":"_pthread_cond_wait","symbolLocation":976,"imageIndex":9},{"imageOffset":136972,"symbol":"std::__1::condition_variable::wait(std::__1::unique_lock<std::__1::mutex>&)","symbolLocation":28,"imageIndex":19},{"imageOffset":1544900,"symbol":"hermes::vm::HadesGC::Executor::worker()","symbolLocation":108,"imageIndex":6},{"imageOffset":1544748,"symbol":"void* std::__1::__thread_proxy[abi:nn190102]<std::__1::tuple<std::__1::unique_ptr<std::__1::__thread_struct, std::__1::default_delete<std::__1::__thread_struct>>, hermes::vm::HadesGC::Executor::Executor()::'lambda'()>>(void*)","symbolLocation":44,"imageIndex":6},{"imageOffset":26028,"symbol":"_pthread_start","symbolLocation":104,"imageIndex":9},{"imageOffset":6552,"symbol":"thread_start","symbolLocation":8,"imageIndex":9}]},{"id":170791,"name":"com.apple.CFStream.LegacyThread","threadState":{"x":[{"value":268451845},{"value":21592279046},{"value":8589934592},{"value":182531815112704},{"value":0},{"value":182531815112704},{"value":2},{"value":4294967295},{"value":0},{"value":17179869184},{"value":0},{"value":2},{"value":0},{"value":0},{"value":42499},{"value":3072},{"value":18446744073709551569},{"value":163827232576770},{"value":0},{"value":4294967295},{"value":2},{"value":182531815112704},{"value":0},{"value":182531815112704},{"value":6167175176},{"value":8589934592},{"value":21592279046},{"value":18446744073709550527},{"value":4412409862}],"flavor":"ARM_THREAD_STATE64","lr":{"value":4310522124},"cpsr":{"value":4096},"fp":{"value":6167175024},"sp":{"value":6167174944},"esr":{"value":1442840704,"description":"(Syscall)"},"pc":{"value":4310453104},"far":{"value":0}},"frames":[{"imageOffset":2928,"symbol":"mach_msg2_trap","symbolLocation":8,"imageIndex":8},{"imageOffset":71948,"symbol":"mach_msg2_internal","symbolLocation":72,"imageIndex":8},{"imageOffset":35856,"symbol":"mach_msg_overwrite","symbolLocation":480,"imageIndex":8},{"imageOffset":3812,"symbol":"mach_msg","symbolLocation":20,"imageIndex":8},{"imageOffset":601404,"symbol":"__CFRunLoopServiceMachPort","symbolLocation":156,"imageIndex":13},{"imageOffset":597748,"symbol":"__CFRunLoopRun","symbolLocation":1128,"imageIndex":13},{"imageOffset":577060,"symbol":"_CFRunLoopRunSpecificWithOptions","symbolLocation":496,"imageIndex":13},{"imageOffset":725692,"symbol":"_legacyStreamRunLoop_workThread","symbolLocation":260,"imageIndex":13},{"imageOffset":26028,"symbol":"_pthread_start","symbolLocation":104,"imageIndex":9},{"imageOffset":6552,"symbol":"thread_start","symbolLocation":8,"imageIndex":9}]},{"id":170964,"name":"com.facebook.SocketRocket.NetworkThread","threadState":{"x":[{"value":268451845},{"value":21592279046},{"value":8589934592},{"value":151779849273344},{"value":0},{"value":151779849273344},{"value":2},{"value":4294967295},{"value":0},{"value":17179869184},{"value":0},{"value":2},{"value":0},{"value":0},{"value":35339},{"value":3072},{"value":18446744073709551569},{"value":2199023256066},{"value":0},{"value":4294967295},{"value":2},{"value":151779849273344},{"value":0},{"value":151779849273344},{"value":6167747928},{"value":8589934592},{"value":21592279046},{"value":18446744073709550527},{"value":4412409862}],"flavor":"ARM_THREAD_STATE64","lr":{"value":4310522124},"cpsr":{"value":4096},"fp":{"value":6167747776},"sp":{"value":6167747696},"esr":{"value":1442840704,"description":"(Syscall)"},"pc":{"value":4310453104},"far":{"value":0}},"frames":[{"imageOffset":2928,"symbol":"mach_msg2_trap","symbolLocation":8,"imageIndex":8},{"imageOffset":71948,"symbol":"mach_msg2_internal","symbolLocation":72,"imageIndex":8},{"imageOffset":35856,"symbol":"mach_msg_overwrite","symbolLocation":480,"imageIndex":8},{"imageOffset":3812,"symbol":"mach_msg","symbolLocation":20,"imageIndex":8},{"imageOffset":601404,"symbol":"__CFRunLoopServiceMachPort","symbolLocation":156,"imageIndex":13},{"imageOffset":597748,"symbol":"__CFRunLoopRun","symbolLocation":1128,"imageIndex":13},{"imageOffset":577060,"symbol":"_CFRunLoopRunSpecificWithOptions","symbolLocation":496,"imageIndex":13},{"imageOffset":9010348,"symbol":"-[NSRunLoop(NSRunLoop) runMode:beforeDate:]","symbolLocation":208,"imageIndex":17},{"imageOffset":351448,"symbol":"-[SRRunLoopThread main]","symbolLocation":260,"imageIndex":5},{"imageOffset":9169784,"symbol":"__NSThread__start__","symbolLocation":716,"imageIndex":17},{"imageOffset":26028,"symbol":"_pthread_start","symbolLocation":104,"imageIndex":9},{"imageOffset":6552,"symbol":"thread_start","symbolLocation":8,"imageIndex":9}]},{"id":170965,"name":"com.apple.NSURLConnectionLoader","threadState":{"x":[{"value":268451845},{"value":21592279046},{"value":8589934592},{"value":153996052398080},{"value":0},{"value":153996052398080},{"value":2},{"value":4294967295},{"value":0},{"value":17179869184},{"value":0},{"value":2},{"value":0},{"value":0},{"value":35855},{"value":3072},{"value":18446744073709551569},{"value":2},{"value":0},{"value":4294967295},{"value":2},{"value":153996052398080},{"value":0},{"value":153996052398080},{"value":6168321352},{"value":8589934592},{"value":21592279046},{"value":18446744073709550527},{"value":4412409862}],"flavor":"ARM_THREAD_STATE64","lr":{"value":4310522124},"cpsr":{"value":4096},"fp":{"value":6168321200},"sp":{"value":6168321120},"esr":{"value":1442840704,"description":"(Syscall)"},"pc":{"value":4310453104},"far":{"value":0}},"frames":[{"imageOffset":2928,"symbol":"mach_msg2_trap","symbolLocation":8,"imageIndex":8},{"imageOffset":71948,"symbol":"mach_msg2_internal","symbolLocation":72,"imageIndex":8},{"imageOffset":35856,"symbol":"mach_msg_overwrite","symbolLocation":480,"imageIndex":8},{"imageOffset":3812,"symbol":"mach_msg","symbolLocation":20,"imageIndex":8},{"imageOffset":601404,"symbol":"__CFRunLoopServiceMachPort","symbolLocation":156,"imageIndex":13},{"imageOffset":597748,"symbol":"__CFRunLoopRun","symbolLocation":1128,"imageIndex":13},{"imageOffset":577060,"symbol":"_CFRunLoopRunSpecificWithOptions","symbolLocation":496,"imageIndex":13},{"imageOffset":2099468,"symbol":"+[__CFN_CoreSchedulingSetRunnable _run:]","symbolLocation":368,"imageIndex":20},{"imageOffset":9169784,"symbol":"__NSThread__start__","symbolLocation":716,"imageIndex":17},{"imageOffset":26028,"symbol":"_pthread_start","symbolLocation":104,"imageIndex":9},{"imageOffset":6552,"symbol":"thread_start","symbolLocation":8,"imageIndex":9}]},{"id":170966,"name":"com.apple.CFSocket.private","threadState":{"x":[{"value":4},{"value":0},{"value":105553116425776},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":6168899808},{"value":0},{"value":5333266048},{"value":31},{"value":22},{"value":5333266384},{"value":72057602403336289,"symbolLocation":72057594037927937,"symbol":"OBJC_CLASS_$___NSCFArray"},{"value":8365408352,"symbolLocation":0,"symbol":"OBJC_CLASS_$___NSCFArray"},{"value":93},{"value":6446869488,"symbolLocation":0,"symbol":"-[__NSCFArray objectAtIndex:]"},{"value":0},{"value":105553129640496},{"value":8365428736,"symbolLocation":120,"symbol":"cache"},{"value":32},{"value":8365431144,"symbolLocation":0,"symbol":"__CFActiveSocketsLock"},{"value":0},{"value":105553116425776},{"value":105553129629536},{"value":105553116425792},{"value":0},{"value":105553129629776}],"flavor":"ARM_THREAD_STATE64","lr":{"value":6447020516},"cpsr":{"value":1610616832},"fp":{"value":6168899520},"sp":{"value":6168865744},"esr":{"value":1442840704,"description":"(Syscall)"},"pc":{"value":4310495104},"far":{"value":0}},"frames":[{"imageOffset":44928,"symbol":"__select","symbolLocation":8,"imageIndex":8},{"imageOffset":661988,"symbol":"__CFSocketManager","symbolLocation":680,"imageIndex":13},{"imageOffset":26028,"symbol":"_pthread_start","symbolLocation":104,"imageIndex":9},{"imageOffset":6552,"symbol":"thread_start","symbolLocation":8,"imageIndex":9}]},{"id":170983,"name":"hades","threadState":{"x":[{"value":260},{"value":0},{"value":0},{"value":0},{"value":0},{"value":160},{"value":0},{"value":0},{"value":6169472680},{"value":0},{"value":0},{"value":2},{"value":2},{"value":0},{"value":0},{"value":0},{"value":305},{"value":0},{"value":0},{"value":105553172365312},{"value":105553172365376},{"value":6169473248},{"value":0},{"value":0},{"value":0},{"value":1},{"value":256},{"value":0},{"value":0}],"flavor":"ARM_THREAD_STATE64","lr":{"value":4306283124},"cpsr":{"value":1610616832},"fp":{"value":6169472800},"sp":{"value":6169472656},"esr":{"value":1442840704,"description":"(Syscall)"},"pc":{"value":4310466592},"far":{"value":0}},"frames":[{"imageOffset":16416,"symbol":"__psynch_cvwait","symbolLocation":8,"imageIndex":8},{"imageOffset":27252,"symbol":"_pthread_cond_wait","symbolLocation":976,"imageIndex":9},{"imageOffset":136972,"symbol":"std::__1::condition_variable::wait(std::__1::unique_lock<std::__1::mutex>&)","symbolLocation":28,"imageIndex":19},{"imageOffset":1544900,"symbol":"hermes::vm::HadesGC::Executor::worker()","symbolLocation":108,"imageIndex":6},{"imageOffset":1544748,"symbol":"void* std::__1::__thread_proxy[abi:nn190102]<std::__1::tuple<std::__1::unique_ptr<std::__1::__thread_struct, std::__1::default_delete<std::__1::__thread_struct>>, hermes::vm::HadesGC::Executor::Executor()::'lambda'()>>(void*)","symbolLocation":44,"imageIndex":6},{"imageOffset":26028,"symbol":"_pthread_start","symbolLocation":104,"imageIndex":9},{"imageOffset":6552,"symbol":"thread_start","symbolLocation":8,"imageIndex":9}]},{"id":170988,"frames":[{"imageOffset":16416,"symbol":"__psynch_cvwait","symbolLocation":8,"imageIndex":8},{"imageOffset":27252,"symbol":"_pthread_cond_wait","symbolLocation":976,"imageIndex":9},{"imageOffset":136972,"symbol":"std::__1::condition_variable::wait(std::__1::unique_lock<std::__1::mutex>&)","symbolLocation":28,"imageIndex":19},{"imageOffset":11719612,"sourceLine":147,"sourceFile":"condition_variable.h","symbol":"void std::__1::condition_variable::wait<RNWorklet::DispatchQueue::dispatch_thread_handler()::$_0>(std::__1::unique_lock<std::__1::mutex>&, RNWorklet::DispatchQueue::dispatch_thread_handler()::$_0)","imageIndex":3,"symbolLocation":64},{"imageOffset":11718768,"sourceLine":49,"sourceFile":"WKTDispatchQueue.cpp","symbol":"RNWorklet::DispatchQueue::dispatch_thread_handler()","imageIndex":3,"symbolLocation":84},{"imageOffset":11721040,"sourceLine":147,"sourceFile":"invoke.h","symbol":"decltype(*std::declval<RNWorklet::DispatchQueue*>().*std::declval<void (RNWorklet::DispatchQueue::*)()>()()) std::__1::__invoke[abi:de200100]<void (RNWorklet::DispatchQueue::*)(), RNWorklet::DispatchQueue*, void>(void (RNWorklet::DispatchQueue::*&&)(), RNWorklet::DispatchQueue*&&)","imageIndex":3,"symbolLocation":124},{"imageOffset":11720904,"sourceLine":205,"sourceFile":"thread.h","symbol":"void std::__1::__thread_execute[abi:de200100]<std::__1::unique_ptr<std::__1::__thread_struct, std::__1::default_delete<std::__1::__thread_struct>>, void (RNWorklet::DispatchQueue::*)(), RNWorklet::DispatchQueue*, 2ul>(std::__1::tuple<std::__1::unique_ptr<std::__1::__thread_struct, std::__1::default_delete<std::__1::__thread_struct>>, void (RNWorklet::DispatchQueue::*)(), RNWorklet::DispatchQueue*>&, std::__1::__tuple_indices<2ul>)","imageIndex":3,"symbolLocation":48},{"imageOffset":11720316,"sourceLine":214,"sourceFile":"thread.h","symbol":"void* std::__1::__thread_proxy[abi:de200100]<std::__1::tuple<std::__1::unique_ptr<std::__1::__thread_struct, std::__1::default_delete<std::__1::__thread_struct>>, void (RNWorklet::DispatchQueue::*)(), RNWorklet::DispatchQueue*>>(void*)","imageIndex":3,"symbolLocation":84},{"imageOffset":26028,"symbol":"_pthread_start","symbolLocation":104,"imageIndex":9},{"imageOffset":6552,"symbol":"thread_start","symbolLocation":8,"imageIndex":9}],"threadState":{"x":[{"value":260},{"value":0},{"value":768},{"value":0},{"value":0},{"value":160},{"value":0},{"value":0},{"value":6170045864},{"value":0},{"value":0},{"value":2},{"value":2},{"value":0},{"value":0},{"value":0},{"value":305},{"value":105},{"value":0},{"value":105553178229232},{"value":105553178229352},{"value":6170046688},{"value":0},{"value":0},{"value":768},{"value":769},{"value":1024},{"value":0},{"value":0}],"flavor":"ARM_THREAD_STATE64","lr":{"value":4306283124},"cpsr":{"value":1610616832},"fp":{"value":6170045984},"sp":{"value":6170045840},"esr":{"value":1442840704,"description":"(Syscall)"},"pc":{"value":4310466592},"far":{"value":0}}},{"id":170989,"name":"hades","threadState":{"x":[{"value":260},{"value":0},{"value":0},{"value":0},{"value":0},{"value":160},{"value":0},{"value":0},{"value":6170619560},{"value":0},{"value":0},{"value":2},{"value":2},{"value":0},{"value":0},{"value":0},{"value":305},{"value":0},{"value":0},{"value":105553171884176},{"value":105553171884240},{"value":6170620128},{"value":0},{"value":0},{"value":0},{"value":1},{"value":256},{"value":0},{"value":0}],"flavor":"ARM_THREAD_STATE64","lr":{"value":4306283124},"cpsr":{"value":1610616832},"fp":{"value":6170619680},"sp":{"value":6170619536},"esr":{"value":1442840704,"description":"(Syscall)"},"pc":{"value":4310466592},"far":{"value":0}},"frames":[{"imageOffset":16416,"symbol":"__psynch_cvwait","symbolLocation":8,"imageIndex":8},{"imageOffset":27252,"symbol":"_pthread_cond_wait","symbolLocation":976,"imageIndex":9},{"imageOffset":136972,"symbol":"std::__1::condition_variable::wait(std::__1::unique_lock<std::__1::mutex>&)","symbolLocation":28,"imageIndex":19},{"imageOffset":1544900,"symbol":"hermes::vm::HadesGC::Executor::worker()","symbolLocation":108,"imageIndex":6},{"imageOffset":1544748,"symbol":"void* std::__1::__thread_proxy[abi:nn190102]<std::__1::tuple<std::__1::unique_ptr<std::__1::__thread_struct, std::__1::default_delete<std::__1::__thread_struct>>, hermes::vm::HadesGC::Executor::Executor()::'lambda'()>>(void*)","symbolLocation":44,"imageIndex":6},{"imageOffset":26028,"symbol":"_pthread_start","symbolLocation":104,"imageIndex":9},{"imageOffset":6552,"symbol":"thread_start","symbolLocation":8,"imageIndex":9}]},{"id":170990,"frames":[{"imageOffset":16416,"symbol":"__psynch_cvwait","symbolLocation":8,"imageIndex":8},{"imageOffset":27252,"symbol":"_pthread_cond_wait","symbolLocation":976,"imageIndex":9},{"imageOffset":136972,"symbol":"std::__1::condition_variable::wait(std::__1::unique_lock<std::__1::mutex>&)","symbolLocation":28,"imageIndex":19},{"imageOffset":11719612,"sourceLine":147,"sourceFile":"condition_variable.h","symbol":"void std::__1::condition_variable::wait<RNWorklet::DispatchQueue::dispatch_thread_handler()::$_0>(std::__1::unique_lock<std::__1::mutex>&, RNWorklet::DispatchQueue::dispatch_thread_handler()::$_0)","imageIndex":3,"symbolLocation":64},{"imageOffset":11718768,"sourceLine":49,"sourceFile":"WKTDispatchQueue.cpp","symbol":"RNWorklet::DispatchQueue::dispatch_thread_handler()","imageIndex":3,"symbolLocation":84},{"imageOffset":11721040,"sourceLine":147,"sourceFile":"invoke.h","symbol":"decltype(*std::declval<RNWorklet::DispatchQueue*>().*std::declval<void (RNWorklet::DispatchQueue::*)()>()()) std::__1::__invoke[abi:de200100]<void (RNWorklet::DispatchQueue::*)(), RNWorklet::DispatchQueue*, void>(void (RNWorklet::DispatchQueue::*&&)(), RNWorklet::DispatchQueue*&&)","imageIndex":3,"symbolLocation":124},{"imageOffset":11720904,"sourceLine":205,"sourceFile":"thread.h","symbol":"void std::__1::__thread_execute[abi:de200100]<std::__1::unique_ptr<std::__1::__thread_struct, std::__1::default_delete<std::__1::__thread_struct>>, void (RNWorklet::DispatchQueue::*)(), RNWorklet::DispatchQueue*, 2ul>(std::__1::tuple<std::__1::unique_ptr<std::__1::__thread_struct, std::__1::default_delete<std::__1::__thread_struct>>, void (RNWorklet::DispatchQueue::*)(), RNWorklet::DispatchQueue*>&, std::__1::__tuple_indices<2ul>)","imageIndex":3,"symbolLocation":48},{"imageOffset":11720316,"sourceLine":214,"sourceFile":"thread.h","symbol":"void* std::__1::__thread_proxy[abi:de200100]<std::__1::tuple<std::__1::unique_ptr<std::__1::__thread_struct, std::__1::default_delete<std::__1::__thread_struct>>, void (RNWorklet::DispatchQueue::*)(), RNWorklet::DispatchQueue*>>(void*)","imageIndex":3,"symbolLocation":84},{"imageOffset":26028,"symbol":"_pthread_start","symbolLocation":104,"imageIndex":9},{"imageOffset":6552,"symbol":"thread_start","symbolLocation":8,"imageIndex":9}],"threadState":{"x":[{"value":260},{"value":0},{"value":3241472},{"value":0},{"value":0},{"value":160},{"value":0},{"value":0},{"value":6171192744},{"value":0},{"value":7424},{"value":31885837212930},{"value":31885837212930},{"value":7424},{"value":0},{"value":31885837212928},{"value":305},{"value":114},{"value":0},{"value":105553178228784},{"value":105553178228904},{"value":6171193568},{"value":0},{"value":0},{"value":3241472},{"value":3241473},{"value":3241728},{"value":0},{"value":0}],"flavor":"ARM_THREAD_STATE64","lr":{"value":4306283124},"cpsr":{"value":1610616832},"fp":{"value":6171192864},"sp":{"value":6171192720},"esr":{"value":1442840704,"description":"(Syscall)"},"pc":{"value":4310466592},"far":{"value":0}}},{"id":170991,"name":"hades","threadState":{"x":[{"value":260},{"value":0},{"value":0},{"value":0},{"value":0},{"value":160},{"value":0},{"value":0},{"value":6171766440},{"value":0},{"value":0},{"value":2},{"value":2},{"value":0},{"value":0},{"value":0},{"value":305},{"value":0},{"value":0},{"value":105553171884704},{"value":105553171884768},{"value":6171767008},{"value":0},{"value":0},{"value":0},{"value":1},{"value":256},{"value":0},{"value":0}],"flavor":"ARM_THREAD_STATE64","lr":{"value":4306283124},"cpsr":{"value":1610616832},"fp":{"value":6171766560},"sp":{"value":6171766416},"esr":{"value":1442840704,"description":"(Syscall)"},"pc":{"value":4310466592},"far":{"value":0}},"frames":[{"imageOffset":16416,"symbol":"__psynch_cvwait","symbolLocation":8,"imageIndex":8},{"imageOffset":27252,"symbol":"_pthread_cond_wait","symbolLocation":976,"imageIndex":9},{"imageOffset":136972,"symbol":"std::__1::condition_variable::wait(std::__1::unique_lock<std::__1::mutex>&)","symbolLocation":28,"imageIndex":19},{"imageOffset":1544900,"symbol":"hermes::vm::HadesGC::Executor::worker()","symbolLocation":108,"imageIndex":6},{"imageOffset":1544748,"symbol":"void* std::__1::__thread_proxy[abi:nn190102]<std::__1::tuple<std::__1::unique_ptr<std::__1::__thread_struct, std::__1::default_delete<std::__1::__thread_struct>>, hermes::vm::HadesGC::Executor::Executor()::'lambda'()>>(void*)","symbolLocation":44,"imageIndex":6},{"imageOffset":26028,"symbol":"_pthread_start","symbolLocation":104,"imageIndex":9},{"imageOffset":6552,"symbol":"thread_start","symbolLocation":8,"imageIndex":9}]},{"id":177049,"frames":[],"threadState":{"x":[{"value":13157445632},{"value":55143},{"value":13156909056},{"value":0},{"value":409604},{"value":18446744073709551615},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0}],"flavor":"ARM_THREAD_STATE64","lr":{"value":0},"cpsr":{"value":4096},"fp":{"value":0},"sp":{"value":13157445632},"esr":{"value":1442840704,"description":"(Syscall)"},"pc":{"value":4306262404},"far":{"value":0}}},{"id":184513,"frames":[],"threadState":{"x":[{"value":6162067456},{"value":0},{"value":6161530880},{"value":0},{"value":278532},{"value":18446744073709551615},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0}],"flavor":"ARM_THREAD_STATE64","lr":{"value":0},"cpsr":{"value":4096},"fp":{"value":0},"sp":{"value":6162067456},"esr":{"value":0},"pc":{"value":4306262404},"far":{"value":0}}}],
+  "usedImages" : [
+  {
+    "source" : "P",
+    "arch" : "arm64e",
+    "base" : 4307828736,
+    "size" : 655360,
+    "uuid" : "0975afba-c46b-364c-bd84-a75daa9e455a",
+    "path" : "\/usr\/lib\/dyld",
+    "name" : "dyld"
+  },
+  {
+    "source" : "P",
+    "arch" : "arm64",
+    "base" : 4305944576,
+    "CFBundleShortVersionString" : "1.0.0",
+    "CFBundleIdentifier" : "com.leonsilicon.wishlist",
+    "size" : 16384,
+    "uuid" : "873ffd15-f16c-3bbd-a72b-ada4f9ea47e8",
+    "path" : "\/Users\/USER\/Library\/Developer\/CoreSimulator\/Devices\/EED08502-8AD7-4FCB-B83B-36197DA19D23\/data\/Containers\/Bundle\/Application\/A28D352B-577C-41DD-966C-9D0E74DBE2B3\/example.app\/example",
+    "name" : "example",
+    "CFBundleVersion" : "1"
+  },
+  {
+    "source" : "P",
+    "arch" : "arm64",
+    "base" : 4306173952,
+    "size" : 16384,
+    "uuid" : "21437a51-84ee-315b-9833-10fb54adca2c",
+    "path" : "\/Users\/USER\/*\/libArgentInjectionBootstrap.dylib",
+    "name" : "libArgentInjectionBootstrap.dylib"
+  },
+  {
+    "source" : "P",
+    "arch" : "arm64",
+    "base" : 4355899392,
+    "size" : 14024704,
+    "uuid" : "b74d6688-9ebf-3551-bbc6-aae44d9b91de",
+    "path" : "\/Users\/USER\/Library\/Developer\/CoreSimulator\/Devices\/EED08502-8AD7-4FCB-B83B-36197DA19D23\/data\/Containers\/Bundle\/Application\/A28D352B-577C-41DD-966C-9D0E74DBE2B3\/example.app\/example.debug.dylib",
+    "name" : "example.debug.dylib"
+  },
+  {
+    "source" : "P",
+    "arch" : "arm64",
+    "base" : 4466409472,
+    "CFBundleShortVersionString" : "1.0",
+    "CFBundleIdentifier" : "react-native.React",
+    "size" : 16629760,
+    "uuid" : "37ec3d1f-4aff-35a2-aa23-d8a038f8d30c",
+    "path" : "\/Users\/USER\/Library\/Developer\/CoreSimulator\/Devices\/EED08502-8AD7-4FCB-B83B-36197DA19D23\/data\/Containers\/Bundle\/Application\/A28D352B-577C-41DD-966C-9D0E74DBE2B3\/example.app\/Frameworks\/React.framework\/React",
+    "name" : "React",
+    "CFBundleVersion" : "1"
+  },
+  {
+    "source" : "P",
+    "arch" : "arm64",
+    "base" : 4312793088,
+    "CFBundleShortVersionString" : "1.0",
+    "CFBundleIdentifier" : "third-party.ReactNativeDependencies",
+    "size" : 1458176,
+    "uuid" : "446be7d2-6a43-3162-bbc0-f1af1f871170",
+    "path" : "\/Users\/USER\/Library\/Developer\/CoreSimulator\/Devices\/EED08502-8AD7-4FCB-B83B-36197DA19D23\/data\/Containers\/Bundle\/Application\/A28D352B-577C-41DD-966C-9D0E74DBE2B3\/example.app\/Frameworks\/ReactNativeDependencies.framework\/ReactNativeDependencies",
+    "name" : "ReactNativeDependencies",
+    "CFBundleVersion" : "1"
+  },
+  {
+    "source" : "P",
+    "arch" : "arm64",
+    "base" : 4323360768,
+    "CFBundleShortVersionString" : "0.12.0",
+    "CFBundleIdentifier" : "dev.hermesengine.iphonesimulator",
+    "size" : 3473408,
+    "uuid" : "9e5e71bd-b9b3-3f8c-9bd6-05b2c9eeb5a1",
+    "path" : "\/Users\/USER\/Library\/Developer\/CoreSimulator\/Devices\/EED08502-8AD7-4FCB-B83B-36197DA19D23\/data\/Containers\/Bundle\/Application\/A28D352B-577C-41DD-966C-9D0E74DBE2B3\/example.app\/Frameworks\/hermesvm.framework\/hermesvm",
+    "name" : "hermesvm",
+    "CFBundleVersion" : "0.12.0"
+  },
+  {
+    "source" : "P",
+    "arch" : "arm64",
+    "base" : 4306042880,
+    "size" : 32768,
+    "uuid" : "de4033bb-4a6b-317a-bda6-b3a408656844",
+    "path" : "\/usr\/lib\/system\/libsystem_platform.dylib",
+    "name" : "libsystem_platform.dylib"
+  },
+  {
+    "source" : "P",
+    "arch" : "arm64",
+    "base" : 4310450176,
+    "size" : 245760,
+    "uuid" : "8f54f386-9b41-376a-9ba3-9423bbabb1b6",
+    "path" : "\/usr\/lib\/system\/libsystem_kernel.dylib",
+    "name" : "libsystem_kernel.dylib"
+  },
+  {
+    "source" : "P",
+    "arch" : "arm64",
+    "base" : 4306255872,
+    "size" : 65536,
+    "uuid" : "48ca2121-5ca2-3e04-bc91-a33151256e77",
+    "path" : "\/usr\/lib\/system\/libsystem_pthread.dylib",
+    "name" : "libsystem_pthread.dylib"
+  },
+  {
+    "source" : "P",
+    "arch" : "arm64",
+    "base" : 4310892544,
+    "size" : 98304,
+    "uuid" : "593bd89d-293f-3b91-a33c-091f74b2f8f4",
+    "path" : "\/Users\/USER\/*\/libNativeDevtoolsIos.dylib",
+    "name" : "libNativeDevtoolsIos.dylib"
+  },
+  {
+    "source" : "P",
+    "arch" : "arm64",
+    "base" : 4311089152,
+    "size" : 16384,
+    "uuid" : "759c6239-f93b-3b7e-a586-0a5fbcfbb62c",
+    "path" : "\/Users\/USER\/*\/libKeyboardPatch.dylib",
+    "name" : "libKeyboardPatch.dylib"
+  },
+  {
+    "source" : "P",
+    "arch" : "arm64",
+    "base" : 4311171072,
+    "size" : 49152,
+    "uuid" : "78c22921-6ad3-3681-bedb-525a69493719",
+    "path" : "\/Volumes\/VOLUME\/*\/libobjc-trampolines.dylib",
+    "name" : "libobjc-trampolines.dylib"
+  },
+  {
+    "source" : "P",
+    "arch" : "arm64",
+    "base" : 6446358528,
+    "CFBundleShortVersionString" : "6.9",
+    "CFBundleIdentifier" : "com.apple.CoreFoundation",
+    "size" : 4329024,
+    "uuid" : "6e5cfb28-dd41-3756-9786-3ef0adcd9d38",
+    "path" : "\/Volumes\/VOLUME\/*\/CoreFoundation.framework\/CoreFoundation",
+    "name" : "CoreFoundation",
+    "CFBundleVersion" : "4040.1"
+  },
+  {
+    "source" : "P",
+    "arch" : "arm64",
+    "base" : 6749876224,
+    "CFBundleShortVersionString" : "1.0",
+    "CFBundleIdentifier" : "com.apple.GraphicsServices",
+    "size" : 32192,
+    "uuid" : "02f377dd-50ff-356a-bcea-2c061ebe5045",
+    "path" : "\/Volumes\/VOLUME\/*\/GraphicsServices.framework\/GraphicsServices",
+    "name" : "GraphicsServices",
+    "CFBundleVersion" : "1.0"
+  },
+  {
+    "source" : "P",
+    "arch" : "arm64",
+    "base" : 6527737856,
+    "CFBundleShortVersionString" : "1.0",
+    "CFBundleIdentifier" : "com.apple.UIKitCore",
+    "size" : 35105632,
+    "uuid" : "f3921c0a-1332-3779-97c7-62d9f3fa6b77",
+    "path" : "\/Volumes\/VOLUME\/*\/UIKitCore.framework\/UIKitCore",
+    "name" : "UIKitCore",
+    "CFBundleVersion" : "9088.1.113"
+  },
+  {
+    "size" : 0,
+    "source" : "A",
+    "base" : 0,
+    "uuid" : "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "source" : "P",
+    "arch" : "arm64",
+    "base" : 6451208192,
+    "CFBundleShortVersionString" : "6.9",
+    "CFBundleIdentifier" : "com.apple.Foundation",
+    "size" : 14002432,
+    "uuid" : "7f5d43f6-db50-3a9c-be1f-9993bcba10d0",
+    "path" : "\/Volumes\/VOLUME\/*\/Foundation.framework\/Foundation",
+    "name" : "Foundation",
+    "CFBundleVersion" : "4040.1"
+  },
+  {
+    "source" : "P",
+    "arch" : "arm64",
+    "base" : 6443732992,
+    "size" : 512636,
+    "uuid" : "d591507f-069e-335b-a3ba-95dbac2e9dfa",
+    "path" : "\/Volumes\/VOLUME\/*\/libsystem_c.dylib",
+    "name" : "libsystem_c.dylib"
+  },
+  {
+    "source" : "P",
+    "arch" : "arm64",
+    "base" : 6445641728,
+    "size" : 562400,
+    "uuid" : "61c639c7-646c-3a47-9983-184033c61f3c",
+    "path" : "\/Volumes\/VOLUME\/*\/libc++.1.dylib",
+    "name" : "libc++.1.dylib"
+  },
+  {
+    "source" : "P",
+    "arch" : "arm64",
+    "base" : 6522687488,
+    "CFBundleShortVersionString" : "1.0",
+    "CFBundleIdentifier" : "com.apple.CFNetwork",
+    "size" : 3611168,
+    "uuid" : "f0ceabdf-83b6-3099-a27c-d19791fa7cbf",
+    "path" : "\/Volumes\/VOLUME\/*\/CFNetwork.framework\/CFNetwork",
+    "name" : "CFNetwork",
+    "CFBundleVersion" : "3860.100.1"
+  }
+],
+  "sharedCache" : {
+  "base" : 6442450944,
+  "size" : 4273979392,
+  "uuid" : "a0cfea1d-abc5-3383-a318-968f23d76415"
+},
+  "vmSummary" : "ReadOnly portion of Libraries: Total=1.8G resident=0K(0%) swapped_out_or_unallocated=1.8G(100%)\nWritable regions: Total=3.6G written=3189K(0%) resident=3189K(0%) swapped_out=0K(0%) unallocated=3.6G(100%)\n\n                                VIRTUAL   REGION \nREGION TYPE                        SIZE    COUNT (non-coalesced) \n===========                     =======  ======= \nActivity Tracing                   256K        1 \nAttributeGraph Data               1024K        1 \nCG raster data                     816K       21 \nColorSync                          128K        5 \nCoreAnimation                     6016K       83 \nFoundation                          16K        1 \nImage IO                            64K        4 \nKernel Alloc Once                   32K        1 \nMALLOC                             3.5G      274 \nMALLOC guard page                  288K       18 \nSQLite page cache                  384K        3 \nSTACK GUARD                       56.2M       15 \nStack                             15.9M       15 \nVM_ALLOCATE                       56.2M       47 \n__DATA                            45.8M      927 \n__DATA_CONST                     111.7M      954 \n__DATA_DIRTY                       139K       13 \n__FONT_DATA                        2352        1 \n__LINKEDIT                       779.8M       14 \n__OBJC_RO                         62.5M        1 \n__OBJC_RW                         2768K        1 \n__TEXT                             1.1G      969 \n__TPRO_CONST                       148K        2 \ndyld private memory                2.2G       80 \nmapped file                      385.0M      120 \npage table in kernel              3189K        1 \nshared memory                       16K        1 \n===========                     =======  ======= \nTOTAL                              8.3G     3573 \n",
+  "legacyInfo" : {
+  "threadTriggered" : {
+    "name" : "com.facebook.react.runtime.JavaScript"
+  }
+},
+  "logWritingSignature" : "52b71946c9e2212b4603a914da845282a8d3160a",
+  "roots_installed" : 0,
+  "bug_type" : "309",
+  "trmStatus" : 1,
+  "trialInfo" : {
+  "rollouts" : [
+    {
+      "rolloutId" : "64b21a7351cbb02ce3442e4e",
+      "factorPackIds" : [
+        "6647f0f7b6a75d3dc32993e7"
+      ],
+      "deploymentId" : 240000042
+    },
+    {
+      "rolloutId" : "68095e8ecb2a9d1eaa8463c9",
+      "factorPackIds" : [
+        "68bf4eacb556ea03e19aed49"
+      ],
+      "deploymentId" : 240000008
+    }
+  ],
+  "experiments" : [
+    {
+      "treatmentId" : "84b40626-8c08-4a60-8e35-243ea991e0d5",
+      "experimentId" : "687ad3eb2c0a4d3b710c5dcd",
+      "deploymentId" : 400000016
+    }
+  ]
+}
+}
+
+Model: Mac14,6, BootROM 13822.61.10, proc 12:8:4 processors, 64 GB, SMC
+Graphics: Apple M2 Max, Apple M2 Max, Built-In
+Display: Color LCD, 3456 x 2234 Retina, Main, MirrorOff, Online
+Memory Module: LPDDR5, Micron
+AirPort: spairport_wireless_card_type_wifi (0x14E4, 0x4388), wl0: Oct  3 2025 00:48:21 version 23.41.7.0.41.51.200 FWID 01-0473880e
+IO80211_driverkit-1533.5 "IO80211_driverkit-1533.5" Nov 14 2025 18:26:34
+AirPort:
+Bluetooth: Version (null), 0 services, 0 devices, 0 incoming serial ports
+Network Service: Wi-Fi, AirPort, en0
+Thunderbolt Bus: MacBook Pro, Apple Inc.
+Thunderbolt Bus: MacBook Pro, Apple Inc.
+Thunderbolt Bus: MacBook Pro, Apple Inc.
+

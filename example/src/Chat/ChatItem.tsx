@@ -4,7 +4,7 @@ import {
   useTemplateValue,
   Wishlist,
   useWishlistContextData,
-} from 'react-native-wishlist';
+} from '@leonsilicon/react-native-wishlist';
 import type { ChatItem, ReactionItem } from './Data';
 
 const addReaction = require('./assets/add_reaction.png');

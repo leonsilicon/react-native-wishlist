@@ -1,5 +1,5 @@
 /**
- * Babel pre-pass for react-native-wishlist that adds a `'worklet';` directive
+ * Babel pre-pass for @leonsilicon/react-native-wishlist that adds a `'worklet';` directive
  * to the callbacks passed to a configurable set of wishlist hooks (e.g.
  * `useTemplateValue`). It also recursively marks nested helpers — including
  * functions hoisted to module top-level by Babel/React Compiler — so the
