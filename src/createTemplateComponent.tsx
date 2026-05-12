@@ -5,7 +5,7 @@ import { ForEachBase } from './Components/ForEachBase';
 import InflatorRepository, {
   getUIInflatorRegistry,
 } from './InflatorRepository';
-import { CaseBase } from './Components/Switch';
+import { CaseBase } from './Components/CaseBase';
 import { useTemplateContext } from './TemplateContext';
 import {
   createTemplateValue,

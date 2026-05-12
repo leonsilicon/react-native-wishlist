@@ -1,7 +1,10 @@
-import React, { forwardRef } from 'react';
+import React from 'react';
 import { View, ViewStyle } from 'react-native';
 import { createTemplateComponent } from '../createTemplateComponent';
 import type { TemplateValue } from '../TemplateValue';
+import { CaseBase } from './CaseBase';
+
+export { CaseBase };
 
 const SwitchTemplateComponent = createTemplateComponent(View);
 
@@ -22,10 +25,6 @@ export function Switch(props: SwitchProps) {
 
   return <SwitchTemplateComponent {...props} children={children} />;
 }
-
-export const CaseBase = forwardRef<any, any>((props, ref) => {
-  return <View {...props} ref={ref} />;
-});
 
 const CaseTemplateComponent = createTemplateComponent(CaseBase, {
   addProps: (item, props) => {

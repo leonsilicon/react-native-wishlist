@@ -1,17 +1,20 @@
 import React, { forwardRef } from 'react';
-import { NativeModules, View, ViewProps } from 'react-native';
+import { DeviceEventEmitter, NativeModules, View, ViewProps } from 'react-native';
 import { createTemplateComponent } from '../createTemplateComponent';
 import { useTemplateCallback } from '../EventHandler';
 import { getUIInflatorRegistry } from '../InflatorRepository';
-import { createRunInJsFn } from '../WishlistJsRuntime';
+import { createRunInWishlistFn, createRunInJsFn } from '../WishlistJsRuntime';
 
-// TODO(janic): Figure out why those cannot be imported directly from RNGH in the example app.
+// Mirrors `RNGestureHandlerActionType` in react-native-gesture-handler. On the
+// new architecture every state-change action type routes through
+// `sendDeviceEventWithName:@"onGestureHandlerStateChange"` (a global JS device
+// event), so we listen via `DeviceEventEmitter` and dispatch into the wishlist
+// worklet runtime ourselves rather than relying on Fabric event observers.
 const ActionType = {
   REANIMATED_WORKLET: 1,
   NATIVE_ANIMATED_EVENT: 2,
   JS_FUNCTION_OLD_API: 3,
   JS_FUNCTION_NEW_API: 4,
-  DIRECT_EVENT: 5,
 } as const;
 
 type ActionTypeT = (typeof ActionType)[keyof typeof ActionType];
@@ -38,11 +41,16 @@ type RNGestureHandlerModuleProps = {
   flushOperations: () => void;
 };
 
-let _handlerTag = 1000;
+// Start above the range RNGH typically issues for handlers created via JS so
+// our auto-generated tags don't collide with user-created gestures.
+let _handlerTag = 100000;
 
 export function getNextHandlerTag(): number {
   return _handlerTag++;
 }
+
+const _attachedViewTags = new Set<number>();
+const _handlerTagToViewTag = new Map<number, number>();
 
 const RNGestureHandlerModule: RNGestureHandlerModuleProps =
   NativeModules.RNGestureHandlerModule;
@@ -56,13 +64,46 @@ export const State = {
   END: 5,
 } as const;
 
+const dispatchGestureEventToWishlistRuntime = createRunInWishlistFn(
+  (viewTag: number, event: any) => {
+    'worklet';
+    const handleEvent = global.handleEvent;
+    if (typeof handleEvent === 'function') {
+      handleEvent('onGestureHandlerStateChange', viewTag, event);
+    }
+  },
+);
+
+let _gestureListenerInstalled = false;
+function installGestureListener() {
+  if (_gestureListenerInstalled) {
+    return;
+  }
+  _gestureListenerInstalled = true;
+  DeviceEventEmitter.addListener(
+    'onGestureHandlerStateChange',
+    (event: { handlerTag: number; state: number }) => {
+      const viewTag = _handlerTagToViewTag.get(event.handlerTag);
+      if (viewTag == null) {
+        return;
+      }
+      dispatchGestureEventToWishlistRuntime(viewTag, event);
+    },
+  );
+}
+
 type PressableProps = ViewProps & {
   onPress?: ((item: any, rootItem: any) => void) | null;
 };
 
 const attachGestureHandler = createRunInJsFn((tag: number) => {
-  // TODO: Do we need to detach handlers?
+  if (_attachedViewTags.has(tag)) {
+    return;
+  }
+  _attachedViewTags.add(tag);
+  installGestureListener();
   const handlerTag = getNextHandlerTag();
+  _handlerTagToViewTag.set(handlerTag, tag);
   RNGestureHandlerModule.createGestureHandler(
     'TapGestureHandler',
     handlerTag,
@@ -71,7 +112,7 @@ const attachGestureHandler = createRunInJsFn((tag: number) => {
   RNGestureHandlerModule.attachGestureHandler(
     handlerTag,
     tag,
-    ActionType.DIRECT_EVENT,
+    ActionType.JS_FUNCTION_OLD_API,
   );
   RNGestureHandlerModule.flushOperations();
 });

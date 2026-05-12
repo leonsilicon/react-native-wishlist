@@ -1,14 +1,15 @@
 import type * as React from 'react';
-import type { ViewProps } from 'react-native';
+import {
+  codegenNativeCommands,
+  codegenNativeComponent,
+  type NativeComponentType,
+  type ViewProps,
+} from 'react-native';
 import type {
   DirectEventHandler,
   Double,
   Int32,
 } from 'react-native/Libraries/Types/CodegenTypes';
-import codegenNativeCommands from 'react-native/Libraries/Utilities/codegenNativeCommands';
-import codegenNativeComponent, {
-  NativeComponentType,
-} from 'react-native/Libraries/Utilities/codegenNativeComponent';
 
 export type EventInFile = Readonly<{
   value: Double;
