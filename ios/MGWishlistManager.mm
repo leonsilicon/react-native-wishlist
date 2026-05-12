@@ -12,6 +12,7 @@
 #include <jsi/jsi.h>
 #include <react/renderer/components/view/ViewEventEmitter.h>
 #include <react/renderer/core/EventListener.h>
+#include <react/renderer/core/ShadowNodeFamily.h>
 #include "WKTJsiWorkletContext.h"
 #include "MGContentContainerComponent.h"
 #include "MGObjCJSIUtils.h"
@@ -152,41 +153,24 @@ RCT_EXPORT_MODULE(WishlistManager);
 
 - (bool)handleFabricEvent:(const RawEvent &)event
 {
-  if (event.eventTarget == nullptr) {
-    // TODO Scheduler reset
-    return false;
-  }
-  // RN 0.83 dispatches some Fabric events (notably the image lifecycle
-  // events from RCTImageComponentView) whose `EventTarget::instanceHandle_`
-  // is a `shared_ptr<const InstanceHandle>` whose underlying
-  // `jsi::WeakObject` was already invalidated. Calling `EventTarget::getTag`
-  // walks into `WeakObject::lock` and segfaults. We can't safely call
-  // `getTag` for those events, AND if we forward them to `dispatchEvent`'s
-  // default path, `EventQueueProcessor::flushEvents` later does the same
-  // crashing dereference on the JS thread.
-  //
-  // Read the raw layout of `EventTarget` to detect the bad case before
-  // touching the broken InstanceHandle:
-  //   [0] InstanceHandle::Shared instanceHandle_;        // 16 bytes
-  //         [+0] InstanceHandle*
-  //         [+8] control block ptr
-  // and the first field of `InstanceHandle` is `jsi::WeakObject`, whose
-  // single `PointerValue*` is at offset 0.
-  const auto *eventTargetRaw =
-      reinterpret_cast<const void *const *>(event.eventTarget.get());
-  const auto *instanceHandlePtr =
-      reinterpret_cast<const void *const *>(eventTargetRaw[0]);
-  if (instanceHandlePtr == nullptr ||
-      reinterpret_cast<const void *>(instanceHandlePtr[0]) == nullptr) {
-    // Return `true` so `EventDispatcher::dispatchEvent` skips
-    // `EventQueue::enqueueEvent` — otherwise RN would still crash later
-    // while flushing the queued event.
-    return true;
-  }
   std::string type = event.type;
-  int tag = event.eventTarget->getTag();
-  if (tag >= 0)
+
+  auto shadowNodeFamily = event.shadowNodeFamily.lock();
+  if (shadowNodeFamily == nullptr) {
+    return event.eventTarget != nullptr;
+  }
+
+  int tag = shadowNodeFamily->getTag();
+  if (tag >= 0) {
+    // Some RN 0.83 Fabric events can have no instance handle. If we let those
+    // continue through the default event queue, RN crashes when retaining the
+    // target or mixing the JS `target` into the payload.
+    return shadowNodeFamily->getInstanceHandle() == nullptr;
+  }
+
+  if (event.eventTarget == nullptr) {
     return false;
+  }
 
   auto eventPayload = event.eventPayload;
   WishlistJsRuntime::getInstance().accessRuntime([=](jsi::Runtime &rt) {

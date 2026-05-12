@@ -2,6 +2,7 @@
 
 #include <fbjni/fbjni.h>
 #include <react/fabric/FabricUIManagerBinding.h>
+#include <react/renderer/core/ShadowNodeFamily.h>
 #include "MGUIManagerHolder.h"
 #include "WishlistJsRuntime.h"
 
@@ -31,13 +32,14 @@ void WishlistManagerModule::nativeInstall(
 
   eventListener_ =
       std::make_shared<EventListener>([this](const RawEvent &event) -> bool {
-        if (event.eventTarget == nullptr) {
-          return false;
+        auto shadowNodeFamily = event.shadowNodeFamily.lock();
+        if (shadowNodeFamily == nullptr) {
+          return event.eventTarget != nullptr;
         }
 
-        int tag = event.eventTarget->getTag();
+        int tag = shadowNodeFamily->getTag();
         if (tag >= 0) {
-          return false;
+          return shadowNodeFamily->getInstanceHandle() == nullptr;
         }
 
         auto eventPayload = event.eventPayload;
