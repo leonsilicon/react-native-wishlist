@@ -53,10 +53,13 @@ WishlistJsRuntime::WishlistJsRuntime() : runtime_(nullptr) {}
 void WishlistJsRuntime::initialize(
     jsi::Runtime *runtime,
     std::function<void(std::function<void()> &&)> jsCallInvoker,
-    std::function<void(std::function<void()> &&)> workletCallInvoker) {
+    std::function<void(std::function<void()> &&)> workletCallInvoker,
+    std::function<void(std::function<void(jsi::Runtime &)> &&)>
+        runtimeAccessor) {
   runtime_ = runtime;
   jsCallInvoker_ = std::move(jsCallInvoker);
   workletCallInvoker_ = std::move(workletCallInvoker);
+  runtimeAccessor_ = std::move(runtimeAccessor);
 
   decorateRuntime(*runtime_);
 }
@@ -67,6 +70,10 @@ jsi::Runtime &WishlistJsRuntime::getRuntime() const {
 
 void WishlistJsRuntime::accessRuntime(
     std::function<void(jsi::Runtime &)> &&f) const {
+  if (runtimeAccessor_) {
+    runtimeAccessor_(std::move(f));
+    return;
+  }
   auto runtime = runtime_;
   auto ff = std::move(f);
   jsCallInvoker_([runtime, ff = std::move(ff)]() mutable {

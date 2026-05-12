@@ -35,7 +35,9 @@ class WishlistJsRuntime {
   void initialize(
       jsi::Runtime *runtime,
       std::function<void(std::function<void()> &&)> jsCallInvoker,
-      std::function<void(std::function<void()> &&)> workletCallInvoker);
+      std::function<void(std::function<void()> &&)> workletCallInvoker,
+      std::function<void(std::function<void(jsi::Runtime &)> &&)>
+          runtimeAccessor = nullptr);
 
   jsi::Runtime &getRuntime() const;
   void accessRuntime(std::function<void(jsi::Runtime &rt)> &&f) const;
@@ -51,6 +53,7 @@ class WishlistJsRuntime {
   jsi::Runtime *runtime_;
   std::function<void(std::function<void()> &&)> jsCallInvoker_;
   std::function<void(std::function<void()> &&)> workletCallInvoker_;
+  std::function<void(std::function<void(jsi::Runtime &)> &&)> runtimeAccessor_;
 };
 
 }; // namespace Wishlist

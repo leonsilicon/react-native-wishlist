@@ -11,6 +11,9 @@
 #include <jsi/jsi.h>
 #include <react/renderer/components/view/ViewEventEmitter.h>
 #include <react/renderer/core/EventListener.h>
+#import <worklets/apple/WorkletsModule.h>
+#include <worklets/NativeModules/WorkletsModuleProxy.h>
+#include <worklets/WorkletRuntime/WorkletRuntime.h>
 #include "MGContentContainerComponent.h"
 #include "MGObjCJSIUtils.h"
 #include "MGTemplateContainerComponent.h"
@@ -65,21 +68,50 @@ RCT_EXPORT_MODULE(WishlistManager);
 
   [[bridge.moduleRegistry moduleForName:"EventDispatcher" lazilyLoadIfNecessary:YES] addDispatchObserver:self];
 
+  MGUIManagerHolder::getInstance().setUIManager(_surfacePresenter.scheduler.uiManager);
+}
+
+- (void)installWishlistRuntime
+{
   RCTCxxBridge *cxxBridge = (RCTCxxBridge *)_bridge;
   auto callInvoker = cxxBridge.jsCallInvoker;
   facebook::jsi::Runtime *jsRuntime = (facebook::jsi::Runtime *)cxxBridge.runtime;
 
+  // Pull the worklets UI runtime so wishlist's native code shares state with
+  // the runtime where worklet inflators actually execute. Without this the
+  // registry installed by `InflatorRepository.maybeInit` (worklets UI runtime)
+  // is invisible to `WishlistJsRuntime` (the JS runtime).
+  facebook::jsi::Runtime *uiRuntime = nullptr;
+  std::shared_ptr<worklets::WorkletRuntime> uiWorkletRuntime;
+  WorkletsModule *workletsModule = [_bridge moduleForName:@"WorkletsModule" lazilyLoadIfNecessary:YES];
+  if (workletsModule != nil) {
+    auto moduleProxy = [workletsModule getWorkletsModuleProxy];
+    if (moduleProxy) {
+      uiWorkletRuntime = moduleProxy->getUIWorkletRuntime();
+      if (uiWorkletRuntime) {
+        uiRuntime = &uiWorkletRuntime->getJSIRuntime();
+      }
+    }
+  }
+
+  std::function<void(std::function<void(facebook::jsi::Runtime &)> &&)> runtimeAccessor;
+  if (uiWorkletRuntime) {
+    auto runtime = uiWorkletRuntime;
+    runtimeAccessor = [runtime](std::function<void(facebook::jsi::Runtime &)> &&job) {
+      runtime->schedule(std::move(job));
+    };
+  }
+
   WishlistJsRuntime::getInstance().initialize(
-      jsRuntime,
+      uiRuntime != nullptr ? uiRuntime : jsRuntime,
       [=](std::function<void()> &&f) { callInvoker->invokeAsync(std::move(f)); },
       [=](std::function<void()> &&f) {
         __block auto retainedWork = std::move(f);
         MGExecuteOnWishlistQueue(^{
           retainedWork();
         });
-      });
-
-  MGUIManagerHolder::getInstance().setUIManager(_surfacePresenter.scheduler.uiManager);
+      },
+      std::move(runtimeAccessor));
 }
 
 - (void)eventDispatcherWillDispatchEvent:(id<RCTEvent>)event
@@ -150,7 +182,10 @@ RCT_EXPORT_MODULE(WishlistManager);
 
 RCT_EXPORT_BLOCKING_SYNCHRONOUS_METHOD(install)
 {
-  // This is only used to force the native module to load and setBridge to be called.
+  // Wire up `WishlistJsRuntime` to the worklets UI runtime now that JS has
+  // started (so `globalThis.__workletsModuleProxy` is available). This must
+  // happen before any wishlist component mounts.
+  [self installWishlistRuntime];
   return @true;
 }
 

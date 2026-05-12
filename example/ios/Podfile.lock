@@ -134,6 +134,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
+    - RNWorklets
     - Yoga
   - RCTDeprecation (0.83.6)
   - RCTRequired (0.83.6)
@@ -2544,7 +2545,7 @@ SPEC CHECKSUMS:
   libavif: 5f8e715bea24debec477006f21ef9e95432e254d
   libdav1d: 23581a4d8ec811ff171ed5e2e05cd27bad64c39f
   libwebp: 02b23773aedb6ff1fd38cec7a77b81414c6842a8
-  MGWishList: 9f51e8936a6497635b29a599c8499f5a6d1d876b
+  MGWishList: d2626d7a985f930f81d9c7ddde0b14cacf829db8
   RCTDeprecation: 9502b5eb8e3c9eb75ff5a333b2c591bab9d91e28
   RCTRequired: 0268a5d86aef1defea2e04289d74fdf3570197c1
   RCTSwiftUI: cff211c5e4d94e491dda240d663b8effd25296d7
