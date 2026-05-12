@@ -17,6 +17,11 @@ class Wishlist(reactContext: Context) : ReactScrollView(reactContext) {
   private var pendingScrollOffset = Int.MIN_VALUE
   private var ignoreScrollEvents = false
 
+  init {
+    clipChildren = true
+    clipToPadding = true
+  }
+
   fun setTemplates(templatesRef: Int, names: List<String>) {
     this.templatesRef = templatesRef
     this.names = names

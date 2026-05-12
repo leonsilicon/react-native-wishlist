@@ -37,7 +37,10 @@ using namespace facebook::react;
 - (instancetype)initWithFrame:(CGRect)frame
 {
   if (self = [super initWithFrame:frame]) {
+    self.clipsToBounds = YES;
     self.scrollView.showsVerticalScrollIndicator = NO;
+    self.scrollView.clipsToBounds = YES;
+    self.containerView.clipsToBounds = YES;
     _ignoreScrollEvents = NO;
   }
   return self;
