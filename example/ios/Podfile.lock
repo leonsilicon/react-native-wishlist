@@ -2286,7 +2286,7 @@ DEPENDENCIES:
   - "ExpoLogBox (from `../../node_modules/.pnpm/@expo+log-box@55.0.12_@expo+dom-webview@55.0.6_expo@55.0.23_react-native@0.83.9_@babel+_2dc8317be0826659872e4b4284f04a34/node_modules/@expo/log-box`)"
   - "ExpoModulesCore (from `../../node_modules/.pnpm/expo-modules-core@55.0.25_react-native-worklets@0.8.3_@babel+core@7.29.0_@react-native+_3811e8899bcb525808d556664ef3d556/node_modules/expo-modules-core`)"
   - "ExpoModulesJSI (from `../../node_modules/.pnpm/expo-modules-core@55.0.25_react-native-worklets@0.8.3_@babel+core@7.29.0_@react-native+_3811e8899bcb525808d556664ef3d556/node_modules/expo-modules-core`)"
-  - "ExpoRouter (from `../../node_modules/.pnpm/expo-router@55.0.14_732d62fc38541e036ba96dca417c556e/node_modules/expo-router/ios`)"
+  - "ExpoRouter (from `../../node_modules/.pnpm/expo-router@55.0.14_c3856c2534ba050a4fc21c5ff71df6fc/node_modules/expo-router/ios`)"
   - "ExpoSplashScreen (from `../../node_modules/.pnpm/expo-splash-screen@55.0.20_expo@55.0.23_typescript@5.9.3/node_modules/expo-splash-screen/ios`)"
   - "ExpoSymbols (from `../../node_modules/.pnpm/expo-symbols@55.0.8_expo-font@55.0.7_expo@55.0.23_react-native@0.83.9_@babel+core@7.29._d05eea184350f1dcd16a1edfbfa33d1b/node_modules/expo-symbols/ios`)"
   - "ExpoSystemUI (from `../../node_modules/.pnpm/expo-system-ui@55.0.17_expo@55.0.23_react-native-web@0.21.2_react-dom@19.2.0_react@19.2_de2cce4296c35b1bc805cb4d9025799b/node_modules/expo-system-ui/ios`)"
@@ -2369,7 +2369,7 @@ DEPENDENCIES:
   - "ReactCommon/turbomodule/core (from `../../node_modules/.pnpm/react-native@0.83.9_@babel+core@7.29.0_@react-native+metro-config@0.85.3_@babel+core@7._dc8b00cf055872e3384e498bdbcc2361/node_modules/react-native/ReactCommon`)"
   - "ReactNativeDependencies (from `../../node_modules/.pnpm/react-native@0.83.9_@babel+core@7.29.0_@react-native+metro-config@0.85.3_@babel+core@7._dc8b00cf055872e3384e498bdbcc2361/node_modules/react-native/third-party-podspecs/ReactNativeDependencies.podspec`)"
   - "RNGestureHandler (from `../../node_modules/.pnpm/react-native-gesture-handler@2.30.1_react-native@0.83.9_@babel+core@7.29.0_@react-nativ_8a012d876a5e107aca2fa2509ddd090b/node_modules/react-native-gesture-handler`)"
-  - "RNReanimated (from `../../node_modules/.pnpm/react-native-reanimated@4.3.1_patch_hash=008e0b0a8064f9a0c3598181df6d690c3e3aabc479d89a_3159c5fdc1ab3b670c5ce879dd844c40/node_modules/react-native-reanimated`)"
+  - "RNReanimated (from `../../node_modules/.pnpm/react-native-reanimated@4.3.1_react-native-worklets@0.8.3_@babel+core@7.29.0_@react-nat_a36de8c669ecdffa9c482b716c7f01ab/node_modules/react-native-reanimated`)"
   - "RNScreens (from `../../node_modules/.pnpm/react-native-screens@4.23.0_react-native@0.83.9_@babel+core@7.29.0_@react-native+metro-_90f8686cdf08fc515ff63e5c4a1de7d9/node_modules/react-native-screens`)"
   - "RNWorklets (from `../../node_modules/.pnpm/react-native-worklets@0.8.3_@babel+core@7.29.0_@react-native+metro-config@0.85.3_@babel_552af72a855e5d06a97f045dbffdf3cc/node_modules/react-native-worklets`)"
   - "Yoga (from `../../node_modules/.pnpm/react-native@0.83.9_@babel+core@7.29.0_@react-native+metro-config@0.85.3_@babel+core@7._dc8b00cf055872e3384e498bdbcc2361/node_modules/react-native/ReactCommon/yoga`)"
@@ -2414,7 +2414,7 @@ EXTERNAL SOURCES:
   ExpoModulesJSI:
     :path: "../../node_modules/.pnpm/expo-modules-core@55.0.25_react-native-worklets@0.8.3_@babel+core@7.29.0_@react-native+_3811e8899bcb525808d556664ef3d556/node_modules/expo-modules-core"
   ExpoRouter:
-    :path: "../../node_modules/.pnpm/expo-router@55.0.14_732d62fc38541e036ba96dca417c556e/node_modules/expo-router/ios"
+    :path: "../../node_modules/.pnpm/expo-router@55.0.14_c3856c2534ba050a4fc21c5ff71df6fc/node_modules/expo-router/ios"
   ExpoSplashScreen:
     :path: "../../node_modules/.pnpm/expo-splash-screen@55.0.20_expo@55.0.23_typescript@5.9.3/node_modules/expo-splash-screen/ios"
   ExpoSymbols:
@@ -2579,7 +2579,7 @@ EXTERNAL SOURCES:
   RNGestureHandler:
     :path: "../../node_modules/.pnpm/react-native-gesture-handler@2.30.1_react-native@0.83.9_@babel+core@7.29.0_@react-nativ_8a012d876a5e107aca2fa2509ddd090b/node_modules/react-native-gesture-handler"
   RNReanimated:
-    :path: "../../node_modules/.pnpm/react-native-reanimated@4.3.1_patch_hash=008e0b0a8064f9a0c3598181df6d690c3e3aabc479d89a_3159c5fdc1ab3b670c5ce879dd844c40/node_modules/react-native-reanimated"
+    :path: "../../node_modules/.pnpm/react-native-reanimated@4.3.1_react-native-worklets@0.8.3_@babel+core@7.29.0_@react-nat_a36de8c669ecdffa9c482b716c7f01ab/node_modules/react-native-reanimated"
   RNScreens:
     :path: "../../node_modules/.pnpm/react-native-screens@4.23.0_react-native@0.83.9_@babel+core@7.29.0_@react-native+metro-_90f8686cdf08fc515ff63e5c4a1de7d9/node_modules/react-native-screens"
   RNWorklets:
