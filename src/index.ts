@@ -1,3 +1,4 @@
+import './EventHandler';
 import WishListManager from './Specs/NativeWishlistManager';
 
 WishListManager.install();

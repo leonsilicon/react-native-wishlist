@@ -59,132 +59,144 @@ export type UIInflatorRegistry = {
   processProps: (props: any) => any;
 };
 
+const buildInflatorRegistry = (): UIInflatorRegistry => {
+  'worklet';
+
+  const registry = new Map<string, InflateMethod>();
+  const mappings = new Map<
+    string,
+    Map<string, Map<string, MappingInflateMethod>>
+  >();
+  const templateValueStates = new Map<string, TemplateValueUIState>();
+  let pushChildrenCallbacks: (() => void)[] = [];
+  let currentValue: unknown;
+  let currentRootValue: unknown;
+
+  const inflatorRegistry: UIInflatorRegistry = {
+    inflateItem: (id, index, nativePool, prevItem) => {
+      const pool = wrapComponentPool(nativePool);
+      const inflator = registry.get(id);
+      if (inflator) {
+        const result = inflator(index, pool, prevItem);
+        if (!result) {
+          return result;
+        }
+        const [item, value] = result;
+
+        return inflatorRegistry.useMappings(
+          item,
+          value,
+          value.type,
+          id,
+          pool,
+          value, // rootValue
+        );
+      } else {
+        console.log('Inflator not found for id: ' + id);
+        return undefined;
+      }
+    },
+    useMappings: (item, value, templateType, id, pool, rootValue) => {
+      // We need to save and restore current values to support things like ForEach
+      // where current value can change.
+      inflatorRegistry.withCurrentValues(value, rootValue, () => {
+        const mapping = mappings.get(id)?.get(templateType);
+        if (mapping) {
+          for (const [nativeId, inflate] of mapping.entries()) {
+            const templateItem = item.getByWishId(nativeId);
+            if (templateItem) {
+              templateValueStates.clear();
+              inflate(value, templateItem, pool, rootValue);
+            }
+          }
+        }
+      });
+      return item;
+    },
+    registerInflator: (id, inflateMethod) => {
+      registry.set(id, inflateMethod);
+    },
+    unregisterInflator: (id) => {
+      // TODO(Szymon) It should be done on UI Thread as it may be still in use
+      registry.delete(id);
+      mappings.delete(id);
+    },
+    registerMapping: (
+      inflatorId: string,
+      nativeId: string,
+      templateType: string,
+      inflateMethod: MappingInflateMethod,
+    ) => {
+      const mapping = mappings.get(inflatorId) ?? new Map();
+      const innerMapping = mapping.get(templateType) ?? new Map();
+      innerMapping.set(nativeId, inflateMethod);
+      mapping.set(templateType, innerMapping);
+      mappings.set(inflatorId, mapping);
+    },
+    getTemplateValueState: (id) => {
+      return templateValueStates.get(id);
+    },
+    setTemplateValueState: (id, state) => {
+      templateValueStates.set(id, state);
+    },
+    deleteTemplateValueState: (id) => {
+      templateValueStates.delete(id);
+    },
+    withCurrentValues: (value, rootValue, callback) => {
+      templateValueStates.clear();
+      const previousValue = currentValue;
+      const previousRootValue = currentRootValue;
+      currentValue = value;
+      currentRootValue = rootValue;
+      callback();
+      currentValue = previousValue;
+      currentRootValue = previousRootValue;
+    },
+    getCurrentValue: () => {
+      return currentValue;
+    },
+    getCurrentRootValue: () => {
+      return currentRootValue;
+    },
+    // TODO: Scope this by wishlist
+    didPushChildren: () => {
+      pushChildrenCallbacks.forEach((cb) => cb());
+      pushChildrenCallbacks = [];
+    },
+    addPushChildrenCallback: (callback) => {
+      pushChildrenCallbacks.push(callback);
+    },
+    processProps: (props) => {
+      const colors = getColorsUIModule();
+      const result: any = {};
+      for (const [key, value] of Object.entries(props)) {
+        if (colors.colorProps.includes(key)) {
+          result[key] = colors.processColor(value);
+        } else {
+          result[key] = value;
+        }
+      }
+      return result;
+    },
+  };
+  return inflatorRegistry;
+};
+
 let done = false;
 const maybeInit = () => {
   if (!done) {
     done = true;
+    // Install on the worklets UI runtime so worklet callers see it.
     createRunInWishlistFn(() => {
       'worklet';
-
-      const registry = new Map<string, InflateMethod>();
-      const mappings = new Map<
-        string,
-        Map<string, Map<string, MappingInflateMethod>>
-      >();
-      const templateValueStates = new Map<string, TemplateValueUIState>();
-      let pushChildrenCallbacks: (() => void)[] = [];
-      let currentValue: unknown;
-      let currentRootValue: unknown;
-
-      const inflatorRegistry: UIInflatorRegistry = {
-        inflateItem: (id, index, nativePool, prevItem) => {
-          const pool = wrapComponentPool(nativePool);
-          const inflator = registry.get(id);
-          if (inflator) {
-            const result = inflator(index, pool, prevItem);
-            if (!result) {
-              return result;
-            }
-            const [item, value] = result;
-
-            return inflatorRegistry.useMappings(
-              item,
-              value,
-              value.type,
-              id,
-              pool,
-              value, // rootValue
-            );
-          } else {
-            console.log('Inflator not found for id: ' + id);
-            return undefined;
-          }
-        },
-        useMappings: (item, value, templateType, id, pool, rootValue) => {
-          // We need to save and restore current values to support things like ForEach
-          // where current value can change.
-          inflatorRegistry.withCurrentValues(value, rootValue, () => {
-            const mapping = mappings.get(id)?.get(templateType);
-            if (mapping) {
-              for (const [nativeId, inflate] of mapping.entries()) {
-                const templateItem = item.getByWishId(nativeId);
-                if (templateItem) {
-                  templateValueStates.clear();
-                  inflate(value, templateItem, pool, rootValue);
-                }
-              }
-            }
-          });
-          return item;
-        },
-        registerInflator: (id, inflateMethod) => {
-          registry.set(id, inflateMethod);
-        },
-        unregisterInflator: (id) => {
-          // TODO(Szymon) It should be done on UI Thread as it may be still in use
-          registry.delete(id);
-          mappings.delete(id);
-        },
-        registerMapping: (
-          inflatorId: string,
-          nativeId: string,
-          templateType: string,
-          inflateMethod: MappingInflateMethod,
-        ) => {
-          const mapping = mappings.get(inflatorId) ?? new Map();
-          const innerMapping = mapping.get(templateType) ?? new Map();
-          innerMapping.set(nativeId, inflateMethod);
-          mapping.set(templateType, innerMapping);
-          mappings.set(inflatorId, mapping);
-        },
-        getTemplateValueState: (id) => {
-          return templateValueStates.get(id);
-        },
-        setTemplateValueState: (id, state) => {
-          templateValueStates.set(id, state);
-        },
-        deleteTemplateValueState: (id) => {
-          templateValueStates.delete(id);
-        },
-        withCurrentValues: (value, rootValue, callback) => {
-          templateValueStates.clear();
-          const previousValue = currentValue;
-          const previousRootValue = currentRootValue;
-          currentValue = value;
-          currentRootValue = rootValue;
-          callback();
-          currentValue = previousValue;
-          currentRootValue = previousRootValue;
-        },
-        getCurrentValue: () => {
-          return currentValue;
-        },
-        getCurrentRootValue: () => {
-          return currentRootValue;
-        },
-        // TODO: Scope this by wishlist
-        didPushChildren: () => {
-          pushChildrenCallbacks.forEach((cb) => cb());
-          pushChildrenCallbacks = [];
-        },
-        addPushChildrenCallback: (callback) => {
-          pushChildrenCallbacks.push(callback);
-        },
-        processProps: (props) => {
-          const colors = getColorsUIModule();
-          const result: any = {};
-          for (const [key, value] of Object.entries(props)) {
-            if (colors.colorProps.includes(key)) {
-              result[key] = colors.processColor(value);
-            } else {
-              result[key] = value;
-            }
-          }
-          return result;
-        },
-      };
-      global.__wishlistInflatorRegistry = inflatorRegistry;
+      global.__wishlistInflatorRegistry = buildInflatorRegistry();
     })();
+    // Also install on the main JS runtime — the native side accesses the
+    // registry via WishlistJsRuntime (which is `cxxBridge.runtime`, i.e. the
+    // JS runtime), so without this the lookups in MGViewportCarerImpl and
+    // friends throw `getPropertyAsObject: property '__wishlistInflatorRegistry'
+    // is undefined`.
+    global.__wishlistInflatorRegistry = buildInflatorRegistry();
   }
 };
 
@@ -197,6 +209,7 @@ export function getUIInflatorRegistry(): UIInflatorRegistry {
 export default class InflatorRepository {
   static register(id: string, inflateMethod: InflateMethod) {
     maybeInit();
+    global.__wishlistInflatorRegistry?.registerInflator(id, inflateMethod);
     createRunInWishlistFn(() => {
       'worklet';
       getUIInflatorRegistry().registerInflator(id, inflateMethod);
@@ -205,6 +218,7 @@ export default class InflatorRepository {
 
   static unregister(id: string) {
     maybeInit();
+    global.__wishlistInflatorRegistry?.unregisterInflator(id);
     createRunInWishlistFn(() => {
       'worklet';
       getUIInflatorRegistry().unregisterInflator(id);
@@ -218,6 +232,12 @@ export default class InflatorRepository {
     inflateMethod: MappingInflateMethod,
   ) {
     maybeInit();
+    global.__wishlistInflatorRegistry?.registerMapping(
+      inflatorId,
+      nativeId,
+      templateType,
+      inflateMethod,
+    );
     createRunInWishlistFn(() => {
       'worklet';
       getUIInflatorRegistry().registerMapping(

@@ -11,7 +11,10 @@
 #include <jsi/jsi.h>
 #include <react/renderer/components/view/ViewEventEmitter.h>
 #include <react/renderer/core/EventListener.h>
+#include "MGContentContainerComponent.h"
 #include "MGObjCJSIUtils.h"
+#include "MGTemplateContainerComponent.h"
+#include "MGTemplateInterceptorComponent.h"
 #include "MGUIManagerHolder.h"
 #import "MGWishListComponent.h"
 #import "MGWishlistQueue.h"
@@ -33,6 +36,18 @@ using namespace Wishlist;
 }
 
 RCT_EXPORT_MODULE(WishlistManager);
+
++ (void)initialize
+{
+  if (self != [MGWishlistManager class]) {
+    return;
+  }
+  RCTComponentViewFactory *factory = [RCTComponentViewFactory currentComponentViewFactory];
+  [factory registerComponentViewClass:[MGWishListComponent class]];
+  [factory registerComponentViewClass:[MGTemplateContainerComponent class]];
+  [factory registerComponentViewClass:[MGTemplateInterceptorComponent class]];
+  [factory registerComponentViewClass:[MGContentContainerComponent class]];
+}
 
 - (void)setBridge:(RCTBridge *)bridge
 {
