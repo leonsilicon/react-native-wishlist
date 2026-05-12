@@ -17,19 +17,19 @@ While developing, you can run the [example app](/example/) to test your changes.
 To start the packager:
 
 ```sh
-bun ios
+vpr ios
 ```
 
 To run the example app on Android:
 
 ```sh
-bun android
+vpr android
 ```
 
 To run the example app on iOS:
 
 ```sh
-bun ios
+vpr ios
 ```
 
 
@@ -89,13 +89,13 @@ yarn release
 
 The `package.json` file contains various scripts for common tasks:
 
-- `bun bootstrap`: setup project by installing all dependencies and pods.
-- `bun typescript`: type-check files with TypeScript.
-- `bun lint`: lint files with ESLint.
-- `bun test`: run unit tests with Jest.
-- `bun start`: start the Metro server for the example app.
-- `bun android`: run the example app on Android.
-- `bun ios`: run the example app on iOS.
+- `vpr bootstrap`: setup project by installing all dependencies and pods.
+- `vpr typescript`: type-check files with TypeScript.
+- `vpr lint`: lint files with ESLint.
+- `vpr test`: run unit tests with Jest.
+- `vpr start`: start the Metro server for the example app.
+- `vpr android`: run the example app on Android.
+- `vpr ios`: run the example app on iOS.
 
 ### Sending a pull request
 

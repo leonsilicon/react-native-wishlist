@@ -28,15 +28,15 @@
     "!**/.*"
   ],
   "scripts": {
-    "start": "cd example && bun start",
-    "ios": "cd example && bun ios",
-    "android": "cd example && bun android",
+    "start": "cd example && vpr start",
+    "ios": "cd example && vpr ios",
+    "android": "cd example && vpr android",
     "test": "jest",
     "typecheck": "tsgo --noEmit",
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "prepare": "bob build",
     "release": "release-it",
-    "bootstrap": "pnpm install && cd example && pnpm run pods",
+    "bootstrap": "vp install && cd example && vpr pods",
     "format:clang:check": "clang-format --dry-run --Werror --glob='{ios,android,cpp}/**/*.{h,cpp,m,mm}'",
     "format:clang:write": "clang-format -i --glob='{ios,android,cpp}/**/*.{h,hpp,cpp,m,mm}'"
   },
