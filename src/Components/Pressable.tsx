@@ -42,8 +42,11 @@ type RNGestureHandlerModuleProps = {
 };
 
 // Start above the range RNGH typically issues for handlers created via JS so
-// our auto-generated tags don't collide with user-created gestures.
-let _handlerTag = 100000;
+// our auto-generated tags don't collide with user-created gestures. Offset by
+// a per-load random base so a Metro JS reload doesn't reuse the tags from the
+// previous load (RNGH's native registry persists across JS reloads and would
+// throw `HandlerAlreadyRegistered`).
+let _handlerTag = 100000 + Math.floor(Math.random() * 1_000_000);
 
 export function getNextHandlerTag(): number {
   return _handlerTag++;
@@ -104,11 +107,25 @@ const attachGestureHandler = createRunInJsFn((tag: number) => {
   installGestureListener();
   const handlerTag = getNextHandlerTag();
   _handlerTagToViewTag.set(handlerTag, tag);
-  RNGestureHandlerModule.createGestureHandler(
-    'TapGestureHandler',
-    handlerTag,
-    {},
-  );
+  try {
+    RNGestureHandlerModule.createGestureHandler(
+      'TapGestureHandler',
+      handlerTag,
+      {},
+    );
+  } catch (e) {
+    // RNGH keeps its handler registry alive across Metro JS reloads. If a
+    // handler with this tag already exists from a prior load, drop it and
+    // retry — losing the stale handler is fine since its view is gone too.
+    try {
+      RNGestureHandlerModule.dropGestureHandler(handlerTag);
+    } catch {}
+    RNGestureHandlerModule.createGestureHandler(
+      'TapGestureHandler',
+      handlerTag,
+      {},
+    );
+  }
   RNGestureHandlerModule.attachGestureHandler(
     handlerTag,
     tag,
