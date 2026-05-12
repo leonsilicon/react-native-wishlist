@@ -4,4 +4,8 @@
  * native code and caused CMake to run `add_subdirectory(... wishlist_autolinked_build)`
  * twice with different source paths (duplicate binary dir error).
  */
-module.exports = {};
+module.exports = {
+  dependencies: {
+    'react-native-wishlist': {}
+  }
+};
