@@ -28,9 +28,7 @@ class JSI_EXPORT MGTemplateContainerState final {
 
   folly::dynamic getDynamic() const;
 
-  MapBuffer getMapBuffer() const {
-    return MapBufferBuilder::EMPTY();
-  };
+  MapBuffer getMapBuffer() const;
 #endif
 
  private:

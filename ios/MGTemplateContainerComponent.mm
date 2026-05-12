@@ -6,6 +6,35 @@
 
 using namespace facebook::react;
 
+static std::vector<std::string> parseTemplateNames(std::string const &namesJson)
+{
+  if (namesJson.empty()) {
+    return {};
+  }
+
+  NSString *jsonString = [NSString stringWithUTF8String:namesJson.c_str()];
+  NSData *jsonData = [jsonString dataUsingEncoding:NSUTF8StringEncoding];
+  if (!jsonData) {
+    return {};
+  }
+
+  NSError *error = nil;
+  id parsed = [NSJSONSerialization JSONObjectWithData:jsonData options:0 error:&error];
+  if (error || ![parsed isKindOfClass:NSArray.class]) {
+    return {};
+  }
+
+  NSArray *names = (NSArray *)parsed;
+  std::vector<std::string> result;
+  result.reserve(names.count);
+  for (id name in names) {
+    if ([name isKindOfClass:NSString.class]) {
+      result.emplace_back([(NSString *)name UTF8String]);
+    }
+  }
+  return result;
+}
+
 @implementation MGTemplateContainerComponent {
   MGTemplateContainerShadowNode::ConcreteState::Shared _state;
   MGWishListComponent *_wishList;
@@ -65,7 +94,7 @@ using namespace facebook::react;
   auto state = std::static_pointer_cast<MGTemplateContainerShadowNode::ConcreteState const>(_state);
   [_wishList setWishlistId:props->wishlistId];
   [_wishList setInflatorId:props->inflatorId];
-  [_wishList setTemplates:state->getData().getTemplates() withNames:props->names];
+  [_wishList setTemplates:state->getData().getTemplates() withNames:parseTemplateNames(props->names)];
 }
 
 @end

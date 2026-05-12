@@ -4,7 +4,7 @@ import codegenNativeComponent from 'react-native/Libraries/Utilities/codegenNati
 export interface NativeTemplateContainerProps extends ViewProps {
   inflatorId: string;
   wishlistId: string;
-  names: ReadonlyArray<string>;
+  names: string;
 }
 
 export default codegenNativeComponent<NativeTemplateContainerProps>(

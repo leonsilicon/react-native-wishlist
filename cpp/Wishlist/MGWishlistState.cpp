@@ -6,6 +6,12 @@
 
 namespace facebook {
 namespace react {
+#ifdef ANDROID
+namespace {
+constexpr MapBuffer::Key ViewportCarerKey = 1;
+constexpr MapBuffer::Key ContentOffsetKey = 2;
+} // namespace
+#endif
 
 MGWishlistState::MGWishlistState()
     : initialised(false),
@@ -35,7 +41,14 @@ folly::dynamic MGWishlistState::getDynamic() const {
 };
 
 MapBuffer MGWishlistState::getMapBuffer() const {
-  return MapBufferBuilder::EMPTY();
+  auto viewportCarerRef = Wishlist::JNIStateRegistry::getInstance().addValue(
+      (void *)&viewportCarer);
+  MapBufferBuilder builder;
+  builder.putInt(ViewportCarerKey, viewportCarerRef);
+  if (contentOffset != MG_NO_OFFSET) {
+    builder.putDouble(ContentOffsetKey, contentOffset);
+  }
+  return builder.build();
 };
 
 #endif

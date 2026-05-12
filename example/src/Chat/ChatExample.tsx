@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import {
   createRunInJsFn,
   useWishlistData,
@@ -11,7 +11,7 @@ import { ChatItem, fetchData, getSendedMessage } from './Data';
 import { MessageInput } from './MessageInput';
 import { ReactionPicker } from './ReactionPicker';
 
-const INITIAL_ITEMS_COUNT = 20;
+const INITIAL_ITEMS_COUNT = 2000;
 const LOADING_TIME = 2000;
 const START_LOADING_ITEM = { type: 'loading', key: 'start-loading' } as any;
 const END_LOADING_ITEM = { type: 'loading', key: 'end-loading' } as any;
@@ -143,7 +143,7 @@ export default function App() {
       <>
         <ChatHeader isLoading />
         <View style={[styles.container, styles.center]}>
-          <ActivityIndicator size="small" />
+          <View style={styles.loadingDot} />
         </View>
       </>
     );
@@ -177,5 +177,11 @@ const styles = StyleSheet.create({
   center: {
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  loadingDot: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#9CA3AF',
   },
 });

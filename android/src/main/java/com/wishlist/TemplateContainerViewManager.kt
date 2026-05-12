@@ -1,6 +1,5 @@
 package com.wishlist
 
-import com.facebook.react.bridge.ReadableArray
 import com.facebook.react.module.annotations.ReactModule
 import com.facebook.react.uimanager.ReactStylesDiffMap
 import com.facebook.react.uimanager.StateWrapper
@@ -9,6 +8,7 @@ import com.facebook.react.uimanager.ViewGroupManager
 import com.facebook.react.uimanager.annotations.ReactProp
 import com.facebook.react.viewmanagers.MGTemplateContainerManagerDelegate
 import com.facebook.react.viewmanagers.MGTemplateContainerManagerInterface
+import org.json.JSONArray
 
 @ReactModule(name = TemplateContainerViewManager.REACT_CLASS)
 class TemplateContainerViewManager :
@@ -50,11 +50,12 @@ class TemplateContainerViewManager :
   }
 
   @ReactProp(name = "names")
-  override fun setNames(view: TemplateContainer, value: ReadableArray?) {
+  override fun setNames(view: TemplateContainer, value: String?) {
     if (value != null) {
-      val names = ArrayList<String>(value.size())
-      for (i in 0 until value.size()) {
-        value.getString(i)?.let { names.add(it) }
+      val namesJson = JSONArray(value)
+      val names = ArrayList<String>(namesJson.length())
+      for (i in 0 until namesJson.length()) {
+        names.add(namesJson.getString(i))
       }
       view.names = names
     } else {

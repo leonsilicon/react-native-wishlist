@@ -5,6 +5,9 @@ import android.view.View
 import com.facebook.react.uimanager.PixelUtil
 import com.facebook.react.views.scroll.ReactScrollView
 
+private const val VIEWPORT_CARER_KEY = 1
+private const val CONTENT_OFFSET_KEY = 2
+
 class Wishlist(reactContext: Context) : ReactScrollView(reactContext) {
   var inflatorId: String? = null
   var wishlistId: String? = null
@@ -38,7 +41,7 @@ class Wishlist(reactContext: Context) : ReactScrollView(reactContext) {
 
     var orchestrator = this.orchestrator
     if (orchestrator == null) {
-      val viewportCarer = stateWrapper?.stateData?.getInt("viewportCarer") ?: return
+      val viewportCarer = stateWrapper?.stateDataMapBuffer?.getInt(VIEWPORT_CARER_KEY) ?: return
       orchestrator = Orchestrator(this, wishlistId!!, viewportCarer)
       this.orchestrator = orchestrator
     }

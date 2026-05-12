@@ -43,6 +43,12 @@ add_library(
   ${SOURCES_CODEGEN}
 )
 
+target_compile_definitions(
+  ${PACKAGE_NAME}
+  PRIVATE
+  RN_SERIALIZABLE_STATE
+)
+
 # includes
 target_include_directories(
   ${PACKAGE_NAME}

@@ -11,6 +11,8 @@ import com.facebook.react.uimanager.annotations.ReactProp
 import com.facebook.react.viewmanagers.MGWishlistManagerDelegate
 import com.facebook.react.viewmanagers.MGWishlistManagerInterface
 
+private const val CONTENT_OFFSET_KEY = 2
+
 @ReactModule(name = WishlistViewManager.REACT_CLASS)
 class WishlistViewManager : ViewGroupManager<Wishlist>(), MGWishlistManagerInterface<Wishlist> {
   companion object {
@@ -33,9 +35,9 @@ class WishlistViewManager : ViewGroupManager<Wishlist>(), MGWishlistManagerInter
     if (stateWrapper != null) {
       view.setStateWrapper(stateWrapper)
     }
-    val stateData = stateWrapper?.stateData
-    if (stateData != null && stateData.hasKey("contentOffset")) {
-      view.scrollToOffsetForContentChange(stateData.getDouble("contentOffset").toFloat())
+    val stateData = stateWrapper?.stateDataMapBuffer
+    if (stateData != null && stateData.contains(CONTENT_OFFSET_KEY)) {
+      view.scrollToOffsetForContentChange(stateData.getDouble(CONTENT_OFFSET_KEY).toFloat())
     }
     return null
   }

@@ -333,6 +333,7 @@ function InnerComponent({
   const { id } = useWishlistContext();
 
   const keys = Object.keys(combinedTemplates);
+  const names = JSON.stringify(keys);
 
   return (
     <NativeTemplateInterceptor
@@ -355,7 +356,7 @@ function InnerComponent({
         />
       </NativeWishList>
       <NativeTemplateContainer
-        names={keys}
+        names={names}
         inflatorId={inflatorId}
         wishlistId={id}
         key={Math.random().toString()}
