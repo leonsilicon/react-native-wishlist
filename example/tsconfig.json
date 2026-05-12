@@ -18,6 +18,9 @@
     "src/AssetList/**/*.tsx",
     "src/Chat/**/*.ts",
     "src/Chat/**/*.tsx",
+    "src/Levels/**/*.ts",
+    "src/Levels/**/*.tsx",
+    "src/Levels/**/*.json",
     "../src/global.d.ts",
     ".expo/types/**/*.ts",
     "expo-env.d.ts"

@@ -1,6 +1,6 @@
+import { useRouter } from 'expo-router';
 import React from 'react';
-import { Image, StyleSheet, Text, View } from 'react-native';
-import { TouchableOpacity } from 'react-native-gesture-handler';
+import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 
 type HeaderProps = {
   isLoading: boolean;
@@ -10,6 +10,7 @@ type HeaderProps = {
 const avatar = require('./assets/margelo_logo.png');
 
 export function ChatHeader({ isLoading, onRefreshPress }: HeaderProps) {
+  const router = useRouter();
   return (
     <View style={styles.container}>
       <View style={styles.left}>
@@ -23,14 +24,15 @@ export function ChatHeader({ isLoading, onRefreshPress }: HeaderProps) {
         {!isLoading && <Text style={styles.title}>Margelo.com</Text>}
       </View>
       <View style={styles.right}>
-        {onRefreshPress != null && (
-          <TouchableOpacity onPress={onRefreshPress} style={styles.iconButton}>
-            <Image
-              source={require('./assets/refresh.png')}
-              style={styles.icon}
-            />
-          </TouchableOpacity>
-        )}
+        <Pressable
+          onPress={() => {
+            console.log('pressed');
+            router.push('/levels');
+          }}
+          style={styles.iconButton}
+        >
+          <Image source={require('./assets/refresh.png')} style={styles.icon} />
+        </Pressable>
       </View>
     </View>
   );

@@ -113,7 +113,7 @@ PODS:
   - libwebp/sharpyuv (1.5.0)
   - libwebp/webp (1.5.0):
     - libwebp/sharpyuv
-  - MGWishList (0.0.0):
+  - MGWishList (0.0.4):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -2612,7 +2612,7 @@ SPEC CHECKSUMS:
   libavif: 5f8e715bea24debec477006f21ef9e95432e254d
   libdav1d: 23581a4d8ec811ff171ed5e2e05cd27bad64c39f
   libwebp: 02b23773aedb6ff1fd38cec7a77b81414c6842a8
-  MGWishList: bc581ab79554d465df9b30ff1a7dd3537c5d423b
+  MGWishList: 2349aeb91ef357c58bd5dd8bcb795f514c4d7781
   RCTDeprecation: fd33ca1ccd370f92d656b2b2c42eb64920722170
   RCTRequired: e8df4eae11cd93c621094fd7ebc5519a52de1c6d
   RCTSwiftUI: cef2010e1e5e699600b2064d3aa702e53c35816c
