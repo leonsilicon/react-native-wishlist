@@ -17,19 +17,19 @@ While developing, you can run the [example app](/example/) to test your changes.
 To start the packager:
 
 ```sh
-yarn example start
+vpr --filter example ios
 ```
 
 To run the example app on Android:
 
 ```sh
-yarn example android
+vpr --filter example android
 ```
 
 To run the example app on iOS:
 
 ```sh
-yarn example ios
+vpr --filter example ios
 ```
 
 
@@ -89,13 +89,13 @@ yarn release
 
 The `package.json` file contains various scripts for common tasks:
 
-- `yarn bootstrap`: setup project by installing all dependencies and pods.
-- `yarn typescript`: type-check files with TypeScript.
-- `yarn lint`: lint files with ESLint.
-- `yarn test`: run unit tests with Jest.
-- `yarn example start`: start the Metro server for the example app.
-- `yarn example android`: run the example app on Android.
-- `yarn example ios`: run the example app on iOS.
+- `vpr bootstrap`: setup project by installing all dependencies and pods.
+- `vpr typescript`: type-check files with TypeScript.
+- `vpr lint`: lint files with ESLint.
+- `vpr test`: run unit tests with Jest.
+- `vpr --filter example start`: start the Metro server for the example app.
+- `vpr --filter example android`: run the example app on Android.
+- `vpr --filter example ios`: run the example app on iOS.
 
 ### Sending a pull request
 

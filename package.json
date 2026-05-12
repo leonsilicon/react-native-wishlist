@@ -1,6 +1,7 @@
 {
   "name": "react-native-wishlist",
   "version": "0.0.1-alpha.5",
+  "private": true,
   "description": "The fastest List component for React Native.",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
@@ -32,16 +33,9 @@
     "lint": "eslint \"**/*.{js,ts,tsx}\"",
     "prepare": "bob build",
     "release": "release-it",
-    "example": "yarn --cwd example",
-    "bootstrap": "yarn example && yarn install && yarn example pods",
-    "format:prettier:check": "prettier \"src/**/*.{js,ts,tsx}\" \"example/**/*.{js,ts,tsx}\" --check",
-    "format:prettier:write": "yarn format:prettier:check --write",
+    "bootstrap": "vp install && vpr --filter example pods",
     "format:clang:check": "clang-format --dry-run --Werror --glob='{ios,android,cpp}/**/*.{h,cpp,m,mm}'",
-    "format:clang:write": "clang-format -i --glob='{ios,android,cpp}/**/*.{h,hpp,cpp,m,mm}'",
-    "format:spotless:check": "cd android && ./gradlew spotlessCheck",
-    "format:spotless:write": "cd android && ./gradlew spotlessApply",
-    "format:check": "yarn format:prettier:check && yarn format:clang:check && yarn format:spotless:check",
-    "format:write": "yarn format:prettier:write && yarn format:clang:write && yarn format:spotless:write"
+    "format:clang:write": "clang-format -i --glob='{ios,android,cpp}/**/*.{h,hpp,cpp,m,mm}'"
   },
   "keywords": [
     "react-native",
@@ -187,5 +181,5 @@
       "javaPackageName": "com.wishlist"
     }
   },
-  "packageManager": "yarn@1.22.22"
+  "packageManager": "pnpm@11.1.1"
 }
