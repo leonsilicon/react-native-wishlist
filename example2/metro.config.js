@@ -1,16 +1,18 @@
-const { getDefaultConfig } = require('expo/metro-config');
 const path = require('path');
+const { getDefaultConfig } = require('@expo/metro-config');
+const { withMetroConfig } = require('react-native-monorepo-config');
 
-const projectRoot = __dirname;
-const workspaceRoot = path.resolve(projectRoot, '..');
+const root = path.resolve(__dirname, '..');
 
-const config = getDefaultConfig(projectRoot);
-
-config.watchFolders = [workspaceRoot];
-config.resolver.nodeModulesPaths = [
-  path.resolve(projectRoot, 'node_modules'),
-  path.resolve(workspaceRoot, 'node_modules'),
-];
-config.resolver.disableHierarchicalLookup = true;
+/**
+ * Metro configuration
+ * https://facebook.github.io/metro/docs/configuration
+ *
+ * @type {import('metro-config').MetroConfig}
+ */
+const config = withMetroConfig(getDefaultConfig(__dirname), {
+  root,
+  dirname: __dirname,
+});
 
 module.exports = config;

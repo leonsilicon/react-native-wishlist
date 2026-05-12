@@ -8,6 +8,12 @@
       ],
       "@/assets/*": [
         "./assets/*"
+      ],
+      "react-native": [
+        "./node_modules/react-native"
+      ],
+      "react-native-wishlist": [
+        "../src/index"
       ]
     }
   },
@@ -18,6 +24,7 @@
     "src/AssetList/**/*.tsx",
     "src/Chat/**/*.ts",
     "src/Chat/**/*.tsx",
+    "../src/global.d.ts",
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
   ]
