@@ -217,8 +217,8 @@ void MGViewportCarerImpl::updateWindow() {
 
   std::vector<WishItem> itemsToRemove;
 
-  // remove above
-  while (true) {
+  // remove above — keep at least one item so window_ is never empty
+  while (window_.size() > 1) {
     WishItem item = window_.front();
     float bottom = item.offset + item.height;
     if (bottom <= topEdge) {
@@ -231,8 +231,8 @@ void MGViewportCarerImpl::updateWindow() {
     }
   }
 
-  // remove below
-  while (true) {
+  // remove below — keep at least one item so window_ is never empty
+  while (window_.size() > 1) {
     WishItem item = window_.back();
     if (item.offset >= bottomEdge) {
       window_.pop_back();
