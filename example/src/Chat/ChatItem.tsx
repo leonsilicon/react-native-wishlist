@@ -20,14 +20,17 @@ type ReactionItemCombined = ReactionItem & {
 
 export const Reaction = () => {
   const emoji = useTemplateValue((item: ReactionItemCombined) => {
+    'worklet';
     return item.emoji;
   });
 
   const count = useTemplateValue((item: ReactionItemCombined) => {
+    'worklet';
     return item.ids.length;
   });
 
   const showCounter = useTemplateValue(() => {
+    'worklet';
     return count.value() > 1;
   });
 
@@ -64,14 +67,20 @@ export const AddReaction = ({
 };
 
 export const ChatItemView: React.FC<Props> = ({ type, onAddReaction }) => {
-  const author = useTemplateValue((item: ChatItem) => item.author);
+  const author = useTemplateValue((item: ChatItem) => {
+    'worklet';
+    return item.author;
+  });
   const avatarUrl = useTemplateValue((item: ChatItem) => {
+    'worklet';
     return item.avatarUrl;
   });
-  const message = useTemplateValue(
-    (item: ChatItem) => `${item.key}: ${item.message}`,
-  );
+  const message = useTemplateValue((item: ChatItem) => {
+    'worklet';
+    return `${item.key}: ${item.message}`;
+  });
   const likeText = useTemplateValue((item: ChatItem) => {
+    'worklet';
     if (item.liked) {
       return '♥️';
     } else {
@@ -79,6 +88,7 @@ export const ChatItemView: React.FC<Props> = ({ type, onAddReaction }) => {
     }
   });
   const likeOpacity = useTemplateValue((item: ChatItem) => {
+    'worklet';
     if (item.liked) {
       return 1;
     } else {
@@ -87,7 +97,9 @@ export const ChatItemView: React.FC<Props> = ({ type, onAddReaction }) => {
   });
 
   const reactions = useTemplateValue((item: ChatItem) => {
+    'worklet';
     const obj = item.reactions.reduce((acc, i) => {
+      'worklet';
       if (acc[i.emoji]) {
         acc[i.emoji].ids.push(i.key);
       } else {
@@ -127,6 +139,7 @@ export const ChatItemView: React.FC<Props> = ({ type, onAddReaction }) => {
   };
 
   const avatarSize = useTemplateValue((item: ChatItem) => {
+    'worklet';
     return item.showBiggerAvatar ? 60 : 30;
   });
 

@@ -10,21 +10,29 @@ const green = processColor('#00D146');
 const gray = processColor('#9DA0A8');
 
 function AssetInfo() {
-  const name = useTemplateValue((item: AssetItemType) => item.name);
-  const balance = useTemplateValue((item: AssetItemType) => item.balance);
-  const nativeBalance = useTemplateValue(
-    (item: AssetItemType) => `${item.nativeBalance} ${item.symbol}`,
-  );
-  const change = useTemplateValue((item: AssetItemType) =>
-    item.change ? `${item.change}%` : '-',
-  );
+  const name = useTemplateValue((item: AssetItemType) => {
+    'worklet';
+    return item.name;
+  });
+  const balance = useTemplateValue((item: AssetItemType) => {
+    'worklet';
+    return item.balance;
+  });
+  const nativeBalance = useTemplateValue((item: AssetItemType) => {
+    'worklet';
+    return `${item.nativeBalance} ${item.symbol}`;
+  });
+  const change = useTemplateValue((item: AssetItemType) => {
+    'worklet';
+    return item.change ? `${item.change}%` : '-';
+  });
 
-  const changeColor = useTemplateValue(
-    (item: AssetItemType) =>
-      (item.change && parseFloat(item.change) > 0
-        ? green
-        : gray) as any as string,
-  );
+  const changeColor = useTemplateValue((item: AssetItemType) => {
+    'worklet';
+    return (item.change && parseFloat(item.change) > 0
+      ? green
+      : gray) as any as string;
+  });
 
   return (
     <View style={styles.container}>
@@ -53,13 +61,15 @@ type AssetItemProps = {
 };
 
 export function AssetItem({ onItemPress }: AssetItemProps) {
-  const isEditing = useTemplateValue(
-    (item: AssetListItemWithState) => item.isEditing,
-  );
+  const isEditing = useTemplateValue((item: AssetListItemWithState) => {
+    'worklet';
+    return item.isEditing;
+  });
 
-  const paddingLeft = useTemplateValue((item: AssetListItemWithState) =>
-    item.isEditing ? 0 : 10,
-  );
+  const paddingLeft = useTemplateValue((item: AssetListItemWithState) => {
+    'worklet';
+    return item.isEditing ? 0 : 10;
+  });
 
   return (
     <Wishlist.Pressable onPress={onItemPress}>

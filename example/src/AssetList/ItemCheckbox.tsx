@@ -7,14 +7,15 @@ const blue = processColor('#1F87FF');
 const gray = processColor('#ccd0d9');
 
 export function ItemCheckbox() {
-  const checked = useTemplateValue(
-    (item: AssetListItemWithState) => item.isSelected,
-  );
+  const checked = useTemplateValue((item: AssetListItemWithState) => {
+    'worklet';
+    return item.isSelected;
+  });
 
-  const borderColor = useTemplateValue(
-    (item: AssetListItemWithState) =>
-      (item.isSelected ? blue : gray) as any as string,
-  );
+  const borderColor = useTemplateValue((item: AssetListItemWithState) => {
+    'worklet';
+    return (item.isSelected ? blue : gray) as any as string;
+  });
 
   return (
     <View style={styles.container}>

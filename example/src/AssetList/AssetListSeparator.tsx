@@ -13,19 +13,24 @@ export function AssetListSeparator({
   onExpand,
   onEdit,
 }: AssetListSeparatorProps) {
-  const isEditing = useTemplateValue(
-    (item: AssetListSeparatorWithState) => item.isEditing,
-  );
+  const isEditing = useTemplateValue((item: AssetListSeparatorWithState) => {
+    'worklet';
+    return item.isEditing;
+  });
   const expandButtonText = useTemplateValue(
-    (item: AssetListSeparatorWithState) =>
-      item.isExpanded ? 'Less ↑' : 'More ↓',
+    (item: AssetListSeparatorWithState) => {
+      'worklet';
+      return item.isExpanded ? 'Less ↑' : 'More ↓';
+    },
   );
-  const isExpanded = useTemplateValue(
-    (item: AssetListSeparatorWithState) => item.isExpanded,
-  );
-  const editButtonText = useTemplateValue((item: AssetListSeparatorWithState) =>
-    item.isEditing ? 'Done' : 'Edit',
-  );
+  const isExpanded = useTemplateValue((item: AssetListSeparatorWithState) => {
+    'worklet';
+    return item.isExpanded;
+  });
+  const editButtonText = useTemplateValue((item: AssetListSeparatorWithState) => {
+    'worklet';
+    return item.isEditing ? 'Done' : 'Edit';
+  });
 
   const onPin = () => {
     'worklet';

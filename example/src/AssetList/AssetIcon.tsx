@@ -10,9 +10,10 @@ type AssetIconProps = {};
 
 export function AssetIcon({}: AssetIconProps) {
   // TODO(terry): Figure out why local images won't work
-  const iconSource = useTemplateValue((item: AssetItemType) =>
-    item.network === 'ETH' ? ethIcon : { uri: item.icon },
-  );
+  const iconSource = useTemplateValue((item: AssetItemType) => {
+    'worklet';
+    return item.network === 'ETH' ? ethIcon : { uri: item.icon };
+  });
 
   // TODO(terry): Use local image for badge
   // const badgeUri = useTemplateValue((item: AssetItemType) =>

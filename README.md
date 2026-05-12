@@ -149,7 +149,10 @@ To build the same cell in WishList, you would write the following:
 
 ```jsx
 function TextMessageCell() {
-  const username = useTemplateValue<TextChatMessage>(message => message.sender.username)
+  const username = useTemplateValue<TextChatMessage>(message => {
+    'worklet';
+    return message.sender.username;
+  })
 
   return (
     <View style={styles.cell}>
@@ -161,7 +164,7 @@ function TextMessageCell() {
 }
 ```
 
-In this case, `username` is a Proxy that holds the JSI HostObject, which is synchronized across threads.
+In this case, `username` is a Proxy that holds the JSI HostObject, which is synchronized across threads. Pass a mapper that begins with `'worklet';` (and register `useTemplateValue` with `react-native-worklets-core/plugin` via `functionsToWorkletize`) so the mapper is compiled for the UI-thread runtime; nested function literals invoked from that mapper need their own `'worklet';` as well.
 
 We need to use `<WishList.Text>` instead of `<Text>` so that the update pipeline is able to imperatively update it's content on the UI Thread.
 
@@ -196,7 +199,10 @@ Wheras in **WishList** you'd have to use a template-value so it can update on th
 
 ```jsx
 function TextMessageCell() {
-  const isSender = useTemplateValue<TextChatMessage>(message => message.isSender)
+  const isSender = useTemplateValue<TextChatMessage>(message => {
+    'worklet';
+    return message.isSender;
+  })
 
   return (
     <View style={styles.cell}>
