@@ -1,9 +1,12 @@
 #pragma once
 
+#include <jsi/jsi.h>
 #include <react/renderer/components/view/ConcreteViewShadowNode.h>
 #include <react/renderer/components/wishlist/Props.h>
+#include <react/renderer/core/InstanceHandle.h>
 #include <react/renderer/core/LayoutConstraints.h>
 #include <react/renderer/core/LayoutContext.h>
+#include <react/renderer/core/ShadowNodeFamily.h>
 #include <stdio.h>
 #include <iostream>
 
@@ -21,16 +24,20 @@ class ShadowNodeCopyMachine {
 
 // dirty hack don't do it at home
 //
-// NOTE: This mirrors the private layout of ShadowNodeFamily in React Native
-// for the version this library was built against. The fields below are only
-// used via reinterpret_cast for a couple of targeted mutations; the precise
-// layout is fragile across RN versions and this struct is preserved here only
-// so the project compiles. Functionality may not be preserved at runtime.
-class ShadowNodeFamilyHack final {
+// NOTE: This mirrors the private layout of `facebook::react::ShadowNodeFamily`
+// for React Native 0.83. We only use it via `reinterpret_cast` to reach the
+// private `parent_`/`hasParent_` slots. RN 0.83 made `ShadowNodeFamily` derive
+// from `jsi::NativeState` and moved `nativeProps_DEPRECATED` to a public field
+// at the top of the class, so the order below differs from older versions of
+// the library.
+class ShadowNodeFamilyHack final : public jsi::NativeState {
  public:
   using Shared = std::shared_ptr<ShadowNodeFamily const>;
   using Weak = std::weak_ptr<ShadowNodeFamily const>;
 
+  mutable std::unique_ptr<folly::dynamic> nativeProps_DEPRECATED;
+
+ private:
   EventDispatcher::Weak eventDispatcher_;
   mutable std::shared_ptr<State const> mostRecentState_;
   mutable std::shared_mutex mutex_;
@@ -38,15 +45,18 @@ class ShadowNodeFamilyHack final {
       onUnmountedFamilyDestroyedCallback_;
   Tag const tag_;
   SurfaceId const surfaceId_;
-  mutable std::shared_ptr<const InstanceHandle> instanceHandle_;
+  mutable InstanceHandle::Shared instanceHandle_;
   SharedEventEmitter const eventEmitter_;
   ComponentDescriptor const &componentDescriptor_;
   ComponentHandle componentHandle_;
   ComponentName componentName_;
+
+ public:
   mutable ShadowNodeFamily::Weak parent_{};
   mutable bool hasParent_{false};
+
+ private:
   mutable bool hasBeenMounted_{false};
-  mutable std::unique_ptr<folly::dynamic> nativeProps_DEPRECATED;
 };
 
 }; // namespace Wishlist
