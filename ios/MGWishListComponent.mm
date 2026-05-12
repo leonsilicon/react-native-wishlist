@@ -40,7 +40,6 @@ using namespace facebook::react;
     self.clipsToBounds = YES;
     self.scrollView.showsVerticalScrollIndicator = NO;
     self.scrollView.clipsToBounds = YES;
-    self.containerView.clipsToBounds = YES;
     _ignoreScrollEvents = NO;
   }
   return self;
