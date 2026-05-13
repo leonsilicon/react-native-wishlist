@@ -86,6 +86,7 @@ function installGestureListener() {
   DeviceEventEmitter.addListener(
     'onGestureHandlerStateChange',
     (event: { handlerTag: number; state: number }) => {
+      console.log('[dbg] gh', event.handlerTag, event.state);
       const viewTag = _handlerTagToViewTag.get(event.handlerTag);
       if (viewTag == null) {
         return;
@@ -139,9 +140,11 @@ const PressableView = createTemplateComponent(View, {
     'worklet';
 
     const tag = item.getTag();
+    console.log('[dbg] pressable.addProps tag', tag);
     item.addProps(props);
 
     getUIInflatorRegistry().addPushChildrenCallback(() => {
+      console.log('[dbg] pressable.push tag', tag);
       attachGestureHandler(tag);
     });
   },
