@@ -31,6 +31,10 @@ void MGWishlistShadowNode::updateStateIfNeeded() {
 
   auto state = getStateData();
 
+  if (state.viewportCarer && !state.viewportCarer->isEndReached()) {
+      contentBoundingRect.unionInPlace(Rect{0, 0, 0, 100000});
+  }
+
   if (state.contentBoundingRect != contentBoundingRect) {
     state.contentBoundingRect = contentBoundingRect;
     setStateData(std::move(state));

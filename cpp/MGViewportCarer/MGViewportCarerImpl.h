@@ -45,6 +45,8 @@ class MGViewportCarerImpl final : public MGViewportCarer {
 
   void didUpdateContentOffset() override;
 
+  bool isEndReached() const { return endReached_; }
+
  private:
   void updateWindow();
 
@@ -74,8 +76,9 @@ class MGViewportCarerImpl final : public MGViewportCarer {
   std::weak_ptr<MGDI> di_;
   std::string firstItemKeyForStartReached_;
   std::string lastItemKeyForEndReached_;
+  bool endReached_ = false;
   std::weak_ptr<MGViewportCarerListener> listener_;
   bool ignoreScrollEvents_;
 };
 
-}; // namespace Wishlist
+} // namespace Wishlist

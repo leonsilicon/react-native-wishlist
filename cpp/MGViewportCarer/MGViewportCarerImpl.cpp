@@ -169,7 +169,7 @@ void MGViewportCarerImpl::updateWindow() {
   float topEdge = contentOffset_ - windowHeight_;
   float bottomEdge = contentOffset_ + 2 * windowHeight_;
   bool startReached = false;
-  bool endReached = false;
+  endReached_ = false;
   bool changed = false;
 
   assert(!window_.empty());
@@ -237,7 +237,7 @@ void MGViewportCarerImpl::updateWindow() {
     if (bottom < bottomEdge) {
       WishItem wishItem = itemProvider_->provide(item.index + 1, nullptr);
       if (wishItem.sn == nullptr) {
-        endReached = true;
+        endReached_ = true;
         break;
       }
       wishItem.offset = bottom;
@@ -342,7 +342,7 @@ void MGViewportCarerImpl::updateWindow() {
   } else {
     firstItemKeyForStartReached_ = "";
   }
-  if (endReached) {
+  if (endReached_) {
     auto lastItemKey = window_.back().key;
     if (lastItemKey != lastItemKeyForEndReached_) {
       notifyAboutEndReached();

@@ -123,31 +123,59 @@ const attachGestureHandler = createRunInJsFn((tag: number) => {
   installGestureListener();
   const handlerTag = getNextHandlerTag();
   _handlerTagToViewTag.set(handlerTag, tag);
-  try {
-    RNGestureHandlerModule.createGestureHandler(
-      'TapGestureHandler',
-      handlerTag,
-      {},
-    );
-  } catch (e) {
-    // RNGH keeps its handler registry alive across Metro JS reloads. If a
-    // handler with this tag already exists from a prior load, drop it and
-    // retry — losing the stale handler is fine since its view is gone too.
+
+  const attemptAttach = (retries: number) => {
+    // If the handler was dropped while we were waiting, abort.
+    if (!_attachedViewTags.has(tag)) {
+      return;
+    }
+
     try {
-      RNGestureHandlerModule.dropGestureHandler(handlerTag);
-    } catch {}
-    RNGestureHandlerModule.createGestureHandler(
-      'TapGestureHandler',
-      handlerTag,
-      {},
-    );
-  }
-  RNGestureHandlerModule.attachGestureHandler(
-    handlerTag,
-    tag,
-    ActionType.JS_FUNCTION_OLD_API,
-  );
-  RNGestureHandlerModule.flushOperations();
+      RNGestureHandlerModule.createGestureHandler(
+        'TapGestureHandler',
+        handlerTag,
+        {},
+      );
+    } catch (e) {
+      // RNGH keeps its handler registry alive across Metro JS reloads. If a
+      // handler with this tag already exists from a prior load, drop it and
+      // retry — losing the stale handler is fine since its view is gone too.
+      try {
+        RNGestureHandlerModule.dropGestureHandler(handlerTag);
+      } catch {}
+      RNGestureHandlerModule.createGestureHandler(
+        'TapGestureHandler',
+        handlerTag,
+        {},
+      );
+    }
+
+    try {
+      RNGestureHandlerModule.attachGestureHandler(
+        handlerTag,
+        tag,
+        ActionType.JS_FUNCTION_OLD_API,
+      );
+      RNGestureHandlerModule.flushOperations();
+    } catch (e) {
+      // If the view is not mounted yet natively (e.g. Fabric async mounting),
+      // attachGestureHandler might throw. Retry after a short delay.
+      if (retries > 0) {
+        setTimeout(() => attemptAttach(retries - 1), 16);
+      } else {
+        // Give up and clean up.
+        try {
+          RNGestureHandlerModule.dropGestureHandler(handlerTag);
+        } catch {}
+        _handlerTagToViewTag.delete(handlerTag);
+        _attachedViewTags.delete(tag);
+      }
+    }
+  };
+
+  // Delay the first attempt slightly to give Fabric time to mount the view,
+  // especially during rapid scrolling.
+  setTimeout(() => attemptAttach(10), 16);
 });
 
 const PressableView = createTemplateComponent(View, {
