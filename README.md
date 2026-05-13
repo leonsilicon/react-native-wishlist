@@ -1,6 +1,6 @@
 # @leonsilicon/react-native-wishlist
 
-> Experimental fork of <https://github.com/margelo/react-native-wishlist>, not intended for public us
+> Experimental fork of <https://github.com/margelo/react-native-wishlist>, not intended for public use
 
 The fastest List component for React Native.
 
@@ -20,7 +20,7 @@ function ChatRoom({ room }) {
 }
 ```
 
-## State of WishList
+## State of the `react-native-wishlist` project
 
 See [this Notion document](https://margelo.notion.site/WishList-Summit-b20c24d1f0da4889a0513dfa929be5ed?pvs=74) for more details.
 
