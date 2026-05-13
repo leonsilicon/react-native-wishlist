@@ -1,6 +1,6 @@
 {
   "name": "@leonsilicon/react-native-wishlist",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "The fastest List component for React Native updated to work with Expo 55",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
