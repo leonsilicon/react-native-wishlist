@@ -20,7 +20,7 @@ function ChatRoom({ room }) {
 }
 ```
 
-## State of the `react-native-wishlist` project
+## State of the original `react-native-wishlist` project
 
 See [this Notion document](https://margelo.notion.site/WishList-Summit-b20c24d1f0da4889a0513dfa929be5ed?pvs=74) for more details.
 
