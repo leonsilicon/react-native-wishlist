@@ -183,14 +183,22 @@ Value ShadowNodeBinding::get(Runtime &rt, const PropNameID &nameProp) {
           auto newChildren =
               std::make_shared<std::vector<std::shared_ptr<const ShadowNode>>>();
 
+          // Items in `subItems` come from `pool.getComponent(type)`, which
+          // already returns a fresh deep-copy of the registered template (with
+          // unique negative react tags). Re-copying here would generate yet
+          // another set of tags, and the nested `ShadowNodeBinding`s (e.g. a
+          // `Wishlist.Pressable` inside the child template) still point at the
+          // pre-copy shadow nodes — so callbacks and gesture handlers registered
+          // against the binding's tag never reach the mounted UIView (RNGH on
+          // iOS looks the view up via the new tag and finds nothing). Reuse the
+          // bindings' existing shadow nodes directly to keep the tags stable
+          // through to mount.
           for (int i = 0; i < subItems.size(rt); ++i) {
             std::shared_ptr<ShadowNodeBinding> child =
                 subItems.getValueAtIndex(rt, i)
                     .getObject(rt)
                     .getHostObject<ShadowNodeBinding>(rt);
-            auto clonedChild = ShadowNodeCopyMachine::copyShadowSubtree(child->sn_);
-            newChildren->push_back(clonedChild);
-            child->sn_ = clonedChild;
+            newChildren->push_back(child->sn_);
             child->parent_ = shared_from_this();
           }
 
