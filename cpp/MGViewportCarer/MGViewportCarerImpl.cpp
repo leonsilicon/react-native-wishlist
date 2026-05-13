@@ -197,6 +197,9 @@ void MGViewportCarerImpl::updateWindow() {
       if (wishItem.sn == nullptr) {
         continue;
       }
+      if (item.sn && wishItem.sn && item.sn->getTag() != wishItem.sn->getTag()) {
+        componentsPool_->returnToPool(item.sn);
+      }
       swap(item.sn, wishItem.sn);
       item.offset = currentOffset - (wishItem.height - item.height);
       item.height = wishItem.height;
