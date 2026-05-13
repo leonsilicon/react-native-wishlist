@@ -253,20 +253,27 @@ void MGViewportCarerImpl::updateWindow() {
   // position.
   float contentOffsetAdjustment = 0;
 
-  // Make sure we don't have negative offsets, this can happen when
-  // we are at the start of the list.
+  // If the window's first item went negative (add-above outran the spacer),
+  // shift everything so window starts at 0 (or at initialContentSize_/2 when
+  // there are still items above to load — that keeps the offsetter big
+  // enough for future upward scrolls). Only do this when the front actually
+  // became negative; firing this branch speculatively whenever front.offset
+  // is 0 (the common state right after items get popped during a downward
+  // fling) bounces the native ScrollView by ±initialContentSize_/2 and the
+  // user lands back at the top mid-fling.
   if (window_.front().offset < 0) {
-    contentOffsetAdjustment -= window_.front().offset;
-    float newOffset = 0;
+    float newFrontOffset = startReached ? 0.0f : initialContentSize_ / 2;
+    contentOffsetAdjustment += newFrontOffset - window_.front().offset;
+    float newOffset = newFrontOffset;
     for (auto &item : window_) {
       item.offset = newOffset;
       newOffset = newOffset + item.height;
     }
   }
 
-  // We reach the start of the list and still have extra offset
-  // we need to remove it so that the content size is exact and
-  // the list stops scrolling correctly.
+  // We reached the start of the list and still have extra offset above the
+  // first item — remove it so the content size is exact and the list stops
+  // scrolling correctly at the very top.
   if (startReached && window_.front().offset > 0) {
     contentOffsetAdjustment -= window_.front().offset;
 
@@ -275,15 +282,6 @@ void MGViewportCarerImpl::updateWindow() {
       item.offset = newOffset;
       newOffset = newOffset + item.height;
     }
-  }
-  // We are no longer at the start of the list and don't have extra offset
-  // we need to add it back.
-  else if (!startReached && window_.front().offset <= 0) {
-    auto newOffset = initialContentSize_ / 2;
-    for (auto &item : window_) {
-      item.offset += newOffset;
-    }
-    contentOffsetAdjustment += newOffset;
   }
 
   if (contentOffsetAdjustment != 0) {

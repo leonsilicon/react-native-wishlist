@@ -11,8 +11,8 @@ import { ChatItem, fetchData, getSendedMessage } from './Data';
 import { MessageInput } from './MessageInput';
 import { ReactionPicker } from './ReactionPicker';
 
-const INITIAL_ITEMS_COUNT = 2000;
-const LOADING_TIME = 2000;
+const INITIAL_ITEMS_COUNT = 20;
+const LOADING_TIME = 1000;
 const START_LOADING_ITEM = { type: 'loading', key: 'start-loading' } as any;
 const END_LOADING_ITEM = { type: 'loading', key: 'end-loading' } as any;
 
