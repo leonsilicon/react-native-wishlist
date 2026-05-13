@@ -3,7 +3,11 @@ import { DeviceEventEmitter, NativeModules, View, ViewProps } from 'react-native
 import { createTemplateComponent } from '../createTemplateComponent';
 import { useTemplateCallback } from '../EventHandler';
 import { getUIInflatorRegistry } from '../InflatorRepository';
-import { createRunInWishlistFn, createRunInJsFn } from '../WishlistJsRuntime';
+import {
+  createRunInWishlistFn,
+  createRunInJsFn,
+  wishlistContext,
+} from '../WishlistJsRuntime';
 
 // Mirrors `RNGestureHandlerActionType` in react-native-gesture-handler. On the
 // new architecture every state-change action type routes through
@@ -93,13 +97,47 @@ const dropGestureHandlerNative = createRunInJsFn((tag: number) => {
   }
 });
 
-global.dropGestureHandler = (tag: number) => {
-  'worklet';
-  if (typeof global.dropHandlers === 'function') {
-    global.dropHandlers(tag);
+let _installedWorkletGestureDrop = false;
+
+/**
+ * Native wishlist code (`ComponentsPool` / `MGViewportCarer`) invokes
+ * `global.dropGestureHandler` on the **wishlist worklet** JSI runtime (see
+ * `WishlistJsRuntime`). Assigning it only on the RN main `global` from this
+ * module meant iOS never ran pool teardown → stale RNGH + handler entries
+ * after fast scroll / navigation ("ghost" presses on the next screen).
+ */
+export function installWishlistWorkletGestureDrop() {
+  if (_installedWorkletGestureDrop) {
+    return;
   }
-  dropGestureHandlerNative(tag);
-};
+  _installedWorkletGestureDrop = true;
+
+  const dropOnPoolReturnWorklet = (tag: number) => {
+    'worklet';
+    if (typeof global.dropHandlers === 'function') {
+      global.dropHandlers(tag);
+    }
+    dropGestureHandlerNative(tag);
+  };
+
+  const dropOnPoolReturnMain = (tag: number) => {
+    if (typeof global.dropHandlers === 'function') {
+      global.dropHandlers(tag);
+    }
+    dropGestureHandlerNative(tag);
+  };
+
+  if (wishlistContext == null) {
+    // Android: wishlist runs on the RN runtime (`WishlistJsRuntime.android.ts`).
+    global.dropGestureHandler = dropOnPoolReturnMain;
+    return;
+  }
+
+  void wishlistContext.runAsync(() => {
+    'worklet';
+    global.dropGestureHandler = dropOnPoolReturnWorklet;
+  });
+}
 
 let _gestureListenerInstalled = false;
 function installGestureListener() {

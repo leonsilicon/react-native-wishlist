@@ -1,9 +1,12 @@
-import './EventHandler';
+import { initEventHandler } from './EventHandler';
+import { installWishlistWorkletGestureDrop } from './Components/Pressable';
 import WishListManager from './Specs/NativeWishlistManager';
 import { bindNativeWishlistContext } from './WishlistJsRuntime';
 
+initEventHandler();
 WishListManager.install();
 bindNativeWishlistContext();
+installWishlistWorkletGestureDrop();
 
 export { useTemplateValue, TemplateValue } from './TemplateValue';
 export { createTemplateComponent } from './createTemplateComponent';
