@@ -28,6 +28,36 @@ MGViewportCarerImpl::MGViewportCarerImpl()
       listener_({}),
       ignoreScrollEvents_(false) {}
 
+MGViewportCarerImpl::~MGViewportCarerImpl() {
+  auto dropTags = std::make_shared<std::vector<int>>();
+  std::function<void(std::shared_ptr<ShadowNode const>)> collectTags =
+      [&](std::shared_ptr<ShadowNode const> node) {
+        dropTags->push_back(node->getTag());
+        for (auto child : node->getChildren()) {
+          collectTags(child);
+        }
+      };
+  for (auto &item : window_) {
+    if (item.sn != nullptr) {
+      collectTags(item.sn);
+    }
+  }
+
+  WishlistJsRuntime::getInstance().accessRuntime([dropTags](jsi::Runtime &rt) {
+    try {
+      auto global = rt.global().getPropertyAsObject(rt, "global");
+      if (global.hasProperty(rt, "dropGestureHandler")) {
+        auto f = global.getPropertyAsFunction(rt, "dropGestureHandler");
+        for (int tag : *dropTags) {
+          f.call(rt, tag);
+        }
+      }
+    } catch (...) {
+      // Ignore
+    }
+  });
+}
+
 void MGViewportCarerImpl::setDI(const std::weak_ptr<MGDI> &di) {
   di_ = di;
 }

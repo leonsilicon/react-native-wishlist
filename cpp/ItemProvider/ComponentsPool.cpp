@@ -2,6 +2,8 @@
 
 #include <iostream>
 
+#include "WishlistJsRuntime.h"
+
 using namespace facebook::react;
 using namespace jsi;
 
@@ -25,6 +27,30 @@ void ComponentsPool::returnToPool(std::shared_ptr<ShadowNode const> sn) {
   }
   std::string type = tagToType_[sn->getTag()];
   reusable_[type].push_back(sn);
+
+  auto dropTags = std::make_shared<std::vector<int>>();
+  std::function<void(std::shared_ptr<ShadowNode const>)> collectTags =
+      [&](std::shared_ptr<ShadowNode const> node) {
+        dropTags->push_back(node->getTag());
+        for (auto child : node->getChildren()) {
+          collectTags(child);
+        }
+      };
+  collectTags(sn);
+
+  WishlistJsRuntime::getInstance().accessRuntime([dropTags](jsi::Runtime &rt) {
+    try {
+      auto global = rt.global().getPropertyAsObject(rt, "global");
+      if (global.hasProperty(rt, "dropGestureHandler")) {
+        auto f = global.getPropertyAsFunction(rt, "dropGestureHandler");
+        for (int tag : *dropTags) {
+          f.call(rt, tag);
+        }
+      }
+    } catch (...) {
+      // Ignore
+    }
+  });
 }
 
 void ComponentsPool::templatesUpdated() {

@@ -20,6 +20,7 @@ namespace Wishlist {
 class MGViewportCarerImpl final : public MGViewportCarer {
  public:
   MGViewportCarerImpl();
+  ~MGViewportCarerImpl();
 
   void setInitialValues(
       const std::shared_ptr<MGWishlistShadowNode> &wishListNode,

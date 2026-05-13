@@ -77,6 +77,22 @@ const dispatchGestureEventToWishlistRuntime = createRunInWishlistFn(
   },
 );
 
+global.dropGestureHandler = createRunInJsFn((tag: number) => {
+  if (!_attachedViewTags.has(tag)) {
+    return;
+  }
+  _attachedViewTags.delete(tag);
+  for (const [hTag, vTag] of _handlerTagToViewTag.entries()) {
+    if (vTag === tag) {
+      try {
+        RNGestureHandlerModule.dropGestureHandler(hTag);
+      } catch (e) {}
+      _handlerTagToViewTag.delete(hTag);
+      break;
+    }
+  }
+});
+
 let _gestureListenerInstalled = false;
 function installGestureListener() {
   if (_gestureListenerInstalled) {
