@@ -93,7 +93,11 @@ Value ShadowNodeBinding::get(Runtime &rt, const PropNameID &nameProp) {
             size_t count) -> jsi::Value {
           std::string callbackName = args[0].asString(rt).utf8(rt);
           int tag = sn_->getTag();
-          std::string eventName = std::to_string(tag) + callbackName;
+          // Must stay in sync with `EventHandler.ts` (WISHLIST_HANDLER_KEY_SEP):
+          // plain `to_string(tag) + name` is unsafe for `dropHandlers`, which uses
+          // prefix deletes — e.g. tag -100 would also remove keys for -1000.
+          std::string eventName =
+              std::to_string(tag) + std::string("\x1f") + callbackName;
           jsi::Function callback = args[1].asObject(rt).asFunction(rt);
 
           auto handlerRegistry = rt.global()

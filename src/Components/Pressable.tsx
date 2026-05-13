@@ -77,7 +77,7 @@ const dispatchGestureEventToWishlistRuntime = createRunInWishlistFn(
   },
 );
 
-global.dropGestureHandler = createRunInJsFn((tag: number) => {
+const dropGestureHandlerNative = createRunInJsFn((tag: number) => {
   if (!_attachedViewTags.has(tag)) {
     return;
   }
@@ -93,6 +93,14 @@ global.dropGestureHandler = createRunInJsFn((tag: number) => {
   }
 });
 
+global.dropGestureHandler = (tag: number) => {
+  'worklet';
+  if (typeof global.dropHandlers === 'function') {
+    global.dropHandlers(tag);
+  }
+  dropGestureHandlerNative(tag);
+};
+
 let _gestureListenerInstalled = false;
 function installGestureListener() {
   if (_gestureListenerInstalled) {
@@ -101,9 +109,19 @@ function installGestureListener() {
   _gestureListenerInstalled = true;
   DeviceEventEmitter.addListener(
     'onGestureHandlerStateChange',
-    (event: { handlerTag: number; state: number }) => {
+    (event: { handlerTag: number; state: number; target?: number }) => {
       const viewTag = _handlerTagToViewTag.get(event.handlerTag);
       if (viewTag == null) {
+        return;
+      }
+      // RNGH includes the view react tag on the event; ignore if our mapping
+      // disagrees (stale handlerTag entries should not run another view's press).
+      const eventTarget = event.target;
+      if (
+        eventTarget !== undefined &&
+        eventTarget !== null &&
+        Number(eventTarget) !== viewTag
+      ) {
         return;
       }
       dispatchGestureEventToWishlistRuntime(viewTag, event);

@@ -1,6 +1,9 @@
 import { useMemo } from 'react';
 import { createRunInWishlistFn } from './WishlistJsRuntime';
 
+/** Separates react tag from callback name in `global.handlers` keys (see ShadowNodeBinding.cpp). */
+export const WISHLIST_HANDLER_KEY_SEP = '\u001f';
+
 // Older React Native versions exposed `global.global`. Newer versions only
 // set `global.window` and `global.self`, so the wishlist native code, which
 // reads `global.global.handlers` / `global.global.handleEvent`, needs the
@@ -12,8 +15,19 @@ const setupRuntimeGlobals = () => {
     global.global = global;
   }
   global.handlers = global.handlers ?? {};
+  global.dropHandlers = (tag: number) => {
+    const prefix = tag.toString() + WISHLIST_HANDLER_KEY_SEP;
+    Object.keys(global.handlers).forEach((key) => {
+      if (key.startsWith(prefix)) {
+        delete global.handlers[key];
+      }
+    });
+  };
   global.handleEvent = (type: string, tag: number, event: any) => {
-    const key = tag.toString() + type.replace(/^topOn/, 'on');
+    const key =
+      tag.toString() +
+      WISHLIST_HANDLER_KEY_SEP +
+      type.replace(/^topOn/, 'on');
     const callback = global.handlers[key];
     if (callback) {
       callback(event);
@@ -36,9 +50,21 @@ const maybeInit = () => {
         global.global = global;
       }
       global.handlers = global.handlers ?? {};
+      global.dropHandlers = (tag: number) => {
+        'worklet';
+        const prefix = tag.toString() + WISHLIST_HANDLER_KEY_SEP;
+        Object.keys(global.handlers).forEach((key) => {
+          if (key.startsWith(prefix)) {
+            delete global.handlers[key];
+          }
+        });
+      };
       global.handleEvent = (type: string, tag: number, event: any) => {
         'worklet';
-        const key = tag.toString() + type.replace(/^topOn/, 'on');
+        const key =
+          tag.toString() +
+          WISHLIST_HANDLER_KEY_SEP +
+          type.replace(/^topOn/, 'on');
         const callback = global.handlers[key];
         if (callback) {
           callback(event);

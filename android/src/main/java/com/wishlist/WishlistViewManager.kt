@@ -12,6 +12,8 @@ import com.facebook.react.viewmanagers.MGWishlistManagerDelegate
 import com.facebook.react.viewmanagers.MGWishlistManagerInterface
 
 private const val CONTENT_OFFSET_KEY = 2
+/** Must match `ContentBoundsHeightKey` in `MGWishlistState.cpp` (width key 3 is reserved). */
+private const val CONTENT_BOUNDS_HEIGHT_KEY = 4
 
 @ReactModule(name = WishlistViewManager.REACT_CLASS)
 class WishlistViewManager : ViewGroupManager<Wishlist>(), MGWishlistManagerInterface<Wishlist> {
@@ -36,6 +38,11 @@ class WishlistViewManager : ViewGroupManager<Wishlist>(), MGWishlistManagerInter
       view.setStateWrapper(stateWrapper)
     }
     val stateData = stateWrapper?.stateDataMapBuffer
+    if (stateData != null && stateData.contains(CONTENT_BOUNDS_HEIGHT_KEY)) {
+      view.setShadowContentMinHeightDip(
+          stateData.getDouble(CONTENT_BOUNDS_HEIGHT_KEY).toFloat(),
+      )
+    }
     if (stateData != null && stateData.contains(CONTENT_OFFSET_KEY)) {
       view.scrollToOffsetForContentChange(stateData.getDouble(CONTENT_OFFSET_KEY).toFloat())
     }

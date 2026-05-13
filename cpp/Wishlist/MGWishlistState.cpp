@@ -10,6 +10,8 @@ namespace react {
 namespace {
 constexpr MapBuffer::Key ViewportCarerKey = 1;
 constexpr MapBuffer::Key ContentOffsetKey = 2;
+constexpr MapBuffer::Key ContentBoundsWidthKey = 3;
+constexpr MapBuffer::Key ContentBoundsHeightKey = 4;
 } // namespace
 #endif
 
@@ -48,6 +50,12 @@ MapBuffer MGWishlistState::getMapBuffer() const {
   if (contentOffset != MG_NO_OFFSET) {
     builder.putDouble(ContentOffsetKey, contentOffset);
   }
+  // Same scrollable extent as iOS `MGWishListComponent` `updateState` (content
+  // bounding rect, including virtual padding while not end-reached). Android
+  // `ReactScrollView` infers range from the content child height only; without
+  // this, the scrollbar hits the bottom while more items are still virtualized.
+  builder.putDouble(ContentBoundsWidthKey, contentBoundingRect.size.width);
+  builder.putDouble(ContentBoundsHeightKey, contentBoundingRect.size.height);
   return builder.build();
 };
 
