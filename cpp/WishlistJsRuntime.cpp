@@ -56,13 +56,23 @@ void WishlistJsRuntime::initialize(
     std::function<void(std::function<void()> &&)> workletCallInvoker,
     std::function<void(std::function<void(jsi::Runtime &)> &&)>
         runtimeAccessor) {
-  // If a new runtime is being bound, drop any cached JSI handles tied to the
-  // previous one — `jsi::Object`/`jsi::Function` are runtime-scoped and using
-  // them across runtimes is UB.
-  cachedInflatorRegistry_.reset();
-  cachedProcessProps_.reset();
-  cachedDidPushChildren_.reset();
-  cachedDropGestureHandler_.reset();
+  // Drop cached JSI handles tied to the previous runtime. On a Fast Refresh /
+  // reload the previous worklet runtime has already been destroyed by the time
+  // this is called again, so invoking `~jsi::Object()` / `~jsi::Function()`
+  // would call `invalidate` on freed memory. Release without destroying — the
+  // values are already invalid since their owning runtime is gone, so leaking
+  // the holder is safe (and the only safe option).
+  if (runtime_ != nullptr && runtime_ != runtime) {
+    (void)cachedInflatorRegistry_.release();
+    (void)cachedProcessProps_.release();
+    (void)cachedDidPushChildren_.release();
+    (void)cachedDropGestureHandler_.release();
+  } else {
+    cachedInflatorRegistry_.reset();
+    cachedProcessProps_.reset();
+    cachedDidPushChildren_.reset();
+    cachedDropGestureHandler_.reset();
+  }
 
   runtime_ = runtime;
   jsCallInvoker_ = std::move(jsCallInvoker);
