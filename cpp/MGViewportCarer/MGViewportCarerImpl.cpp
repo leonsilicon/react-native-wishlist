@@ -23,15 +23,27 @@ MGViewportCarerImpl::MGViewportCarerImpl()
       pendingScroll_(std::make_shared<PendingScroll>()) {}
 
 MGViewportCarerImpl::~MGViewportCarerImpl() {
-  // Collect every tag in the current window into a single batch, then post one
-  // JS-thread job. The destructor runs on whatever thread releases the last
-  // shared_ptr (often UI during screen navigation away), so doing the tree
-  // walk inline + one async hop keeps the navigation transition smooth.
+  // Collect every tag still held by this wishlist into a single batch, then
+  // post one JS-thread job. The destructor runs on whatever thread releases
+  // the last shared_ptr (often UI during screen navigation away), so doing
+  // the tree walk inline + one async hop keeps the navigation transition
+  // smooth.
+  //
+  // We MUST also walk `componentsPool_->reusable_`: items that scrolled out
+  // of the window earlier had their tags dropped, but items returned via
+  // `returnToPool` that are still parked in the reusable pool have RNGH
+  // handlers attached and `global.handlers[tag\x1fonGestureHandlerStateChange]`
+  // entries alive. Without flushing them here, those stale handlers can fire
+  // on a later screen (the listener is global, see `Pressable.tsx`) and
+  // invoke press worklets that captured state from this dead screen.
   auto dropTags = std::make_shared<std::vector<int>>();
   for (const auto &item : window_) {
     if (item.sn != nullptr) {
       collectShadowNodeTags(*item.sn, *dropTags);
     }
+  }
+  if (componentsPool_ != nullptr) {
+    componentsPool_->collectAllReusableTags(*dropTags);
   }
   dropGestureHandlerTags(std::move(dropTags));
 }

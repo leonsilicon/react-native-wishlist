@@ -72,6 +72,16 @@ void ComponentsPool::returnToPoolWithoutDrop(
   collectShadowNodeTags(*sn, dropTags);
 }
 
+void ComponentsPool::collectAllReusableTags(std::vector<int> &outTags) {
+  for (auto &entry : reusable_) {
+    for (const auto &sn : entry.second) {
+      if (sn != nullptr) {
+        collectShadowNodeTags(*sn, outTags);
+      }
+    }
+  }
+}
+
 void ComponentsPool::templatesUpdated() {
   // optimise by reusing some of elements if they are
   // the same

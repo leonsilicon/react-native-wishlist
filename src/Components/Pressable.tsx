@@ -44,22 +44,65 @@ type RNGestureHandlerModuleProps = {
   flushOperations: () => void;
 };
 
-// Start above the range RNGH typically issues for handlers created via JS so
-// our auto-generated tags don't collide with user-created gestures. Offset by
-// a per-load random base so a Metro JS reload doesn't reuse the tags from the
-// previous load (RNGH's native registry persists across JS reloads and would
-// throw `HandlerAlreadyRegistered`).
-let _handlerTag = 100000 + Math.floor(Math.random() * 1_000_000);
-
-export function getNextHandlerTag(): number {
-  return _handlerTag++;
-}
-
-const _attachedViewTags = new Set<number>();
-const _handlerTagToViewTag = new Map<number, number>();
-
 const RNGestureHandlerModule: RNGestureHandlerModuleProps =
   NativeModules.RNGestureHandlerModule;
+
+// Tag tracking lives on `globalThis` so a Metro Fast Refresh (which re-loads
+// this JS module but leaves RNGH's native handler registry intact) can find
+// the previous load's attached tags and drop them. Without this, every reload
+// stranded another generation of native handlers attached to views that the
+// JS side had already forgotten about — those would later fire "ghost" press
+// events on unrelated screens.
+type WishlistGestureRegistry = {
+  // Auto-incrementing handlerTag. Persisted so we never reuse a tag the
+  // previous module load handed out (RNGH would throw `HandlerAlreadyRegistered`).
+  nextHandlerTag: number;
+  // viewTag → handlerTag. O(1) drop by viewTag, single entry per view (we
+  // refuse to double-attach).
+  viewTagToHandlerTag: Map<number, number>;
+  // handlerTag → viewTag. Reverse index for the DeviceEventEmitter dispatch
+  // — only events whose handlerTag we own are forwarded.
+  handlerTagToViewTag: Map<number, number>;
+};
+
+const REGISTRY_KEY = '__wishlistGestureRegistry';
+
+function getRegistry(): WishlistGestureRegistry {
+  const g = globalThis as any;
+  let reg: WishlistGestureRegistry | undefined = g[REGISTRY_KEY];
+  if (!reg) {
+    // Seed `nextHandlerTag` above the range RNGH typically issues for
+    // handlers created via JS, with a random offset so a first-ever load
+    // doesn't clash with whatever else may already exist on the runtime.
+    reg = {
+      nextHandlerTag: 100000 + Math.floor(Math.random() * 1_000_000),
+      viewTagToHandlerTag: new Map(),
+      handlerTagToViewTag: new Map(),
+    };
+    g[REGISTRY_KEY] = reg;
+  }
+  return reg;
+}
+
+export function getNextHandlerTag(): number {
+  const reg = getRegistry();
+  return reg.nextHandlerTag++;
+}
+
+function dropHandlerForViewTagSync(viewTag: number) {
+  const reg = getRegistry();
+  const handlerTag = reg.viewTagToHandlerTag.get(viewTag);
+  if (handlerTag === undefined) {
+    return;
+  }
+  reg.viewTagToHandlerTag.delete(viewTag);
+  reg.handlerTagToViewTag.delete(handlerTag);
+  try {
+    RNGestureHandlerModule.dropGestureHandler(handlerTag);
+  } catch {
+    // RNGH may have already dropped it (e.g. across a hot reload); ignore.
+  }
+}
 
 export const State = {
   UNDETERMINED: 0,
@@ -80,20 +123,13 @@ const dispatchGestureEventToWishlistRuntime = createRunInWishlistFn(
   },
 );
 
+// Called from the wishlist worklet runtime when the C++ side returns an item
+// to the pool (or tears the wishlist down). MUST be idempotent: the same
+// viewTag may be dropped twice (e.g. once from `returnToPool`, again from the
+// `~MGViewportCarerImpl` cleanup) and we never want to free an unrelated
+// handler that happens to have inherited the tag in the meantime.
 const dropGestureHandlerNative = createRunInJsFn((tag: number) => {
-  if (!_attachedViewTags.has(tag)) {
-    return;
-  }
-  _attachedViewTags.delete(tag);
-  for (const [hTag, vTag] of _handlerTagToViewTag.entries()) {
-    if (vTag === tag) {
-      try {
-        RNGestureHandlerModule.dropGestureHandler(hTag);
-      } catch (e) {}
-      _handlerTagToViewTag.delete(hTag);
-      break;
-    }
-  }
+  dropHandlerForViewTagSync(tag);
 });
 
 let _installedWorkletGestureDrop = false;
@@ -127,21 +163,39 @@ export function installWishlistWorkletGestureDrop() {
   installDropGestureHandlerOnWishlistRuntime();
 }
 
-let _gestureListenerInstalled = false;
+// The DeviceEventEmitter listener is global to the JS runtime and outlives
+// any individual Wishlist component. On Fast Refresh we want exactly one
+// listener total: the previous module load (if any) installed a subscription
+// against the OLD `getRegistry()` closure, so we must remove that one before
+// installing a fresh listener that reads from the current registry. Without
+// this, a reloaded JS module would have two listeners — one routing events
+// through the previous closure's (now-empty) registry — and the orphan would
+// dispatch the event with `viewTag === undefined` to no callback, which is
+// merely wasteful, but if the previous registry still held entries it would
+// also fire press worklets that were captured from the previous load.
+const LISTENER_KEY = '__wishlistGestureListenerSubscription';
+
 function installGestureListener() {
-  if (_gestureListenerInstalled) {
-    return;
+  const g = globalThis as any;
+  const previous = g[LISTENER_KEY];
+  if (previous && typeof previous.remove === 'function') {
+    try {
+      previous.remove();
+    } catch {}
   }
-  _gestureListenerInstalled = true;
-  DeviceEventEmitter.addListener(
+  g[LISTENER_KEY] = DeviceEventEmitter.addListener(
     'onGestureHandlerStateChange',
     (event: { handlerTag: number; state: number; target?: number }) => {
-      const viewTag = _handlerTagToViewTag.get(event.handlerTag);
+      const reg = getRegistry();
+      const viewTag = reg.handlerTagToViewTag.get(event.handlerTag);
       if (viewTag == null) {
+        // Handler is not ours — could be a user-created RNGH gesture in the
+        // same app, or a stale event for a handler we've already dropped.
         return;
       }
-      // RNGH includes the view react tag on the event; ignore if our mapping
-      // disagrees (stale handlerTag entries should not run another view's press).
+      // Defense in depth: RNGH includes the view react tag on the event.
+      // If our mapping disagrees, refuse to dispatch — a stale handlerTag
+      // entry should never run another view's press worklet.
       const eventTarget = event.target;
       if (
         eventTarget !== undefined &&
@@ -154,6 +208,13 @@ function installGestureListener() {
     },
   );
 }
+
+// Install eagerly at module load. Previously the listener was installed
+// lazily on the first attach, which left a window where a press event from a
+// prior JS load could be received with no listener — but more importantly the
+// eager install lets us proactively replace the previous load's listener
+// before any new attach happens.
+installGestureListener();
 
 type PressableProps = ViewProps & {
   onPress?: ((item: any, rootItem: any) => void) | null;
@@ -170,17 +231,19 @@ const attachGestureHandlersBatch = createRunInJsFn((tags: number[]) => {
 });
 
 function attachOneGestureHandler(tag: number) {
-  if (_attachedViewTags.has(tag)) {
+  const reg = getRegistry();
+  if (reg.viewTagToHandlerTag.has(tag)) {
     return;
   }
-  _attachedViewTags.add(tag);
-  installGestureListener();
   const handlerTag = getNextHandlerTag();
-  _handlerTagToViewTag.set(handlerTag, tag);
+  reg.viewTagToHandlerTag.set(tag, handlerTag);
+  reg.handlerTagToViewTag.set(handlerTag, tag);
 
   const attemptAttach = (retries: number) => {
-    // If the handler was dropped while we were waiting, abort.
-    if (!_attachedViewTags.has(tag)) {
+    // If the handler was dropped while we were waiting, abort. We also bail
+    // if the registry has reassigned this view to a different handlerTag
+    // (would only happen on extreme reload churn, but cheap to guard).
+    if (reg.viewTagToHandlerTag.get(tag) !== handlerTag) {
       return;
     }
 
@@ -221,8 +284,10 @@ function attachOneGestureHandler(tag: number) {
         try {
           RNGestureHandlerModule.dropGestureHandler(handlerTag);
         } catch {}
-        _handlerTagToViewTag.delete(handlerTag);
-        _attachedViewTags.delete(tag);
+        reg.handlerTagToViewTag.delete(handlerTag);
+        if (reg.viewTagToHandlerTag.get(tag) === handlerTag) {
+          reg.viewTagToHandlerTag.delete(tag);
+        }
       }
     }
   };

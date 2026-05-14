@@ -36,6 +36,12 @@ class ComponentsPool : public std::enable_shared_from_this<ComponentsPool> {
       std::shared_ptr<ShadowNode const> sn,
       std::vector<int> &dropTags);
 
+  // Walks every shadow node currently parked in `reusable_` and appends each
+  // tag (root + descendants) into `outTags`. Used at teardown so handlers
+  // attached to pooled-but-unmounted items don't leak past the wishlist's
+  // lifetime.
+  void collectAllReusableTags(std::vector<int> &outTags);
+
   void templatesUpdated();
 
   std::shared_ptr<ShadowNode const> getNodeForType(const std::string &type);
