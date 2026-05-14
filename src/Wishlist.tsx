@@ -251,6 +251,12 @@ function ComponentBase<T extends BaseItem>(
   }, [resolvedInflater]);
 
   useEffect(() => {
+    if (data == null) {
+      throw new Error(
+        'Wishlist.Component requires a `data` prop from useWishlistData(). ' +
+        'The legacy `initialData` prop is no longer supported.',
+      );
+    }
     (data as WishlistDataInternal<T>).__attach(wishlistId.current!);
 
     return () => {

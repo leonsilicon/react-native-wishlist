@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { Alert, StyleSheet, View } from 'react-native';
-import { createRunInJsFn, Wishlist } from '@leonsilicon/react-native-wishlist';
+import { createRunInJsFn, useWishlistData, Wishlist } from '@leonsilicon/react-native-wishlist';
 import { AssetItem } from './AssetItem';
 import { AssetListHeader } from './AssetListHeader';
 import { AssetListSeparator } from './AssetListSeparator';
@@ -49,7 +49,7 @@ export const AssetListExample: React.FC<{}> = () => {
     setIsExpanded((v) => !v);
   }, []);
 
-  const [data, setData] = useState<ListItemsType[]>(tokens as ListItemsType[]);
+  const [rawData, setRawData] = useState<ListItemsType[]>(tokens as ListItemsType[]);
 
   const list = useMemo<ListItemsType[]>(() => {
     const arr = [
@@ -60,7 +60,7 @@ export const AssetListExample: React.FC<{}> = () => {
         isEditing,
         isSelected: false,
       } as ListItemsType,
-    ].concat(data);
+    ].concat(rawData);
 
     const topItems = arr
       .slice(0, 6)
@@ -88,7 +88,19 @@ export const AssetListExample: React.FC<{}> = () => {
         isExpanded,
       })) as ListItemsType[],
     );
-  }, [data, isExpanded, isEditing]);
+  }, [rawData, isExpanded, isEditing]);
+
+  const data = useWishlistData<ListItemsType>(() => list);
+
+  // Sync list changes back into the wishlist data store.
+  const prevListRef = React.useRef(list);
+  if (prevListRef.current !== list) {
+    prevListRef.current = list;
+    data.update((dataCopy) => {
+      'worklet';
+      dataCopy.setItems(list);
+    });
+  }
 
   const handleExpandWorklet = createRunInJsFn(handleExpand);
 
@@ -99,7 +111,7 @@ export const AssetListExample: React.FC<{}> = () => {
   });
 
   const toggleSelectedItem = createRunInJsFn((item: ListItemsType) => {
-    setData((items) =>
+    setRawData((items) =>
       items.map((i) =>
         // @ts-expect-error
         i.id === item.id
@@ -127,8 +139,7 @@ export const AssetListExample: React.FC<{}> = () => {
       <Header />
 
       <Wishlist.Component
-        // @ts-expect-error: TODO: update the new useWishlistData api.
-        initialData={() => list}
+        data={data}
         style={styles.listContainer}
         initialIndex={0}
       >
