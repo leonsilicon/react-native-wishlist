@@ -22,7 +22,6 @@ catalog:
   "prettier": "^2.0.5"
   "react-native-builder-bob": "^0.41.0"
   "react-native-worklets": "^0.8.3"
-  "react-native-worklets-core": "^1.6.3"
   "release-it": "^20.0.0"
   "typescript": "^5.8.3"
   "@eslint/compat": "^1.1.1"

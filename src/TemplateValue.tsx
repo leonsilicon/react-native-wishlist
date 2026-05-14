@@ -87,9 +87,9 @@ export function isTemplateValue(
 }
 
 /**
- * The `mapper` runs on the UI worklet runtime. Mark it (and any nested function
- * literals it passes to helpers like `Array#reduce`) with a leading
- * `'worklet';` statement so `react-native-worklets-core` can compile them.
+ * The `mapper` runs on the worklets UI runtime. Mark it (and any nested
+ * function literals it passes to helpers like `Array#reduce`) with a leading
+ * `'worklet';` statement so the worklets babel plugin compiles it.
  */
 export function useTemplateValue<ItemT, ValueT>(
   mapper: TemplateValueMapper<ItemT, ValueT>,

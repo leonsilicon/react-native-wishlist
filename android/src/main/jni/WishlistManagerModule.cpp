@@ -3,6 +3,8 @@
 #include <fbjni/fbjni.h>
 #include <react/fabric/FabricUIManagerBinding.h>
 #include <react/renderer/core/ShadowNodeFamily.h>
+#include <worklets/Compat/Holders.h>
+#include <worklets/WorkletRuntime/WorkletRuntime.h>
 #include "MGUIManagerHolder.h"
 #include "WishlistJsRuntime.h"
 
@@ -69,14 +71,55 @@ void WishlistManagerModule::nativeInstall(
 
   wishlistQueue_ = std::make_shared<WishlistDispatchQueue>();
 
-  WishlistJsRuntime::getInstance().initialize(
-      jsiRuntime,
-      [=](std::function<void()> &&f) {
-        jsCallInvoker->invokeAsync(std::move(f));
-      },
-      [=](std::function<void()> &&f) {
-        wishlistQueue_->dispatch(std::move(f));
-      });
+  // Install a JSI hook the JS side calls with the worklets UI runtime holder
+  // (`getUIRuntimeHolder()`); we unwrap the C++ `worklets::WorkletRuntime`
+  // and bind `WishlistJsRuntime` to its JSI runtime so JS-side worklets and
+  // wishlist's native code share global state.
+  auto wishlistQueue = wishlistQueue_;
+  auto setupWishlistRuntime = [jsCallInvoker, wishlistQueue](
+                                  jsi::Runtime &rt,
+                                  const jsi::Value & /*thisVal*/,
+                                  const jsi::Value *args,
+                                  size_t count) -> jsi::Value {
+    if (count < 1 || !args[0].isObject()) {
+      throw jsi::JSError(
+          rt,
+          "WishlistManager._setWishlistContext expects a worklet runtime holder");
+    }
+    auto holderObj = args[0].asObject(rt);
+    if (!holderObj.hasNativeState<worklets::WorkletRuntimeHolder>(rt)) {
+      throw jsi::JSError(
+          rt,
+          "WishlistManager._setWishlistContext: argument is not a WorkletRuntimeHolder");
+    }
+    auto workletRuntime =
+        holderObj.getNativeState<worklets::WorkletRuntimeHolder>(rt)->runtime_;
+    jsi::Runtime &workletJsiRuntime = workletRuntime->getJSIRuntime();
+    std::weak_ptr<worklets::WorkletRuntime> workletRuntimeWeak = workletRuntime;
+    WishlistJsRuntime::getInstance().initialize(
+        &workletJsiRuntime,
+        [jsCallInvoker](std::function<void()> &&f) {
+          jsCallInvoker->invokeAsync(std::move(f));
+        },
+        [wishlistQueue](std::function<void()> &&f) {
+          wishlistQueue->dispatch(std::move(f));
+        },
+        [workletRuntimeWeak](std::function<void(jsi::Runtime &)> &&job) {
+          if (auto strong = workletRuntimeWeak.lock()) {
+            strong->schedule(std::move(job));
+          }
+        });
+    return jsi::Value::undefined();
+  };
+
+  jsiRuntime->global().setProperty(
+      *jsiRuntime,
+      "__mgWishlistSetContext",
+      jsi::Function::createFromHostFunction(
+          *jsiRuntime,
+          jsi::PropNameID::forAscii(*jsiRuntime, "__mgWishlistSetContext"),
+          1,
+          setupWishlistRuntime));
 
   MGUIManagerHolder::getInstance().setUIManager(scheduler_->getUIManager());
 }

@@ -113,7 +113,7 @@ PODS:
   - libwebp/sharpyuv (1.5.0)
   - libwebp/webp (1.5.0):
     - libwebp/sharpyuv
-  - MGWishList (0.0.4):
+  - MGWishList (0.0.9):
     - hermes-engine
     - RCTRequired
     - RCTTypeSafety
@@ -125,7 +125,6 @@ PODS:
     - React-graphics
     - React-ImageManager
     - React-jsi
-    - react-native-worklets-core
     - React-NativeModulesApple
     - React-RCTFabric
     - React-renderercss
@@ -135,6 +134,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
+    - RNWorklets
     - Yoga
   - RCTDeprecation (0.83.9)
   - RCTRequired (0.83.9)
@@ -1638,28 +1638,6 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - react-native-worklets-core (1.6.3):
-    - hermes-engine
-    - RCTRequired
-    - RCTTypeSafety
-    - React-Core
-    - React-Core-prebuilt
-    - React-debug
-    - React-Fabric
-    - React-featureflags
-    - React-graphics
-    - React-ImageManager
-    - React-jsi
-    - React-NativeModulesApple
-    - React-RCTFabric
-    - React-renderercss
-    - React-rendererdebug
-    - React-utils
-    - ReactCodegen
-    - ReactCommon/turbomodule/bridging
-    - ReactCommon/turbomodule/core
-    - ReactNativeDependencies
-    - Yoga
   - React-NativeModulesApple (0.83.9):
     - hermes-engine
     - React-callinvoker
@@ -2333,7 +2311,6 @@ DEPENDENCIES:
   - "React-microtasksnativemodule (from `../../node_modules/.pnpm/react-native@0.83.9_@babel+core@7.29.0_@react-native+metro-config@0.85.3_@babel+core@7._dc8b00cf055872e3384e498bdbcc2361/node_modules/react-native/ReactCommon/react/nativemodule/microtasks`)"
   - "React-mutationobservernativemodule (from `../../node_modules/.pnpm/react-native@0.83.9_@babel+core@7.29.0_@react-native+metro-config@0.85.3_@babel+core@7._dc8b00cf055872e3384e498bdbcc2361/node_modules/react-native/ReactCommon/react/nativemodule/mutationobserver`)"
   - "react-native-safe-area-context (from `../../node_modules/.pnpm/react-native-safe-area-context@5.6.2_react-native@0.83.9_@babel+core@7.29.0_@react-nati_adf940211dc5d349ede85d8ffa54a5ca/node_modules/react-native-safe-area-context`)"
-  - "react-native-worklets-core (from `../../node_modules/.pnpm/react-native-worklets-core@1.6.3_react-native@0.83.9_@babel+core@7.29.0_@react-native+m_ae99a716592266cc60b3569fed0ca3df/node_modules/react-native-worklets-core`)"
   - "React-NativeModulesApple (from `../../node_modules/.pnpm/react-native@0.83.9_@babel+core@7.29.0_@react-native+metro-config@0.85.3_@babel+core@7._dc8b00cf055872e3384e498bdbcc2361/node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios`)"
   - "React-networking (from `../../node_modules/.pnpm/react-native@0.83.9_@babel+core@7.29.0_@react-native+metro-config@0.85.3_@babel+core@7._dc8b00cf055872e3384e498bdbcc2361/node_modules/react-native/ReactCommon/react/networking`)"
   - "React-oscompat (from `../../node_modules/.pnpm/react-native@0.83.9_@babel+core@7.29.0_@react-native+metro-config@0.85.3_@babel+core@7._dc8b00cf055872e3384e498bdbcc2361/node_modules/react-native/ReactCommon/oscompat`)"
@@ -2506,8 +2483,6 @@ EXTERNAL SOURCES:
     :path: "../../node_modules/.pnpm/react-native@0.83.9_@babel+core@7.29.0_@react-native+metro-config@0.85.3_@babel+core@7._dc8b00cf055872e3384e498bdbcc2361/node_modules/react-native/ReactCommon/react/nativemodule/mutationobserver"
   react-native-safe-area-context:
     :path: "../../node_modules/.pnpm/react-native-safe-area-context@5.6.2_react-native@0.83.9_@babel+core@7.29.0_@react-nati_adf940211dc5d349ede85d8ffa54a5ca/node_modules/react-native-safe-area-context"
-  react-native-worklets-core:
-    :path: "../../node_modules/.pnpm/react-native-worklets-core@1.6.3_react-native@0.83.9_@babel+core@7.29.0_@react-native+m_ae99a716592266cc60b3569fed0ca3df/node_modules/react-native-worklets-core"
   React-NativeModulesApple:
     :path: "../../node_modules/.pnpm/react-native@0.83.9_@babel+core@7.29.0_@react-native+metro-config@0.85.3_@babel+core@7._dc8b00cf055872e3384e498bdbcc2361/node_modules/react-native/ReactCommon/react/nativemodule/core/platform/ios"
   React-networking:
@@ -2612,7 +2587,7 @@ SPEC CHECKSUMS:
   libavif: 5f8e715bea24debec477006f21ef9e95432e254d
   libdav1d: 23581a4d8ec811ff171ed5e2e05cd27bad64c39f
   libwebp: 02b23773aedb6ff1fd38cec7a77b81414c6842a8
-  MGWishList: 2349aeb91ef357c58bd5dd8bcb795f514c4d7781
+  MGWishList: 40f6c51936a986a6a405a9e65b368f891b8c1d86
   RCTDeprecation: fd33ca1ccd370f92d656b2b2c42eb64920722170
   RCTRequired: e8df4eae11cd93c621094fd7ebc5519a52de1c6d
   RCTSwiftUI: cef2010e1e5e699600b2064d3aa702e53c35816c
@@ -2651,7 +2626,6 @@ SPEC CHECKSUMS:
   React-microtasksnativemodule: 96d3ad62ad6dbc50a7e9616e89eec451c65cc526
   React-mutationobservernativemodule: b98e1aac94f98270bb345e073d9c1a385d4f3e08
   react-native-safe-area-context: 37e680fc4cace3c0030ee46e8987d24f5d3bdab2
-  react-native-worklets-core: 3a098cd17188379c1a0ecbdea1f7d28f70dbb2a0
   React-NativeModulesApple: 3c0261e81dfa3191187febb89cc96bcb3fa19db2
   React-networking: 969ba337c88061a339fd7231d1356af75bb14586
   React-oscompat: 62631440daaa259120ade60154af5bc48311854b

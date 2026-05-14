@@ -66,6 +66,13 @@ target_include_directories(
   "${COMMON_SRC_DIR}"
   "${LIB_ANDROID_GENERATED_JNI_DIR}"
   "${REACT_ANDROID_DIR}/src/main/jni/react/turbomodule"
+  # `worklets/WorkletRuntime/WorkletRuntime.h` transitively pulls in headers
+  # such as `<jsireact/JSIExecutor.h>` and `<oscompat/OSCompat.h>` that live
+  # in RN's source tree but are not surfaced via the ReactAndroid prefab. Add
+  # the relevant ReactCommon directories so they resolve when we include
+  # WorkletRuntime indirectly.
+  "${REACT_ANDROID_DIR}/../ReactCommon"
+  "${REACT_ANDROID_DIR}/../ReactCommon/jsiexecutor"
 )
 
 # build shared lib

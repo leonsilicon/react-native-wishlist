@@ -125,7 +125,6 @@
     "react-native-builder-bob": "catalog:",
     "react-native-gesture-handler": "catalog:",
     "react-native-worklets": "catalog:",
-    "react-native-worklets-core": "catalog:",
     "release-it": "catalog:",
     "typescript": "catalog:"
   },
@@ -133,7 +132,7 @@
     "react": "*",
     "react-native": "*",
     "react-native-gesture-handler": "*",
-    "react-native-worklets-core": "*"
+    "react-native-worklets": ">=0.8.3"
   },
   "jest": {
     "preset": "react-native",

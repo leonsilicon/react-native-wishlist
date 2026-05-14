@@ -3,13 +3,6 @@ module.exports = function (api) {
 
   return {
     presets: ['babel-preset-expo'],
-    plugins: [
-      [
-        'react-native-worklets-core/plugin',
-        {
-          functionsToWorkletize: [{ name: 'useTemplateValue', args: [0] }],
-        },
-      ],
-    ],
+    plugins: ['react-native-worklets/plugin'],
   };
 };

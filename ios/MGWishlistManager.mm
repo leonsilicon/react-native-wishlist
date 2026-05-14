@@ -13,7 +13,8 @@
 #include <react/renderer/components/view/ViewEventEmitter.h>
 #include <react/renderer/core/EventListener.h>
 #include <react/renderer/core/ShadowNodeFamily.h>
-#include "WKTJsiWorkletContext.h"
+#include <worklets/Compat/Holders.h>
+#include <worklets/WorkletRuntime/WorkletRuntime.h>
 #include "MGContentContainerComponent.h"
 #include "MGObjCJSIUtils.h"
 #include "MGTemplateContainerComponent.h"
@@ -82,13 +83,12 @@ RCT_EXPORT_MODULE(WishlistManager);
   auto callInvoker = cxxBridge.jsCallInvoker;
   facebook::jsi::Runtime *jsRuntime = (facebook::jsi::Runtime *)cxxBridge.runtime;
 
-  // Install a JSI helper that lets the JS side hand us the
-  // `react-native-worklets-core` context (created via `Worklets.createContext`)
-  // it intends wishlist to run on. We unwrap the C++ `JsiWorkletContext`
-  // shared_ptr from the host object and use its worklet runtime as
-  // `WishlistJsRuntime`, so native and JS share global state. Without this the
-  // registry/handlers installed by the worklet context are invisible to
-  // wishlist's native code.
+  // Install a JSI helper that lets the JS side hand us the worklets UI runtime
+  // (obtained via `getUIRuntimeHolder()` from `react-native-worklets`). We
+  // unwrap the C++ `worklets::WorkletRuntime` from its NativeState holder and
+  // use its JSI runtime as `WishlistJsRuntime`, so native and JS share global
+  // state. Without this the registry/handlers installed on the UI runtime are
+  // invisible to wishlist's native code.
   auto setupWishlistRuntime = [callInvoker](
                                   facebook::jsi::Runtime &rt,
                                   const facebook::jsi::Value & /*thisVal*/,
@@ -96,18 +96,19 @@ RCT_EXPORT_MODULE(WishlistManager);
                                   size_t count) -> facebook::jsi::Value {
     if (count < 1 || !args[0].isObject()) {
       throw facebook::jsi::JSError(
-          rt, "MGWishlistManager._setWishlistContext expects a worklet context");
+          rt, "MGWishlistManager._setWishlistContext expects a worklet runtime holder");
     }
-    auto hostObject = args[0].asObject(rt).asHostObject(rt);
-    auto context = std::dynamic_pointer_cast<RNWorklet::JsiWorkletContext>(hostObject);
-    if (!context) {
+    auto holderObj = args[0].asObject(rt);
+    if (!holderObj.hasNativeState<worklets::WorkletRuntimeHolder>(rt)) {
       throw facebook::jsi::JSError(
-          rt, "MGWishlistManager._setWishlistContext: argument is not a JsiWorkletContext");
+          rt,
+          "MGWishlistManager._setWishlistContext: argument is not a WorkletRuntimeHolder");
     }
-    facebook::jsi::Runtime &workletRuntime = context->getWorkletRuntime();
-    auto contextWeak = std::weak_ptr<RNWorklet::JsiWorkletContext>(context);
+    auto workletRuntime = holderObj.getNativeState<worklets::WorkletRuntimeHolder>(rt)->runtime_;
+    facebook::jsi::Runtime &workletJsiRuntime = workletRuntime->getJSIRuntime();
+    std::weak_ptr<worklets::WorkletRuntime> workletRuntimeWeak = workletRuntime;
     Wishlist::WishlistJsRuntime::getInstance().initialize(
-        &workletRuntime,
+        &workletJsiRuntime,
         [=](std::function<void()> &&f) { callInvoker->invokeAsync(std::move(f)); },
         [=](std::function<void()> &&f) {
           __block auto retainedWork = std::move(f);
@@ -115,11 +116,9 @@ RCT_EXPORT_MODULE(WishlistManager);
             retainedWork();
           });
         },
-        [contextWeak](std::function<void(facebook::jsi::Runtime &)> &&job) {
-          if (auto ctx = contextWeak.lock()) {
-            ctx->invokeOnWorkletThread(
-                [job = std::move(job)](RNWorklet::JsiWorkletContext * /*c*/,
-                                       facebook::jsi::Runtime &rt) { job(rt); });
+        [workletRuntimeWeak](std::function<void(facebook::jsi::Runtime &)> &&job) {
+          if (auto strong = workletRuntimeWeak.lock()) {
+            strong->schedule(std::move(job));
           }
         });
     return facebook::jsi::Value::undefined();
