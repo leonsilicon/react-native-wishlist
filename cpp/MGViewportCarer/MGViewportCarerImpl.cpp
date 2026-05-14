@@ -18,6 +18,7 @@ MGViewportCarerImpl::MGViewportCarerImpl()
       windowHeight_(0),
       windowWidth_(0),
       surfaceId_(0),
+      initialOriginItem_(0),
       componentsPool_(std::make_shared<ComponentsPool>()),
       ignoreScrollEvents_(false),
       pendingScroll_(std::make_shared<PendingScroll>()) {}
@@ -105,8 +106,24 @@ void MGViewportCarerImpl::initialRenderAsync(
     windowHeight_ = dimensions.height;
     windowWidth_ = dimensions.width;
     inflatorId_ = inflatorId;
+    initialOriginItem_ = originItem;
 
-    window_.push_back(itemProvider_->provide(originItem, nullptr));
+    // Refuse to seed `window_` with a null-sn item. `WorkletItemProvider::provide`
+    // returns a default-constructed `WishItem` (sn=nullptr, index=0, height=0)
+    // when the JS inflator reports the requested index doesn't exist yet — e.g.
+    // because the data binding hasn't propagated, the inflator was just
+    // unregistered during HMR, or the user's `__at(originItem)` is transiently
+    // undefined. Pushing that placeholder corrupts the window: `window_[0].index`
+    // becomes 0 (not `originItem`), and every subsequent `updateWindow` either
+    // hits the same null on retry (if the data is genuinely empty, fine) or
+    // tries to walk indices around 0 instead of around `originItem` (broken).
+    // Skip the seed entirely; the next vsync's `didScrollAsync` will retry via
+    // `handleVSync` once the inflator and data are ready.
+    WishItem seed = itemProvider_->provide(originItem, nullptr);
+    if (seed.sn == nullptr) {
+      return;
+    }
+    window_.push_back(seed);
     window_.back().offset = initialContentSize / 2;
     updateWindow();
   });
@@ -165,7 +182,7 @@ void MGViewportCarerImpl::didScrollAsync(
       return;
     }
 
-    if (window_.empty() || itemProvider_ == nullptr) {
+    if (itemProvider_ == nullptr) {
       return;
     }
 
@@ -185,7 +202,7 @@ void MGViewportCarerImpl::didScrollAsync(
       itemProvider_->setComponentsPool(componentsPool_);
       windowWidth_ = dimensions.width;
       inflatorId_ = inflatorId;
-    } else {
+    } else if (!window_.empty()) {
       std::set<int> dirty = dataBinding->applyChangesAndGetDirtyIndices(
           {window_[0].index, window_.back().index});
       for (auto &item : window_) {
@@ -200,6 +217,20 @@ void MGViewportCarerImpl::didScrollAsync(
       contentOffset_ = contentOffset;
     }
     windowHeight_ = dimensions.height;
+
+    // Window can be empty when `initialRenderAsync` refused to seed (its
+    // `provide(originItem)` returned null because the inflator/data wasn't
+    // ready yet). Retry the seed here on every scroll/vsync until it
+    // succeeds — otherwise the carer is permanently stuck and the user sees
+    // an empty wishlist with no recovery path.
+    if (window_.empty()) {
+      WishItem seed = itemProvider_->provide(initialOriginItem_, nullptr);
+      if (seed.sn == nullptr) {
+        return;
+      }
+      window_.push_back(seed);
+      window_.back().offset = initialContentSize_ / 2;
+    }
 
     updateWindow();
   });
@@ -234,6 +265,24 @@ void MGViewportCarerImpl::updateWindow() {
   }
 #endif
 
+  // Re-provide every dirty item with up-to-date data and re-flow the layout.
+  //
+  // Anchoring rule: the FIRST item's bottom stays where it was (so items
+  // visually below it don't jump when the first item's height changes —
+  // important for chat-style "anchor at bottom" behavior). Every subsequent
+  // item is laid out continuously below the previous one. Previously, every
+  // dirty item used the same `currentOffset - (newH - oldH)` formula, but
+  // that formula only anchors correctly when `currentOffset` equals the
+  // item's OLD offset — true for the first item, NOT true for any item after
+  // it. The result was a layout discontinuity proportional to the item's old
+  // height every time a non-first item was dirty.
+  //
+  // Also: when a dirty item's `provide` returns null we used `continue`,
+  // which skipped the `currentOffset = item.offset + item.height` update at
+  // the bottom of the loop. Subsequent iterations then computed offsets
+  // against a stale `currentOffset`. Restructured so `currentOffset` is
+  // always advanced based on the (possibly unchanged) item.
+  bool isFirstItem = true;
   float currentOffset = window_[0].offset;
   for (auto &item : window_) {
     if (item.dirty) {
@@ -243,21 +292,37 @@ void MGViewportCarerImpl::updateWindow() {
             item.sn, componentsPool_, item.type, item.key);
       }
       WishItem wishItem = itemProvider_->provide(item.index, prevSn);
-      if (wishItem.sn == nullptr) {
-        continue;
+      if (wishItem.sn != nullptr) {
+        if (item.sn && wishItem.sn && item.sn->getTag() != wishItem.sn->getTag()) {
+          componentsPool_->returnToPool(item.sn);
+        }
+        swap(item.sn, wishItem.sn);
+        if (isFirstItem) {
+          // Anchor first item's bottom in place.
+          item.offset = currentOffset - (wishItem.height - item.height);
+        } else {
+          // Lay out continuously below the previous item.
+          item.offset = currentOffset;
+        }
+        item.height = wishItem.height;
+        item.type = wishItem.type;
+        item.key = wishItem.key;
+        item.dirty = false;
+        changed = true;
       }
-      if (item.sn && wishItem.sn && item.sn->getTag() != wishItem.sn->getTag()) {
-        componentsPool_->returnToPool(item.sn);
+      // If `provide` returned null we leave the item as-is. We still advance
+      // `currentOffset` below so later iterations see the correct anchor.
+    } else if (!isFirstItem) {
+      // Non-first non-dirty items get re-flowed only if a preceding item's
+      // height changed. Pin to `currentOffset` for continuity. (Cheap: just a
+      // float assignment.)
+      if (item.offset != currentOffset) {
+        item.offset = currentOffset;
+        changed = true;
       }
-      swap(item.sn, wishItem.sn);
-      item.offset = currentOffset - (wishItem.height - item.height);
-      item.height = wishItem.height;
-      item.type = wishItem.type;
-      item.key = wishItem.key;
-      item.dirty = false;
-      changed = true;
     }
     currentOffset = item.offset + item.height;
+    isFirstItem = false;
   }
 
   // Add above

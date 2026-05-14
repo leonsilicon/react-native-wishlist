@@ -32,6 +32,13 @@ using namespace facebook::react;
   std::shared_ptr<const MGWishlistEventEmitter> _emitter;
   int _initialIndex;
   BOOL _ignoreScrollEvents;
+  // Last `data.contentOffset` we applied via `setContentOffset`. State commits
+  // for unrelated reasons (contentBoundingRect changed, child resized, etc.)
+  // re-emit the same `contentOffset` because `MGWishlistState` is sticky
+  // across commits. Without this guard each such commit would jerk the
+  // scrollView back to that position even mid-fling, fighting the user's
+  // scroll. Sentinel `MG_NO_OFFSET` means "nothing applied yet".
+  float _lastAppliedContentOffset;
 }
 
 - (instancetype)initWithFrame:(CGRect)frame
@@ -41,6 +48,7 @@ using namespace facebook::react;
     self.scrollView.showsVerticalScrollIndicator = NO;
     self.scrollView.clipsToBounds = YES;
     _ignoreScrollEvents = NO;
+    _lastAppliedContentOffset = MG_NO_OFFSET;
   }
   return self;
 }
@@ -133,7 +141,19 @@ using namespace facebook::react;
 #endif
 
   if (data.contentOffset != MG_NO_OFFSET) {
-    [self.scrollView setContentOffset:{0, data.contentOffset} animated:NO];
+    // Skip re-applying an offset we already set. `MGWishlistState::contentOffset`
+    // is sticky — once `MGViewportCarerImpl::pushChildren` writes a real value
+    // it persists across all subsequent state commits (other state mutators
+    // like `updateStateIfNeeded` use `getStateData()` which reads it back, and
+    // `setStateData` writes it back unchanged). So a state commit triggered
+    // by, say, a child relayout will still carry the contentOffset from the
+    // last scroll-induced push, and re-applying it here would yank the
+    // scrollView mid-fling. We always still call `didUpdateContentOffset` so
+    // C++ unblocks `ignoreScrollEvents_` either way.
+    if (data.contentOffset != _lastAppliedContentOffset) {
+      _lastAppliedContentOffset = data.contentOffset;
+      [self.scrollView setContentOffset:{0, data.contentOffset} animated:NO];
+    }
     data.viewportCarer->didUpdateContentOffset();
   }
 
@@ -180,6 +200,7 @@ using namespace facebook::react;
   }
   _state.reset();
   _orchestrator = nil;
+  _lastAppliedContentOffset = MG_NO_OFFSET;
   [super prepareForRecycle];
 }
 

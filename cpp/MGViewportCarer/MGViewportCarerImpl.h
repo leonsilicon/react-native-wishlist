@@ -78,6 +78,10 @@ class MGViewportCarerImpl final : public MGViewportCarer {
   float windowHeight_;
   float windowWidth_;
   int surfaceId_;
+  // Index passed to `initialRenderAsync`, kept so `didScrollAsync` can retry
+  // seeding `window_` on subsequent vsyncs if the very first
+  // `provide(originItem)` returned null (inflator/data not yet ready).
+  int initialOriginItem_;
   std::string inflatorId_;
   std::shared_ptr<ComponentsPool> componentsPool_;
   std::shared_ptr<ItemProvider> itemProvider_;

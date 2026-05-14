@@ -223,22 +223,27 @@ class Wishlist(reactContext: Context) : ReactScrollView(reactContext) {
       return
     }
     val contentView = getChildAt(0)
-    val effectiveContentHeight =
-        if (contentView == null) {
-          0
-        } else {
-          max(contentView.height, shadowContentMinHeightPx)
-        }
-    if (contentView == null ||
-        contentView.height == 0 ||
-        pendingScrollOffset > effectiveContentHeight) {
+    if (contentView == null || contentView.height == 0) {
+      // The content view isn't measured yet; wait for the next layout pass.
+      // Do NOT call `didUpdateContentOffset` here — `pendingScrollOffset`
+      // stays set so we apply it once the view is sized.
       return
     }
+    val effectiveContentHeight = max(contentView.height, shadowContentMinHeightPx)
+    val targetOffset = pendingScrollOffset
+    // Always clear `pendingScrollOffset` and notify C++ that we processed
+    // this update — even when we have to clamp or drop the value. Otherwise
+    // `MGViewportCarerImpl::ignoreScrollEvents_` stays `true` forever
+    // (it's only reset by `didUpdateContentOffset`), which silently drops
+    // every subsequent scroll event and leaves the wishlist visually stuck
+    // showing whatever was last on screen with no way to recover.
+    pendingScrollOffset = Int.MIN_VALUE
     ignoreScrollEvents = true
-    scrollTo(0, pendingScrollOffset)
+    if (targetOffset in 0..effectiveContentHeight) {
+      scrollTo(0, targetOffset)
+    }
     orchestrator?.didUpdateContentOffset()
     ignoreScrollEvents = false
-    pendingScrollOffset = Int.MIN_VALUE
   }
 
   private val wishlistOverScroller: OverScroller?
