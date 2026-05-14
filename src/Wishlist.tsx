@@ -26,6 +26,7 @@ import { WishlistText } from './Components/WishlistText';
 import { WishlistView } from './Components/WishlistView';
 import { initEventHandler } from './EventHandler';
 import InflatorRepository, { InflateMethod } from './InflatorRepository';
+import { JavascriptWishlist } from './JavascriptWishlist';
 import NativeContentContainer from './Specs/NativeContentContainer';
 import NativeTemplateContainer from './Specs/NativeTemplateContainer';
 import NativeTemplateInterceptor from './Specs/NativeTemplateInterceptor';
@@ -35,8 +36,14 @@ import NativeWishList, {
 import { TemplateContext } from './TemplateContext';
 import { TemplateItem } from './TemplateItem';
 import { generateId } from './Utils';
-import { useWishlistContext, WishlistContext } from './WishlistContext';
+import { useJsTemplates } from './JsTemplatesContext';
+import {
+  useWishlistContext,
+  useWishlistMode,
+  WishlistContext,
+} from './WishlistContext';
 import type { WishlistData, WishlistDataInternal } from './WishlistData';
+import { resolveWishlistMode, type WishlistMode } from './WishlistMode';
 
 type NestedTemplatesContextValue = {
   templates: { [key: string]: any };
@@ -78,6 +85,14 @@ type Props = ViewProps & {
   onStartReached?: () => void;
   onEndReached?: () => void;
   initialIndex?: number;
+  /**
+   * Rendering backend. `"native"` (default) uses the C++/worklet engine.
+   * `"javascript"` runs the same templates as plain React inside
+   * `@legendapp/list` — no native code path is touched, so this is the
+   * safe fallback when the native engine is misbehaving. Per-instance:
+   * pass it on each `<Wishlist.Component>`.
+   */
+  mode?: WishlistMode;
   contentContainerStyle?: StyleProp<ViewStyle> | undefined;
   /**
    * Rendered at the bottom of all the items. Can be a React Component Class, a render function, or
@@ -99,18 +114,77 @@ type Props = ViewProps & {
     | undefined;
 };
 
-function ComponentBase<T extends BaseItem>(
-  {
-    children,
-    style,
-    data,
-    contentContainerStyle,
-    ListFooterComponent,
-    ListHeaderComponent,
-    ...rest
-  }: Props,
-  ref: React.Ref<WishListInstance>,
-) {
+function ComponentBase(props: Props, ref: React.Ref<WishListInstance>) {
+  const mode = resolveWishlistMode(props.mode);
+  if (mode === 'javascript') {
+    return <JavascriptWishlistDispatch {...props} forwardedRef={ref} />;
+  }
+  return <NativeComponentBase {...props} forwardedRef={ref} />;
+}
+
+function JavascriptWishlistDispatch({
+  children,
+  style,
+  data,
+  contentContainerStyle,
+  ListFooterComponent,
+  ListHeaderComponent,
+  forwardedRef,
+  onStartReached,
+  onEndReached,
+  initialIndex,
+  mode: _mode,
+}: Props & { forwardedRef: React.Ref<WishListInstance> }) {
+  const wishlistIdRef = useRef<string | null>(null);
+  if (!wishlistIdRef.current) {
+    wishlistIdRef.current = generateId();
+  }
+  const { width } = useWindowDimensions();
+
+  const templates = useMemo(
+    () => getTemplatesFromChildren(children, width),
+    [children, width],
+  );
+
+  if (ListHeaderComponent) {
+    templates.__wishlistHeader = React.isValidElement(ListHeaderComponent)
+      ? ListHeaderComponent
+      : React.createElement(ListHeaderComponent);
+  }
+  if (ListFooterComponent) {
+    templates.__wishlistFooter = React.isValidElement(ListFooterComponent)
+      ? ListFooterComponent
+      : React.createElement(ListFooterComponent);
+  }
+
+  return (
+    <JavascriptWishlist
+      ref={forwardedRef}
+      wishlistId={wishlistIdRef.current!}
+      data={data}
+      templates={templates}
+      style={style}
+      contentContainerStyle={contentContainerStyle}
+      onStartReached={onStartReached}
+      onEndReached={onEndReached}
+      initialIndex={initialIndex}
+      ListHeaderComponent={ListHeaderComponent}
+      ListFooterComponent={ListFooterComponent}
+    />
+  );
+}
+
+function NativeComponentBase<T extends BaseItem>({
+  children,
+  style,
+  data,
+  contentContainerStyle,
+  ListFooterComponent,
+  ListHeaderComponent,
+  forwardedRef: ref,
+  mode: _mode,
+  ...rest
+}: Props & { forwardedRef: React.Ref<WishListInstance> }) {
   const nativeWishlist = useRef<InstanceType<typeof NativeWishList> | null>(
     null,
   );
@@ -270,6 +344,7 @@ function ComponentBase<T extends BaseItem>(
       id: wishlistId.current!,
       inflatorId,
       data,
+      mode: 'native' as const,
     }),
     [inflatorId, data],
   );
@@ -389,8 +464,22 @@ type TemplateProps = {
 function Template({ children, type }: TemplateProps) {
   const registry = useContext(TemplatesRegistryContext);
   const templates = useContext(TemplateContext);
+  const mode = useWishlistMode();
+  const jsTemplates = useJsTemplates();
 
   registry?.registerTemplate(type, children);
+
+  // JS mode: nested templates (those rendered while an item is rendering)
+  // self-register so `Wishlist.ForEach template="X"` can find them, and
+  // return null so they don't render inline at the declaration site.
+  // Top-level templates rendered by ItemRenderer have `renderChildren: true`
+  // via TemplateContext.Provider — in that case render the user's JSX.
+  if (mode === 'javascript') {
+    if (jsTemplates && !jsTemplates.templates[type]) {
+      jsTemplates.registerNested(type, children);
+    }
+    return templates?.renderChildren ? children : null;
+  }
 
   return templates?.renderChildren ? children : null;
 }

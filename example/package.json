@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@expo/metro-config": "^55.0.20",
+    "@legendapp/list": "^2.0.19",
     "@leonsilicon/react-native-wishlist": "workspace:*",
     "@react-navigation/bottom-tabs": "^7.15.5",
     "@react-navigation/elements": "^2.9.10",

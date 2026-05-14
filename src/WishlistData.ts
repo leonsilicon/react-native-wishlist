@@ -20,6 +20,10 @@ export interface WishlistDataInternal<T extends Item> extends WishlistData<T> {
   __at: (index: number) => T | undefined;
   __firstIndex: () => number;
   __lastIndex: () => number;
+  // JS-mode entry points: read current items synchronously on JS thread
+  // and subscribe to changes for re-rendering.
+  __jsGetItems: () => unknown[];
+  __jsSubscribe: (listener: () => void) => () => void;
 }
 
 /**
@@ -32,6 +36,35 @@ export function useWishlistData<T extends Item>(
 
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const initialData = useMemo(getInitialData, []);
+
+  // JS-mode mirror: stays in sync with every update() call, drives
+  // re-renders for any <Wishlist.Component mode="javascript"> using this
+  // data instance. Independent of the worklet runtime so it never pulls
+  // in native code paths.
+  const jsMirror = useMemo(() => {
+    let items: T[] = initialData.slice();
+    const listeners = new Set<() => void>();
+    const jsCopy = createItemsDataStructure(items);
+    return {
+      get: () => items,
+      apply: (job: UpdateJob<T, unknown>) => {
+        const result = job(jsCopy);
+        // After a job mutates the data structure, snapshot the current
+        // deque so consumers get a fresh array reference (LegendList
+        // diffs by reference / keys).
+        items = (jsCopy as any).__deque.slice();
+        for (const l of listeners) l();
+        return result;
+      },
+      subscribe: (l: () => void) => {
+        listeners.add(l);
+        return () => {
+          listeners.delete(l);
+        };
+      },
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const getWishlistData = useMemo((): (() => WishlistDataInternal<T>) => {
     return () => {
@@ -124,14 +157,17 @@ export function useWishlistData<T extends Item>(
         global.wishlists[wishlistId].__hasPendingUpdates = false;
       }
 
-      const internalData: WishlistDataInternal<T> = {
+      // Worklet-side handle: only carries the methods the worklet runtime
+      // ever calls. JS-only members (`__jsGetItems`, `__jsSubscribe`) live
+      // on the outer JS-side object and are intentionally absent here.
+      const internalData = {
         update,
         __at,
         __attach,
         __detach,
         __firstIndex,
         __lastIndex,
-      };
+      } as unknown as WishlistDataInternal<T>;
 
       global.dataCtx[dataId] = internalData;
 
@@ -145,10 +181,19 @@ export function useWishlistData<T extends Item>(
       update: <ResT>(updateJob: UpdateJob<T, ResT>) => {
         'worklet';
 
+        // Always mirror the update to the JS-side copy so any
+        // <Wishlist.Component mode="javascript"> attached to this data
+        // re-renders immediately. Cheap; runs once on the JS thread.
+        const jsResult = jsMirror.apply(updateJob as UpdateJob<T, unknown>);
+
         // This can be called from both JS and Wishlist context.
         // TODO: Better api to check which JS runtime we are on.
         if (global.dataCtx) {
           return getWishlistData().update(updateJob);
+        } else if (typeof (global as any).__mgWishlistSetContext !== 'function') {
+          // No native runtime available (JS-only build / mode='javascript'
+          // only). Resolve synchronously with the JS-mirror result.
+          return Promise.resolve(jsResult as ResT);
         } else {
           return new Promise<ResT>((resolve) => {
             const resolveJs = createRunInJsFn(resolve);
@@ -185,8 +230,10 @@ export function useWishlistData<T extends Item>(
         'worklet';
         return getWishlistData().__lastIndex();
       },
+      __jsGetItems: () => jsMirror.get(),
+      __jsSubscribe: (listener: () => void) => jsMirror.subscribe(listener),
     }),
-    [getWishlistData],
+    [getWishlistData, jsMirror],
   );
 }
 

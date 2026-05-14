@@ -1,8 +1,15 @@
-import React, { forwardRef, useContext, useEffect } from 'react';
-import { DeviceEventEmitter, NativeModules, View, ViewProps } from 'react-native';
+import React, { forwardRef, useCallback, useContext, useEffect } from 'react';
+import {
+  DeviceEventEmitter,
+  NativeModules,
+  Pressable as RNPressable,
+  View,
+  ViewProps,
+} from 'react-native';
 import { createTemplateComponent } from '../createTemplateComponent';
 import { useTemplateCallback } from '../EventHandler';
 import { getUIInflatorRegistry } from '../InflatorRepository';
+import { useJsCurrentValue } from '../JsTemplatesContext';
 import { WishlistContext } from '../WishlistContext';
 import {
   createRunInWishlistFn,
@@ -358,6 +365,25 @@ type PressableProps = ViewProps & {
   onPress?: ((item: any, rootItem: any) => void) | null;
 };
 
+function JsPressable({
+  onPress,
+  others,
+  forwardedRef,
+}: {
+  onPress?: ((item: any, rootItem: any) => void) | null;
+  others: ViewProps;
+  forwardedRef: React.Ref<any>;
+}) {
+  const current = useJsCurrentValue();
+  const handlePress = useCallback(() => {
+    if (!onPress) return;
+    onPress(current?.item, current?.rootValue);
+  }, [onPress, current?.item, current?.rootValue]);
+  return (
+    <RNPressable {...(others as any)} ref={forwardedRef} onPress={handlePress} />
+  );
+}
+
 // Batch attach work: instead of one scheduleOnRN per Pressable per push (which
 // during a scroll-in of e.g. 12 grapheme buttons would queue 12 jobs to the RN
 // thread + 12 `setTimeout`s and starve the scroll), collect all tags from the
@@ -534,6 +560,19 @@ export const Pressable = forwardRef<any, PressableProps>(
         'Wishlist.Pressable must be rendered inside a Wishlist.Component template.',
       );
     }
+
+    if (wishlist.mode === 'javascript') {
+      // No gesture-handler, no worklet runtime — render a plain RN Pressable
+      // and invoke onPress with the current item/root from React context.
+      return (
+        <JsPressable
+          onPress={onPress}
+          others={others}
+          forwardedRef={ref}
+        />
+      );
+    }
+
     const wishlistId = wishlist.id;
 
     // The handler callback is registered on the wishlist worklet runtime via

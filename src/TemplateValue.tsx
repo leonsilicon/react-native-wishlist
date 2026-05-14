@@ -1,5 +1,6 @@
 import { useEffect, useMemo } from 'react';
 import { getUIInflatorRegistry } from './InflatorRepository';
+import { getJsInflatorRegistry } from './JsInflatorRegistry';
 import { generateId } from './Utils';
 import { createRunInWishlistFn } from './WishlistJsRuntime';
 
@@ -22,6 +23,11 @@ export type TemplateValue<ValueT> = {
 export type TemplateValueInternal<ValueT> = TemplateValue<ValueT> & {
   __isTemplateValue: boolean;
   __remove: () => void;
+  // JS-mode entry: calls the mapper with explicit (item, rootValue) instead
+  // of reading from a runtime-local current-value slot. Lets callers in the
+  // React render path resolve template values without relying on a global
+  // or context that may not be set at descendant render time.
+  __resolveJs: (item: unknown, rootValue: unknown) => ValueT;
 };
 
 export function createTemplateValue<ValueT>(
@@ -48,6 +54,26 @@ export function createTemplateValue<ValueT>(
   function value() {
     'worklet';
 
+    // JS-mode entry: when this is called from the React render thread (not a
+    // worklet), the wishlist worklet registry isn't installed on `global`.
+    // Route through the JS-side registry populated by JavascriptWishlist.
+    if (!global.__wishlistInflatorRegistry) {
+      const jsRegistry = getJsInflatorRegistry();
+      let state = jsRegistry.getTemplateValueState(id);
+      if (!state) {
+        state = { dirty: true, current: undefined };
+        jsRegistry.setTemplateValueState(id, state);
+      }
+      if (state.dirty) {
+        state.current = mapper(
+          jsRegistry.getCurrentValue(),
+          jsRegistry.getCurrentRootValue(),
+        );
+        state.dirty = false;
+      }
+      return state.current;
+    }
+
     const registry = getUIInflatorRegistry();
     const state = getOrCreateUIState();
     if (state.dirty) {
@@ -69,9 +95,14 @@ export function createTemplateValue<ValueT>(
     });
   }
 
+  function __resolveJs(item: unknown, rootValue: unknown): ValueT {
+    return mapper(item, rootValue);
+  }
+
   return {
     __isTemplateValue: true,
     __remove: remove,
+    __resolveJs,
     value,
   };
 }

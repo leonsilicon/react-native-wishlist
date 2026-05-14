@@ -14,7 +14,8 @@ import {
   TemplateValueInternal,
 } from './TemplateValue';
 import { generateId } from './Utils';
-import { useWishlistContext } from './WishlistContext';
+import { useWishlistContext, useWishlistMode } from './WishlistContext';
+import { useJsCurrentValue } from './JsTemplatesContext';
 import { TemplateItem } from './TemplateItem';
 import { ComponentPool } from './ComponentPool';
 
@@ -118,6 +119,43 @@ type CreateTemplateComponentOptions = {
   additionalTemplateProps?: string[];
 };
 
+function resolveJsxChildren(
+  children: any,
+  item: unknown,
+  rootValue: unknown,
+): any {
+  if (children === null || children === undefined) return children;
+  if (Array.isArray(children)) {
+    return children.map((c) => resolveJsxChildren(c, item, rootValue));
+  }
+  if (isTemplateValue(children)) {
+    return children.__resolveJs(item, rootValue);
+  }
+  // React elements (and primitives) pass through unchanged. Their own
+  // descendants will resolve any template values when they render.
+  return children;
+}
+
+function resolveTemplatePropsJs(
+  props: any,
+  item: unknown,
+  rootValue: unknown,
+): any {
+  if (props === null || props === undefined) return props;
+  if (isTemplateValue(props)) return props.__resolveJs(item, rootValue);
+  if (props instanceof TemplateCallback) return undefined;
+  if (typeof props !== 'object') return props;
+  if (React.isValidElement(props)) return props;
+  if (Array.isArray(props)) {
+    return props.map((p) => resolveTemplatePropsJs(p, item, rootValue));
+  }
+  const out: any = {};
+  for (const key in props) {
+    out[key] = resolveTemplatePropsJs(props[key], item, rootValue);
+  }
+  return out;
+}
+
 export function createTemplateComponent<T extends React.ComponentType<any>>(
   Component: T,
   { addProps, additionalTemplateProps }: CreateTemplateComponentOptions = {},
@@ -125,7 +163,29 @@ export function createTemplateComponent<T extends React.ComponentType<any>>(
   const parsedAdditionalTemplateProps =
     additionalTemplateProps?.map((prop) => prop.split('.')) ?? [];
 
-  const WishListComponent = forwardRef<any, any>(({ style, ...props }, ref) => {
+  const WishListComponent = forwardRef<any, any>((rawProps, ref) => {
+    const mode = useWishlistMode();
+    const jsCurrent = useJsCurrentValue();
+    if (mode === 'javascript') {
+      // In JS mode the same JSX is rendered as plain React per visible item.
+      // Resolve TemplateValues at render time by walking props and calling
+      // each TemplateValue's mapper with the current item from React context.
+      // Drop TemplateCallbacks — those are wired by the wrapping primitives
+      // (Pressable, etc.).
+      const item = jsCurrent?.item;
+      const rootValue = jsCurrent?.rootValue;
+      const { style, children, ...rest } = rawProps;
+      const resolvedRest = resolveTemplatePropsJs(rest, item, rootValue);
+      const resolvedStyle = resolveTemplatePropsJs(style, item, rootValue);
+      const resolvedChildren = resolveJsxChildren(children, item, rootValue);
+      return (
+        <Component {...(resolvedRest as any)} style={resolvedStyle} ref={ref}>
+          {resolvedChildren}
+        </Component>
+      );
+    }
+
+    const { style, ...props } = rawProps;
     const { inflatorId } = useWishlistContext();
     const { templateType } = useTemplateContext();
 

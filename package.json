@@ -129,10 +129,16 @@
     "typescript": "catalog:"
   },
   "peerDependencies": {
+    "@legendapp/list": ">=2.0.0",
     "react": "*",
     "react-native": "*",
     "react-native-gesture-handler": "*",
     "react-native-worklets": ">=0.8.3"
+  },
+  "peerDependenciesMeta": {
+    "@legendapp/list": {
+      "optional": true
+    }
   },
   "jest": {
     "preset": "react-native",
