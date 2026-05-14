@@ -40,8 +40,9 @@ A high-performance, **template-based** list for React Native. Wishlist renders e
 19. [`createRunInJsFn` and `createRunInWishlistFn`](#createruninjsfn-and-createruninwishlistfn)
 20. [`createTemplateComponent` — wrapping your own native views](#createtemplatecomponent--wrapping-your-own-native-views)
 21. [Interaction with `react-native-reanimated`](#interaction-with-react-native-reanimated)
-22. [Pitfalls & rules of thumb](#pitfalls--rules-of-thumb)
-23. [API reference](#api-reference)
+22. [Using `className` with NativeWind / UniWind / Tailwind](#using-classname-with-nativewind--uniwind--tailwind)
+23. [Pitfalls & rules of thumb](#pitfalls--rules-of-thumb)
+24. [API reference](#api-reference)
 
 ---
 
@@ -634,6 +635,99 @@ What works fine:
 - **Driving wishlist data from a reanimated source** for low-frequency events: observe with `useAnimatedReaction`, hop to JS with `runOnJS`, push into wishlist via `data.update(...)`. Not suitable for per-frame animation.
 
 If you need to compose template-derived values in a `useDerivedValue`-shaped way, use [`useTemplateDerivedValue`](#usetemplatederivedvalue).
+
+## Using `className` with NativeWind / UniWind / Tailwind
+
+`className` does **not** work out of the box on `Wishlist.View` / `Wishlist.Text` / `Wishlist.Image` / `Wishlist.Pressable`, and it cannot be passed via a `useTemplateValue` either. The reason is structural — see [Why](#why) below if you want the details. The TL;DR:
+
+- **Static `className`** (a literal string at the JSX site): supported by wrapping the wishlist drop-ins yourself with your styling library's interop primitive.
+- **Per-item dynamic `className`** (a `TemplateValue<string>`): not supported. Use a `TemplateValue<ViewStyle>` instead — drive `style` directly.
+
+### Recommended pattern — static classes
+
+Wrap the wishlist drop-ins **at module load**, outside any component, with the interop your styling library exposes. The wrapping resolves `className` → `style` at JSX time, and wishlist's existing `style` handling picks it up from there.
+
+**NativeWind (v4) / `react-native-css-interop`:**
+
+```ts
+// styled.ts
+import { cssInterop } from 'react-native-css-interop'; // or 'nativewind'
+import { Wishlist } from '@leonsilicon/react-native-wishlist';
+
+export const WishlistView = cssInterop(Wishlist.View, { className: 'style' });
+export const WishlistText = cssInterop(Wishlist.Text, { className: 'style' });
+export const WishlistImage = cssInterop(Wishlist.Image, { className: 'style' });
+export const WishlistPressable = cssInterop(Wishlist.Pressable, { className: 'style' });
+```
+
+**UniWind:**
+
+```ts
+// styled.ts
+import { withUniwind } from 'uniwind';
+import { Wishlist } from '@leonsilicon/react-native-wishlist';
+
+export const WishlistView = withUniwind(Wishlist.View);
+export const WishlistText = withUniwind(Wishlist.Text);
+export const WishlistImage = withUniwind(Wishlist.Image);
+export const WishlistPressable = withUniwind(Wishlist.Pressable);
+```
+
+Then use them inside templates exactly like you would the originals:
+
+```tsx
+<WishlistView className="px-4 py-2 bg-card rounded-lg">
+  <WishlistText className="text-base font-semibold text-foreground">{title}</WishlistText>
+</WishlistView>
+```
+
+Wrap at the **module level**, not inside a component — recreating the wrapper on every render allocates a new component identity and breaks template caching.
+
+### Per-item dynamic styling
+
+If a style depends on the row's data, **don't** try to compute a class string. Compute a style object with `useTemplateValue` (or `useTemplateDerivedValue`) and pass it via `style`:
+
+```tsx
+function Row() {
+  const containerStyle = useTemplateValue<Item, ViewStyle>((item) => {
+    'worklet';
+    return {
+      backgroundColor: item.unread ? '#fde68a' : '#ffffff',
+      paddingHorizontal: item.compact ? 8 : 16,
+    };
+  });
+
+  return <Wishlist.View style={containerStyle}>{/* ... */}</Wishlist.View>;
+}
+```
+
+If you'd prefer to author the design tokens in Tailwind, build a small `Record<VariantName, ViewStyle>` map at module scope (resolve it once via the styling library's runtime helper, e.g. NativeWind's `useColorScheme`/`cssInterop` on a hidden probe, or just hand-write the tokens) and index into it inside the worklet:
+
+```ts
+const variantStyles: Record<'unread' | 'read', ViewStyle> = {
+  unread: { backgroundColor: '#fde68a' },
+  read: { backgroundColor: '#ffffff' },
+};
+
+const containerStyle = useTemplateValue<Item, ViewStyle>((item) => {
+  'worklet';
+  return variantStyles[item.unread ? 'unread' : 'read'];
+});
+```
+
+The map is captured by reference, so the worklet just looks up — no per-row interop work runs on the wishlist runtime.
+
+### Reactivity caveat (theme / dark mode)
+
+`className` resolution happens during the React render of the template *prerender shell* (the tree wishlist mounts under `display: none` to register templates with Fabric). If your styling library re-renders that shell when the theme changes (e.g. `dark:bg-zinc-900` flipping with `useColorScheme`), the template's recorded props update and recycled rows reflect the new theme. If it doesn't, theme changes won't propagate to existing rows until the wishlist is re-mounted.
+
+Both NativeWind and UniWind subscribe components to theme changes via context, so this should work — but if you observe stale styles on theme flip, fall back to driving the affected colors through `useTemplateValue` against your own theme state.
+
+### Why
+
+`createTemplateComponent` destructures every prop, walks them with `traverseObject`, and re-applies the result on the wishlist worklet runtime per inflated row — not on React's render path. NativeWind / UniWind resolve `className` during React render, before the wrapped component sees props. That's why wrapping the wishlist drop-ins with their interop works for static classes: the className is converted to `style` *before* wishlist's prop walker runs, so the resolved style flows through the normal style-inflation path.
+
+A `TemplateValue<string>` passed as `className` would skip both paths — the interop sees an opaque sentinel object (not a class string) and produces nothing; the worklet runtime would then forward `className` to native, which doesn't know that prop. There is no path that runs the class-resolver on the wishlist runtime per inflation, so dynamic `className` cannot be supported without porting the resolver itself onto the worklet runtime (out of scope for this library — see [the parallel discussion of how Reanimated achieves "automatic" className support](#interaction-with-react-native-reanimated): it does so only because it's a transparent style-forwarder, which wishlist deliberately is not).
 
 ## Pitfalls & rules of thumb
 
