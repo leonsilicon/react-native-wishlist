@@ -89,39 +89,61 @@ RCT_EXPORT_MODULE(WishlistManager);
   // use its JSI runtime as `WishlistJsRuntime`, so native and JS share global
   // state. Without this the registry/handlers installed on the UI runtime are
   // invisible to wishlist's native code.
-  auto setupWishlistRuntime = [callInvoker](
+  // The JS side passes one of:
+  //   (a) a `WorkletRuntimeHolder` object (e.g. `getUIRuntimeHolder()`).
+  //   (b) a `WorkletRuntime` HostObject (e.g. `createWorkletRuntime(...)`).
+  // We try (a) first via the StableApi-compatible NativeState path; if that
+  // fails the value is treated as a raw HostObject of `WorkletRuntime`.
+  auto bindToRuntime =
+      [callInvoker](std::shared_ptr<worklets::WorkletRuntime> workletRuntime) {
+        facebook::jsi::Runtime &workletJsiRuntime = workletRuntime->getJSIRuntime();
+        std::weak_ptr<worklets::WorkletRuntime> workletRuntimeWeak = workletRuntime;
+        Wishlist::WishlistJsRuntime::getInstance().initialize(
+            &workletJsiRuntime,
+            [=](std::function<void()> &&f) { callInvoker->invokeAsync(std::move(f)); },
+            [=](std::function<void()> &&f) {
+              __block auto retainedWork = std::move(f);
+              MGExecuteOnWishlistQueue(^{
+                retainedWork();
+              });
+            },
+            [workletRuntimeWeak](std::function<void(facebook::jsi::Runtime &)> &&job) {
+              if (auto strong = workletRuntimeWeak.lock()) {
+                strong->schedule(std::move(job));
+              }
+            });
+      };
+
+  auto setupWishlistRuntime = [bindToRuntime](
                                   facebook::jsi::Runtime &rt,
                                   const facebook::jsi::Value & /*thisVal*/,
                                   const facebook::jsi::Value *args,
                                   size_t count) -> facebook::jsi::Value {
     if (count < 1 || !args[0].isObject()) {
       throw facebook::jsi::JSError(
-          rt, "MGWishlistManager._setWishlistContext expects a worklet runtime holder");
+          rt, "MGWishlistManager._setWishlistContext expects a worklet runtime");
     }
     auto holderObj = args[0].asObject(rt);
-    if (!holderObj.hasNativeState<worklets::WorkletRuntimeHolder>(rt)) {
-      throw facebook::jsi::JSError(
-          rt,
-          "MGWishlistManager._setWishlistContext: argument is not a WorkletRuntimeHolder");
+    // Path (a): NativeState-backed holder.
+    if (holderObj.hasNativeState<worklets::WorkletRuntimeHolder>(rt)) {
+      auto workletRuntime = holderObj.getNativeState<worklets::WorkletRuntimeHolder>(rt)->runtime_;
+      bindToRuntime(workletRuntime);
+      return facebook::jsi::Value::undefined();
     }
-    auto workletRuntime = holderObj.getNativeState<worklets::WorkletRuntimeHolder>(rt)->runtime_;
-    facebook::jsi::Runtime &workletJsiRuntime = workletRuntime->getJSIRuntime();
-    std::weak_ptr<worklets::WorkletRuntime> workletRuntimeWeak = workletRuntime;
-    Wishlist::WishlistJsRuntime::getInstance().initialize(
-        &workletJsiRuntime,
-        [=](std::function<void()> &&f) { callInvoker->invokeAsync(std::move(f)); },
-        [=](std::function<void()> &&f) {
-          __block auto retainedWork = std::move(f);
-          MGExecuteOnWishlistQueue(^{
-            retainedWork();
-          });
-        },
-        [workletRuntimeWeak](std::function<void(facebook::jsi::Runtime &)> &&job) {
-          if (auto strong = workletRuntimeWeak.lock()) {
-            strong->schedule(std::move(job));
-          }
-        });
-    return facebook::jsi::Value::undefined();
+    // Path (b): `WorkletRuntime` HostObject directly. The OLD worklets-core
+    // build did the same `dynamic_pointer_cast` across `.so` boundaries with
+    // this project's link flags and it worked; this mirrors that.
+    if (holderObj.isHostObject(rt)) {
+      auto hostObject = holderObj.asHostObject(rt);
+      auto workletRuntime = std::dynamic_pointer_cast<worklets::WorkletRuntime>(hostObject);
+      if (workletRuntime) {
+        bindToRuntime(workletRuntime);
+        return facebook::jsi::Value::undefined();
+      }
+    }
+    throw facebook::jsi::JSError(
+        rt,
+        "MGWishlistManager._setWishlistContext: argument is not a WorkletRuntime");
   };
 
   jsRuntime->global().setProperty(

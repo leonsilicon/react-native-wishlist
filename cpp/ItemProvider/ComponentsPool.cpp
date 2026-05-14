@@ -25,13 +25,13 @@ void dropGestureHandlerTags(std::shared_ptr<std::vector<int>> tags) {
   WishlistJsRuntime::getInstance().accessRuntime(
       [tags = std::move(tags)](jsi::Runtime &rt) {
         try {
-          auto global = rt.global().getPropertyAsObject(rt, "global");
-          if (!global.hasProperty(rt, "dropGestureHandler")) {
+          auto *f =
+              WishlistJsRuntime::getInstance().getDropGestureHandlerFn(rt);
+          if (f == nullptr) {
             return;
           }
-          auto f = global.getPropertyAsFunction(rt, "dropGestureHandler");
           for (int tag : *tags) {
-            f.call(rt, tag);
+            f->call(rt, tag);
           }
         } catch (...) {
           // Ignore
@@ -60,6 +60,16 @@ void ComponentsPool::returnToPool(std::shared_ptr<ShadowNode const> sn) {
   auto dropTags = std::make_shared<std::vector<int>>();
   collectShadowNodeTags(*sn, *dropTags);
   dropGestureHandlerTags(std::move(dropTags));
+}
+
+void ComponentsPool::returnToPoolWithoutDrop(
+    std::shared_ptr<ShadowNode const> sn,
+    std::vector<int> &dropTags) {
+  if (sn == nullptr) {
+    return;
+  }
+  reusable_[tagToType_[sn->getTag()]].push_back(sn);
+  collectShadowNodeTags(*sn, dropTags);
 }
 
 void ComponentsPool::templatesUpdated() {

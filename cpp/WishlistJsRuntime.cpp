@@ -62,6 +62,7 @@ void WishlistJsRuntime::initialize(
   cachedInflatorRegistry_.reset();
   cachedProcessProps_.reset();
   cachedDidPushChildren_.reset();
+  cachedDropGestureHandler_.reset();
 
   runtime_ = runtime;
   jsCallInvoker_ = std::move(jsCallInvoker);
@@ -131,6 +132,23 @@ jsi::Function &WishlistJsRuntime::getDidPushChildrenFn(jsi::Runtime &rt) {
         getInflatorRegistry(rt).getPropertyAsFunction(rt, "didPushChildren"));
   }
   return *cachedDidPushChildren_;
+}
+
+jsi::Function *WishlistJsRuntime::getDropGestureHandlerFn(jsi::Runtime &rt) {
+  if (cachedDropGestureHandler_) {
+    return cachedDropGestureHandler_.get();
+  }
+  try {
+    auto global = rt.global().getPropertyAsObject(rt, "global");
+    if (!global.hasProperty(rt, "dropGestureHandler")) {
+      return nullptr;
+    }
+    cachedDropGestureHandler_ = std::make_unique<jsi::Function>(
+        global.getPropertyAsFunction(rt, "dropGestureHandler"));
+    return cachedDropGestureHandler_.get();
+  } catch (...) {
+    return nullptr;
+  }
 }
 
 void WishlistJsRuntime::decorateRuntime(jsi::Runtime &rt) {

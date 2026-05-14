@@ -28,6 +28,14 @@ class ComponentsPool : public std::enable_shared_from_this<ComponentsPool> {
 
   void returnToPool(std::shared_ptr<ShadowNode const> sn);
 
+  // Like `returnToPool` but only updates the pool maps. The caller is
+  // responsible for the JS-thread `dropGestureHandler` call (e.g. via one
+  // batched `dropGestureHandlerTags` for many returns) so that a viewport
+  // window swap with N items leaving doesn't fire N JS-thread hops.
+  void returnToPoolWithoutDrop(
+      std::shared_ptr<ShadowNode const> sn,
+      std::vector<int> &dropTags);
+
   void templatesUpdated();
 
   std::shared_ptr<ShadowNode const> getNodeForType(const std::string &type);

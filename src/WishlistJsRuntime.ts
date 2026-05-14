@@ -1,26 +1,45 @@
 import {
-  getUIRuntimeHolder,
-  runOnUI,
+  createWorkletRuntime,
+  runOnRuntime,
   scheduleOnRN,
+  type WorkletRuntime,
 } from 'react-native-worklets';
 
-// Native wishlist code (`WishlistJsRuntime`) shares state with JS-side worklets
-// by reusing the worklets UI runtime. We hand its host object to native via
-// `__mgWishlistSetContext` (installed by `MGWishlistManager.installWishlistRuntime`)
-// so registries, `global.handleEvent`, and the gesture-handler bridge live on
-// the same JSI runtime on both sides.
+// Dedicated worklet runtime for all wishlist worklet work (inflation, mappings,
+// event handlers, pressable gesture dispatch). Having our own runtime — instead
+// of sharing the Reanimated UI runtime — keeps wishlist scroll inflation from
+// queueing behind Reanimated animation frames (and vice versa). This matches
+// the pre-migration `react-native-worklets-core` build architecture (where
+// `wishlistContext = Worklets.createContext('wishlist')` ran wishlist worklets
+// on a dedicated thread/runtime) and is what makes scrolling buttery smooth.
+let wishlistRuntime: WorkletRuntime | undefined;
+
+function getWishlistRuntime(): WorkletRuntime {
+  if (!wishlistRuntime) {
+    wishlistRuntime = createWorkletRuntime({ name: 'wishlist' });
+  }
+  return wishlistRuntime;
+}
+
+// Hand the dedicated runtime to native (`WishlistJsRuntime`) so JS-side worklets
+// and the library's native side share the SAME JSI runtime — registries
+// (`global.__wishlistInflatorRegistry`, `global.handlers`, `global.handleEvent`,
+// `global.dropGestureHandler`, `global.wishlists`) all live there. Native
+// unwraps the `WorkletRuntime` HostObject via `dynamic_pointer_cast` (same
+// `.so`-boundary cast pattern the pre-migration worklets-core integration
+// relied on).
 export function bindNativeWishlistContext() {
   const setNativeContext = (global as any).__mgWishlistSetContext;
   if (typeof setNativeContext !== 'function') {
     return;
   }
-  setNativeContext(getUIRuntimeHolder());
+  setNativeContext(getWishlistRuntime());
 }
 
 export function createRunInWishlistFn<A extends unknown[]>(
   fn: (...args: A) => unknown,
 ): (...args: A) => void {
-  return runOnUI(fn);
+  return runOnRuntime(getWishlistRuntime(), fn);
 }
 
 export function createRunInJsFn<A extends unknown[], T>(

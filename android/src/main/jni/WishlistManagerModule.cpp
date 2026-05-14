@@ -84,12 +84,46 @@ void WishlistManagerModule::nativeInstall(
 
   wishlistQueue_ = std::make_shared<WishlistDispatchQueue>();
 
-  // Install a JSI hook the JS side calls with the worklets UI runtime holder
-  // (`getUIRuntimeHolder()`); we unwrap the C++ `worklets::WorkletRuntime`
-  // and bind `WishlistJsRuntime` to its JSI runtime so JS-side worklets and
-  // wishlist's native code share global state.
+  // Install a JSI hook the JS side calls with a runtime reference; we unwrap
+  // the underlying C++ `worklets::WorkletRuntime` and bind `WishlistJsRuntime`
+  // to its JSI runtime so JS-side worklets and wishlist's native code share
+  // global state.
+  //
+  // The JS side passes one of:
+  //   (a) A WorkletRuntimeHolder object (e.g. from `getUIRuntimeHolder()`).
+  //   (b) A WorkletRuntime HostObject (e.g. from `createWorkletRuntime(...)`).
+  //
+  // For (b) we go through the JS-thread `runOnRuntime` path: schedule a job on
+  // the wishlist runtime that calls back into native via
+  // `__mgWishlistBindCurrentRuntime`, at which point native can use
+  // `getWeakRuntimeFromJSIRuntime(rt)` on the *current* runtime to recover the
+  // WorkletRuntime weak_ptr — staying inside the StableApi and avoiding
+  // cross-`.so` RTTI checks on `WorkletRuntime` itself.
   auto wishlistQueue = wishlistQueue_;
-  auto setupWishlistRuntime = [jsCallInvoker, wishlistQueue](
+  auto bindToRuntime =
+      [jsCallInvoker, wishlistQueue](
+          std::weak_ptr<worklets::WorkletRuntime> workletRuntimeWeak) {
+        auto strong = workletRuntimeWeak.lock();
+        if (!strong) {
+          return;
+        }
+        jsi::Runtime &workletJsiRuntime = strong->getJSIRuntime();
+        WishlistJsRuntime::getInstance().initialize(
+            &workletJsiRuntime,
+            [jsCallInvoker](std::function<void()> &&f) {
+              jsCallInvoker->invokeAsync(std::move(f));
+            },
+            [wishlistQueue](std::function<void()> &&f) {
+              wishlistQueue->dispatch(std::move(f));
+            },
+            [workletRuntimeWeak](std::function<void(jsi::Runtime &)> &&job) {
+              if (auto strong = workletRuntimeWeak.lock()) {
+                strong->schedule(std::move(job));
+              }
+            });
+      };
+
+  auto setupWishlistRuntime = [bindToRuntime](
                                   jsi::Runtime &rt,
                                   const jsi::Value & /*thisVal*/,
                                   const jsi::Value *args,
@@ -97,27 +131,36 @@ void WishlistManagerModule::nativeInstall(
     if (count < 1 || !args[0].isObject()) {
       throw jsi::JSError(
           rt,
-          "WishlistManager._setWishlistContext expects a worklet runtime holder");
+          "WishlistManager._setWishlistContext expects a worklet runtime");
     }
     auto holderObj = args[0].asObject(rt);
-    auto workletRuntime =
-        worklets::getWorkletRuntimeFromHolder(rt, holderObj);
-    jsi::Runtime &workletJsiRuntime = workletRuntime->getJSIRuntime();
-    std::weak_ptr<worklets::WorkletRuntime> workletRuntimeWeak = workletRuntime;
-    WishlistJsRuntime::getInstance().initialize(
-        &workletJsiRuntime,
-        [jsCallInvoker](std::function<void()> &&f) {
-          jsCallInvoker->invokeAsync(std::move(f));
-        },
-        [wishlistQueue](std::function<void()> &&f) {
-          wishlistQueue->dispatch(std::move(f));
-        },
-        [workletRuntimeWeak](std::function<void(jsi::Runtime &)> &&job) {
-          if (auto strong = workletRuntimeWeak.lock()) {
-            strong->schedule(std::move(job));
-          }
-        });
-    return jsi::Value::undefined();
+    // Path (a): a `WorkletRuntimeHolder` NativeState-backed object (e.g.
+    // `getUIRuntimeHolder()`). NOTE: `getWorkletRuntimeFromHolder` is
+    // implemented with an *assertion* on the NativeState type, not a throw —
+    // so we MUST gate it on `hasNativeState<WorkletRuntimeHolder>` first.
+    if (holderObj.hasNativeState<worklets::WorkletRuntimeHolder>(rt)) {
+      auto workletRuntime =
+          worklets::getWorkletRuntimeFromHolder(rt, holderObj);
+      bindToRuntime(workletRuntime);
+      return jsi::Value::undefined();
+    }
+    // Path (b): the value is the `WorkletRuntime` HostObject directly (what
+    // `createWorkletRuntime` returns). Dynamic-cast through `asHostObject` +
+    // `dynamic_pointer_cast<WorkletRuntime>` mirrors the pre-migration
+    // worklets-core binding path that successfully worked across `.so`
+    // boundaries with these same library link flags.
+    if (holderObj.isHostObject(rt)) {
+      auto hostObject = holderObj.asHostObject(rt);
+      auto workletRuntime =
+          std::dynamic_pointer_cast<worklets::WorkletRuntime>(hostObject);
+      if (workletRuntime) {
+        bindToRuntime(workletRuntime);
+        return jsi::Value::undefined();
+      }
+    }
+    throw jsi::JSError(
+        rt,
+        "WishlistManager._setWishlistContext: expected a WorkletRuntime");
   };
 
   jsiRuntime->global().setProperty(

@@ -347,8 +347,17 @@ void MGViewportCarerImpl::updateWindow() {
 
   pushChildren(contentOffsetAdjustment != 0 ? contentOffset_ : MG_NO_OFFSET);
 
-  for (auto &item : itemsToRemove) {
-    componentsPool_->returnToPool(item.sn);
+  // Batch drop: collect every gesture-handler tag from every item leaving the
+  // viewport in this `updateWindow` pass, then fire ONE `accessRuntime` hop
+  // for the whole batch. The unbatched form (one `returnToPool` → one
+  // `accessRuntime` per item) used to cost N JS-thread schedules per fling
+  // step, starving the scroll on Android.
+  if (!itemsToRemove.empty()) {
+    auto dropTags = std::make_shared<std::vector<int>>();
+    for (auto &item : itemsToRemove) {
+      componentsPool_->returnToPoolWithoutDrop(item.sn, *dropTags);
+    }
+    dropGestureHandlerTags(std::move(dropTags));
   }
 
   if (startReached) {

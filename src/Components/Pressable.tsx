@@ -157,7 +157,17 @@ type PressableProps = ViewProps & {
   onPress?: ((item: any, rootItem: any) => void) | null;
 };
 
-const attachGestureHandler = createRunInJsFn((tag: number) => {
+// Batch attach work: instead of one scheduleOnRN per Pressable per push (which
+// during a scroll-in of e.g. 12 grapheme buttons would queue 12 jobs to the RN
+// thread + 12 `setTimeout`s and starve the scroll), collect all tags from the
+// current push into a single batch and process them in one trip.
+const attachGestureHandlersBatch = createRunInJsFn((tags: number[]) => {
+  for (let i = 0; i < tags.length; i++) {
+    attachOneGestureHandler(tags[i]);
+  }
+});
+
+function attachOneGestureHandler(tag: number) {
   if (_attachedViewTags.has(tag)) {
     return;
   }
@@ -218,7 +228,21 @@ const attachGestureHandler = createRunInJsFn((tag: number) => {
   // Delay the first attempt slightly to give Fabric time to mount the view,
   // especially during rapid scrolling.
   setTimeout(() => attemptAttach(10), 16);
-});
+}
+
+// Per-push tag batch on the worklet runtime — collected by each Pressable's
+// addProps, flushed once by `didPushChildren` via `addPushChildrenCallback`.
+function getPendingAttachBatch(): number[] {
+  'worklet';
+  let batch = (global as any).__wishlistPendingAttachBatch as
+    | number[]
+    | undefined;
+  if (!batch) {
+    batch = [];
+    (global as any).__wishlistPendingAttachBatch = batch;
+  }
+  return batch;
+}
 
 const PressableView = createTemplateComponent(View, {
   addProps: (item, props) => {
@@ -227,9 +251,24 @@ const PressableView = createTemplateComponent(View, {
     const tag = item.getTag();
     item.addProps(props);
 
-    getUIInflatorRegistry().addPushChildrenCallback(() => {
-      attachGestureHandler(tag);
-    });
+    const batch = getPendingAttachBatch();
+    if (batch.length === 0) {
+      // First Pressable of this push — schedule the flush callback once. All
+      // subsequent Pressables in the same push will append to the batch and
+      // share the single `scheduleOnRN` hop.
+      getUIInflatorRegistry().addPushChildrenCallback(() => {
+        'worklet';
+        const tags = getPendingAttachBatch();
+        if (tags.length === 0) {
+          return;
+        }
+        // Snapshot + clear before scheduling so a subsequent push starts fresh.
+        const snapshot = tags.slice();
+        tags.length = 0;
+        attachGestureHandlersBatch(snapshot);
+      });
+    }
+    batch.push(tag);
   },
 });
 

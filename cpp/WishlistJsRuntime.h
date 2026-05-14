@@ -50,6 +50,10 @@ class WishlistJsRuntime {
   jsi::Function &getProcessPropsFn(jsi::Runtime &rt);
   jsi::Function &getDidPushChildrenFn(jsi::Runtime &rt);
 
+  // `global.dropGestureHandler` (installed by `Pressable.tsx`) — cached on
+  // first use; reset if JS replaces the global.
+  jsi::Function *getDropGestureHandlerFn(jsi::Runtime &rt);
+
  private:
   WishlistJsRuntime();
   WishlistJsRuntime(const WishlistJsRuntime &) = delete;
@@ -66,6 +70,7 @@ class WishlistJsRuntime {
   std::unique_ptr<jsi::Object> cachedInflatorRegistry_;
   std::unique_ptr<jsi::Function> cachedProcessProps_;
   std::unique_ptr<jsi::Function> cachedDidPushChildren_;
+  std::unique_ptr<jsi::Function> cachedDropGestureHandler_;
 };
 
 }; // namespace Wishlist
