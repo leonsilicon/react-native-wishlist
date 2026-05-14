@@ -104,3 +104,22 @@ export function useTemplateValue<ItemT, ValueT>(
 
   return value;
 }
+
+/**
+ * Sugar over {@link useTemplateValue} for composing other `TemplateValue`s
+ * (and reading any worklet-runtime state) without taking the `(item, root)`
+ * arguments yourself. The `deriver` runs on the wishlist worklet runtime on
+ * every inflation, so calls to `other.value()` inside it always read the
+ * current item's state.
+ *
+ * This is not a bridge to `react-native-reanimated` — reanimated `SharedValue`s
+ * live in a different runtime and are not readable here.
+ */
+export function useTemplateDerivedValue<ValueT>(
+  deriver: () => ValueT,
+): TemplateValue<ValueT> {
+  return useTemplateValue(() => {
+    'worklet';
+    return deriver();
+  });
+}
