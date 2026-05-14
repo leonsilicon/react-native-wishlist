@@ -115,7 +115,16 @@ using namespace facebook::react;
   auto &data = _state->getData();
 
   CGSize contentSize = RCTCGSizeFromSize(data.contentBoundingRect.size);
-  self.contentView.frame = CGRect{RCTCGPointFromPoint(data.contentBoundingRect.origin), contentSize};
+  CGRect contentFrame = CGRect{RCTCGPointFromPoint(data.contentBoundingRect.origin), contentSize};
+  // `containerView` (from RCTScrollViewComponentView) is the actual subview of
+  // the UIScrollView that holds all mounted descendants. Without sizing it,
+  // UIKit hit-testing rejects every touch because the container's frame stays
+  // at {0,0,0,0} (rendering still works because Core Animation draws unclipped
+  // descendants regardless, but `hitTest:` returns nil outside `bounds`). The
+  // inherited `contentView` setter is unrelated — RCTViewComponentView's
+  // `contentView` is a different property.
+  self.containerView.frame = contentFrame;
+  self.contentView.frame = contentFrame;
   self.scrollView.contentSize = contentSize;
 
 #if MG_WISHLIST_DEBUG
