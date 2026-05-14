@@ -17,8 +17,23 @@ std::shared_ptr<ShadowNode> ShadowNodeCopyMachine::copyShadowSubtree(
     tag = -2;
   }
 
+  int nodeTag = tag -= 2;
+
+  // Build a real InstanceHandle so that third-party event listeners (e.g.
+  // Reanimated in bundleMode) that call EventTarget::getTag() don't crash
+  // dereferencing a null InstanceHandle. InstanceHandle internally wraps a
+  // jsi::WeakObject, which requires a real JS Object (not null/undefined).
+  // We create a plain empty sentinel object on the wishlist worklet runtime.
+  // These are unmanaged wishlist rows with no JS React instance; any listener
+  // that looks up the negative tag in its handler registry finds nothing and
+  // skips the event harmlessly.
+  auto &rt = WishlistJsRuntime::getInstance().getRuntime();
+  auto sentinelObj = jsi::Value(rt, jsi::Object(rt));
+  auto instanceHandle = std::make_shared<const facebook::react::InstanceHandle>(
+      rt, sentinelObj, nodeTag);
+
   auto const fragment =
-      ShadowNodeFamilyFragment{tag -= 2, sn->getSurfaceId(), nullptr};
+      ShadowNodeFamilyFragment{nodeTag, sn->getSurfaceId(), instanceHandle};
 
   auto const family = cd.createFamily(fragment);
   // On Android, mounted view props are derived from `Props::rawProps` (the
