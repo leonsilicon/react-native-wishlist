@@ -3,7 +3,6 @@ import { DeviceEventEmitter, NativeModules, View, ViewProps } from 'react-native
 import { createTemplateComponent } from '../createTemplateComponent';
 import { useTemplateCallback } from '../EventHandler';
 import { getUIInflatorRegistry } from '../InflatorRepository';
-import { runOnUI } from 'react-native-worklets';
 import {
   createRunInWishlistFn,
   createRunInJsFn,
@@ -100,29 +99,32 @@ const dropGestureHandlerNative = createRunInJsFn((tag: number) => {
 let _installedWorkletGestureDrop = false;
 
 /**
- * Native wishlist code (`ComponentsPool` / `MGViewportCarer`) invokes
- * `global.dropGestureHandler` on the worklets UI runtime — that's the runtime
- * `WishlistJsRuntime` (C++) is bound to. Assigning it only on the RN main
- * `global` from this module meant native never ran pool teardown → stale RNGH
- * + handler entries after fast scroll / navigation ("ghost" presses on the
- * next screen).
+ * Native wishlist code (`ComponentsPool` / `MGViewportCarer`) calls
+ * `global.dropGestureHandler` on the dedicated wishlist worklet runtime — the
+ * one `WishlistJsRuntime` (C++) is bound to via `bindNativeWishlistContext`.
+ * Using `runOnUI` here landed the function on Reanimated's shared UI runtime
+ * instead, so C++ saw `global.dropGestureHandler` as undefined and silently
+ * skipped every drop — leaving `global.handlers` entries alive after navigation
+ * and producing "ghost" presses on the next screen.
  */
+const installDropGestureHandlerOnWishlistRuntime = createRunInWishlistFn(() => {
+  'worklet';
+  global.dropGestureHandler = (tag: number) => {
+    'worklet';
+    if (typeof global.dropHandlers === 'function') {
+      global.dropHandlers(tag);
+    }
+    dropGestureHandlerNative(tag);
+  };
+});
+
 export function installWishlistWorkletGestureDrop() {
   if (_installedWorkletGestureDrop) {
     return;
   }
   _installedWorkletGestureDrop = true;
 
-  runOnUI(() => {
-    'worklet';
-    global.dropGestureHandler = (tag: number) => {
-      'worklet';
-      if (typeof global.dropHandlers === 'function') {
-        global.dropHandlers(tag);
-      }
-      dropGestureHandlerNative(tag);
-    };
-  })();
+  installDropGestureHandlerOnWishlistRuntime();
 }
 
 let _gestureListenerInstalled = false;
