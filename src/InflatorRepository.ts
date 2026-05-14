@@ -171,10 +171,20 @@ const maybeInit = () => {
           pushChildrenCallbacks.push(callback);
         },
         processProps: (props) => {
+          // Hot path: called once per `addProps` (per inflated item per
+          // scroll). `Object.entries` allocates a 2-tuple array per key, and
+          // `colorProps.includes` is O(n) per key — convert to a Set lookup
+          // and walk keys with `for...in` to avoid both allocations. The
+          // result object stays a fresh allocation since downstream code
+          // (`RawProps`) takes ownership of it.
           const colors = getColorsUIModule();
+          const colorSet =
+            (colors as any).__colorPropsSet ??
+            ((colors as any).__colorPropsSet = new Set(colors.colorProps));
           const result: any = {};
-          for (const [key, value] of Object.entries(props)) {
-            if (colors.colorProps.includes(key)) {
+          for (const key in props) {
+            const value = props[key];
+            if (colorSet.has(key)) {
               result[key] = colors.processColor(value);
             } else {
               result[key] = value;

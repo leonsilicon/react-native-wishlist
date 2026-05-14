@@ -1,6 +1,7 @@
 #include "ShadowNodeBinding.h"
 
 #include "ComponentsPool.h"
+#include "WishlistJsRuntime.h"
 
 #include <iostream>
 
@@ -144,13 +145,12 @@ Value ShadowNodeBinding::get(Runtime &rt, const PropNameID &nameProp) {
             jsi::Value const &thisValue,
             jsi::Value const *args,
             size_t count) -> jsi::Value {
-          // TODO: Avoid this extra call into JS by wrapping this function in
-          // JS.
-          auto processProps =
-              rt.global()
-                  .getPropertyAsObject(rt, "global")
-                  .getPropertyAsObject(rt, "__wishlistInflatorRegistry")
-                  .getPropertyAsFunction(rt, "processProps");
+          // Cached on first use: previously every prop bind per item per scroll
+          // resolved `global.global.__wishlistInflatorRegistry.processProps`
+          // afresh, paying for three JSI property lookups + a function value
+          // copy each time.
+          auto &processProps =
+              WishlistJsRuntime::getInstance().getProcessPropsFn(rt);
           auto props = processProps.call(rt, args[0]);
           RawProps rawProps(rt, props);
 

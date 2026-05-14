@@ -1,8 +1,10 @@
 #pragma once
 
+#include <jsi/jsi.h>
 #include <react/renderer/uimanager/primitives.h>
 #include <stdio.h>
 #include <memory>
+#include <optional>
 #include "ComponentsPool.h"
 #include "MGDI.hpp"
 
@@ -46,6 +48,11 @@ struct WorkletItemProvider : ItemProvider {
   std::shared_ptr<ComponentsPool> cp;
   std::string tag;
   std::weak_ptr<MGDI> di;
+  // Cached JSI references — these are populated on the worklet runtime on the
+  // first `provide` call and reused for every item inflation thereafter. The
+  // worklet runtime outlives any single provider, so reuse is safe.
+  std::optional<facebook::jsi::Function> cachedInflateItem_;
+  std::optional<facebook::jsi::String> cachedInflatorIdJs_;
 
   WorkletItemProvider(
       std::weak_ptr<MGDI> di,

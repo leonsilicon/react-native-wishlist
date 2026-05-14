@@ -13,17 +13,26 @@ WishItem WorkletItemProvider::provide(
 
   auto &rt = WishlistJsRuntime::getInstance().getRuntime();
 
-  jsi::Function inflateItem =
-      rt.global()
-          .getPropertyAsObject(rt, "global")
-          .getPropertyAsObject(rt, "__wishlistInflatorRegistry")
-          .getPropertyAsFunction(rt, "inflateItem");
+  // Lazily cache the JS `inflateItem` function and our inflatorId JS string
+  // once per provider. Previously every visible item per scroll event paid
+  // for three JSI property lookups + a string-from-utf8 allocation on the
+  // worklet runtime.
+  if (!cachedInflateItem_.has_value()) {
+    cachedInflateItem_.emplace(
+        rt.global()
+            .getPropertyAsObject(rt, "global")
+            .getPropertyAsObject(rt, "__wishlistInflatorRegistry")
+            .getPropertyAsFunction(rt, "inflateItem"));
+  }
+  if (!cachedInflatorIdJs_.has_value()) {
+    cachedInflatorIdJs_.emplace(jsi::String::createFromUtf8(rt, tag));
+  }
 
   jsi::Value returnedValue;
   try {
-    returnedValue = inflateItem.call(
+    returnedValue = cachedInflateItem_->call(
         rt,
-        jsi::String::createFromUtf8(rt, tag),
+        jsi::Value(rt, *cachedInflatorIdJs_),
         jsi::Value(index),
         cp->prepareProxy(rt),
         prevSn ? jsi::Object::createFromHostObject(rt, prevSn)

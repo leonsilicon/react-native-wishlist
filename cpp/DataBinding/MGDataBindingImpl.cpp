@@ -27,35 +27,78 @@ std::set<int> MGDataBindingImpl::applyChangesAndGetDirtyIndices(
   }
 
   auto &rt = WishlistJsRuntime::getInstance().getRuntime();
-  jsi::Object global = rt.global().getPropertyAsObject(rt, "global");
-  if (!global.hasProperty(rt, "wishlists")) {
-    global.setProperty(rt, "wishlists", jsi::Object(rt));
-  }
 
-  jsi::Object wishlists = global.getPropertyAsObject(rt, "wishlists");
-  jsi::Object obj = wishlists.getPropertyAsObject(rt, _wishlistId.c_str());
-  jsi::Value val = obj.getProperty(rt, "listener");
-  if (val.isObject()) {
-    jsi::Function f = val.getObject(rt).getFunction(rt);
+  // Lazily cache the wishlist binding object + listener + property name IDs so
+  // each scroll event no longer pays for `global.global.wishlists[<id>]`
+  // resolution through five JSI property lookups + string allocations.
+  if (!cachedBinding_.has_value()) {
     try {
-      jsi::Array dirtyIndices = f.call(
-                                     rt,
-                                     jsi::Value(rt, windowIndexRange.first),
-                                     jsi::Value(rt, windowIndexRange.second))
-                                    .asObject(rt)
-                                    .asArray(rt);
-      std::set<int> res;
-      for (int i = 0; i < dirtyIndices.size(rt); ++i) {
-        int dirtyIndex = (int)dirtyIndices.getValueAtIndex(rt, i).asNumber();
-        res.insert(dirtyIndex);
+      jsi::Object global = rt.global().getPropertyAsObject(rt, "global");
+      if (!global.hasProperty(rt, "wishlists")) {
+        global.setProperty(rt, "wishlists", jsi::Object(rt));
       }
-      return res;
+      jsi::Object wishlists = global.getPropertyAsObject(rt, "wishlists");
+      jsi::Value bindingVal =
+          wishlists.getProperty(rt, _wishlistId.c_str());
+      if (!bindingVal.isObject()) {
+        return {};
+      }
+      cachedBinding_.emplace(bindingVal.getObject(rt));
+      propPendingUpdates_.emplace(
+          jsi::PropNameID::forAscii(rt, "__hasPendingUpdates"));
+      propListener_.emplace(jsi::PropNameID::forAscii(rt, "listener"));
     } catch (std::exception &error) {
-      di.lock()->getErrorHandler()->reportError(error.what());
+      retainedDI->getErrorHandler()->reportError(error.what());
       return {};
     }
   }
-  return {};
+
+  // Fast path: if JS has not flagged any pending updates since the last
+  // sync, skip the listener call entirely. Most scroll frames have no data
+  // changes; previously we paid for a JSI call + std::set allocation each
+  // time. See `WishlistData.ts` for where the flag is set/cleared.
+  try {
+    jsi::Value pendingVal =
+        cachedBinding_->getProperty(rt, *propPendingUpdates_);
+    bool hasPending = pendingVal.isBool() ? pendingVal.getBool()
+                                         : pendingVal.isNumber()
+                                         ? pendingVal.getNumber() != 0
+                                         : false;
+    if (!hasPending) {
+      return {};
+    }
+  } catch (...) {
+    // Fall through to listener call if the binding shape isn't yet ready.
+  }
+
+  try {
+    jsi::Value listenerVal =
+        cachedBinding_->getProperty(rt, *propListener_);
+    if (!listenerVal.isObject()) {
+      return {};
+    }
+    jsi::Object listenerObj = listenerVal.getObject(rt);
+    if (!listenerObj.isFunction(rt)) {
+      return {};
+    }
+    jsi::Function f = listenerObj.getFunction(rt);
+    jsi::Array dirtyIndices = f.call(
+                                   rt,
+                                   jsi::Value(rt, windowIndexRange.first),
+                                   jsi::Value(rt, windowIndexRange.second))
+                                  .asObject(rt)
+                                  .asArray(rt);
+    size_t n = dirtyIndices.size(rt);
+    std::set<int> res;
+    for (size_t i = 0; i < n; ++i) {
+      int dirtyIndex = (int)dirtyIndices.getValueAtIndex(rt, i).asNumber();
+      res.insert(dirtyIndex);
+    }
+    return res;
+  } catch (std::exception &error) {
+    retainedDI->getErrorHandler()->reportError(error.what());
+    return {};
+  }
 }
 
 void MGDataBindingImpl::registerBindings() {

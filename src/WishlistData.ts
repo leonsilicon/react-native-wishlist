@@ -56,6 +56,18 @@ export function useWishlistData<T extends Item>(
             resolve(result);
           });
           if (attachedListIds.size > 0) {
+            // Flag every attached binding so the native viewport carer knows
+            // to invoke the listener on the next scroll/vsync. Without this,
+            // the C++ fast-path skip in `MGDataBindingImpl` would never wake
+            // up and pending updates would never be applied.
+            if (global.wishlists) {
+              for (const id of attachedListIds) {
+                const b = global.wishlists[id];
+                if (b) {
+                  b.__hasPendingUpdates = true;
+                }
+              }
+            }
             for (const id of attachedListIds) {
               scheduleSyncUp(id);
             }
@@ -90,18 +102,26 @@ export function useWishlistData<T extends Item>(
         if (!global.wishlists[wishlistId]) {
           global.wishlists[wishlistId] = {};
         }
+        // Hot-path flag read from C++ on every scroll event: lets the native
+        // viewport carer skip the JS listener call (and a JSI<->C++ Array round
+        // trip) when there is nothing to apply. Set by `update`, cleared after
+        // we drain `pendingUpdates`. Critical for smooth scroll on Android.
+        global.wishlists[wishlistId].__hasPendingUpdates = false;
         global.wishlists[wishlistId].listener = () => {
           const pendingUpdatesCopy = pendingUpdates.splice(
             0,
             pendingUpdates.length,
           );
-
-          return currentlyRenderedCopy.__applyChanges(pendingUpdatesCopy);
+          const result =
+            currentlyRenderedCopy.__applyChanges(pendingUpdatesCopy);
+          global.wishlists[wishlistId].__hasPendingUpdates = false;
+          return result;
         };
       }
 
       function __detach(wishlistId: string) {
         global.wishlists[wishlistId].listener = undefined;
+        global.wishlists[wishlistId].__hasPendingUpdates = false;
       }
 
       const internalData: WishlistDataInternal<T> = {

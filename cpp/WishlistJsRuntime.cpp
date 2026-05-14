@@ -56,6 +56,13 @@ void WishlistJsRuntime::initialize(
     std::function<void(std::function<void()> &&)> workletCallInvoker,
     std::function<void(std::function<void(jsi::Runtime &)> &&)>
         runtimeAccessor) {
+  // If a new runtime is being bound, drop any cached JSI handles tied to the
+  // previous one — `jsi::Object`/`jsi::Function` are runtime-scoped and using
+  // them across runtimes is UB.
+  cachedInflatorRegistry_.reset();
+  cachedProcessProps_.reset();
+  cachedDidPushChildren_.reset();
+
   runtime_ = runtime;
   jsCallInvoker_ = std::move(jsCallInvoker);
   workletCallInvoker_ = std::move(workletCallInvoker);
@@ -97,6 +104,33 @@ void WishlistJsRuntime::accessRuntimeSync(
   });
   mutex.lock();
   mutex.unlock();
+}
+
+jsi::Object &WishlistJsRuntime::getInflatorRegistry(jsi::Runtime &rt) {
+  if (!cachedInflatorRegistry_) {
+    cachedInflatorRegistry_ =
+        std::make_unique<jsi::Object>(rt.global()
+                                          .getPropertyAsObject(rt, "global")
+                                          .getPropertyAsObject(
+                                              rt, "__wishlistInflatorRegistry"));
+  }
+  return *cachedInflatorRegistry_;
+}
+
+jsi::Function &WishlistJsRuntime::getProcessPropsFn(jsi::Runtime &rt) {
+  if (!cachedProcessProps_) {
+    cachedProcessProps_ = std::make_unique<jsi::Function>(
+        getInflatorRegistry(rt).getPropertyAsFunction(rt, "processProps"));
+  }
+  return *cachedProcessProps_;
+}
+
+jsi::Function &WishlistJsRuntime::getDidPushChildrenFn(jsi::Runtime &rt) {
+  if (!cachedDidPushChildren_) {
+    cachedDidPushChildren_ = std::make_unique<jsi::Function>(
+        getInflatorRegistry(rt).getPropertyAsFunction(rt, "didPushChildren"));
+  }
+  return *cachedDidPushChildren_;
 }
 
 void WishlistJsRuntime::decorateRuntime(jsi::Runtime &rt) {

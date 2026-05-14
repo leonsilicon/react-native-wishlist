@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <deque>
 #include <iostream>
+#include <mutex>
 #include <set>
 #include "ItemProvider.h"
 #include "MGDI.hpp"
@@ -79,6 +80,27 @@ class MGViewportCarerImpl final : public MGViewportCarer {
   bool endReached_ = false;
   std::weak_ptr<MGViewportCarerListener> listener_;
   bool ignoreScrollEvents_;
+
+  // Scroll-event coalescing: during a fast fling, `onScrollChanged` fires
+  // per native frame and every event used to enqueue a separate worklet
+  // task. The producer easily out-paced the worklet runtime — pending tasks
+  // piled up, processing the most recent offset arrived late, and the UI
+  // looked choppy. We now keep at most one pending job; subsequent scroll
+  // events just update the latest dimensions/offset/inflator and the
+  // already-queued job reads them.
+  //
+  // Stored in a heap-allocated `PendingScroll` so the queued lambda can hold
+  // a shared_ptr to it; the lambda may outlive `*this` (see
+  // [[wishlist-viewport-carer-lifetime]] memory) and must not dereference
+  // `this` to read the state.
+  struct PendingScroll {
+    std::mutex mutex;
+    bool scheduled = false;
+    MGDims dimensions{0, 0};
+    float contentOffset = 0;
+    std::string inflatorId;
+  };
+  std::shared_ptr<PendingScroll> pendingScroll_;
 };
 
 } // namespace Wishlist

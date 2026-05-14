@@ -19,7 +19,8 @@ MGViewportCarerImpl::MGViewportCarerImpl()
       windowWidth_(0),
       surfaceId_(0),
       componentsPool_(std::make_shared<ComponentsPool>()),
-      ignoreScrollEvents_(false) {}
+      ignoreScrollEvents_(false),
+      pendingScroll_(std::make_shared<PendingScroll>()) {}
 
 MGViewportCarerImpl::~MGViewportCarerImpl() {
   // Collect every tag in the current window into a single batch, then post one
@@ -90,13 +91,46 @@ void MGViewportCarerImpl::didScrollAsync(
   std::cout << "didScrollAsync UI {eventId: " << currentScrollEventId
             << ", contentOffset: " << contentOffset << "}" << std::endl;
 #endif
-  WishlistJsRuntime::getInstance().accessRuntime([=](jsi::Runtime &rt) {
+
+  // Coalesce: store the latest scroll state and only enqueue a worklet job
+  // if one isn't already pending. This caps queued work at one regardless of
+  // how fast native scroll events fire. The queued job re-reads the latest
+  // state from the shared PendingScroll when it actually runs.
+  //
+  // `pendingScroll_` is heap-owned so the lambda can hold its own
+  // `shared_ptr` — the lambda can outlive `*this`
+  // (see [[wishlist-viewport-carer-lifetime]]).
+  auto pending = pendingScroll_;
+  bool shouldSchedule = false;
+  {
+    std::lock_guard<std::mutex> lock(pending->mutex);
+    pending->dimensions = dimensions;
+    pending->contentOffset = contentOffset;
+    pending->inflatorId = inflatorId;
+    if (!pending->scheduled) {
+      pending->scheduled = true;
+      shouldSchedule = true;
+    }
+  }
+
+  if (!shouldSchedule) {
+    return;
+  }
+
+  WishlistJsRuntime::getInstance().accessRuntime(
+      [this, pending](jsi::Runtime &rt) {
+    MGDims dimensions;
+    float contentOffset;
+    std::string inflatorId;
+    {
+      std::lock_guard<std::mutex> lock(pending->mutex);
+      dimensions = pending->dimensions;
+      contentOffset = pending->contentOffset;
+      inflatorId = pending->inflatorId;
+      pending->scheduled = false;
+    }
+
     if (ignoreScrollEvents_) {
-#if MG_WISHLIST_DEBUG
-      std::cout << "didScrollAsync BG ignore events skip {eventId: "
-                << currentScrollEventId << ", offset: " << contentOffset << "}"
-                << std::endl;
-#endif
       return;
     }
 
@@ -136,11 +170,6 @@ void MGViewportCarerImpl::didScrollAsync(
     }
     windowHeight_ = dimensions.height;
 
-#if MG_WISHLIST_DEBUG
-    std::cout << "didScrollAsync BG updateWindow {eventId: "
-              << currentScrollEventId << ", contentOffset: " << contentOffset
-              << "}" << std::endl;
-#endif
     updateWindow();
   });
 }
@@ -446,18 +475,20 @@ void MGViewportCarerImpl::notifyAboutPushedChildren() {
   auto listener = listener_.lock();
   if (listener != nullptr) {
     std::vector<Item> newWindow;
+    newWindow.reserve(window_.size());
     for (auto &item : window_) {
       newWindow.push_back({item.offset, item.height, item.index, item.key});
     }
     di_.lock()->getUIScheduler()->scheduleOnUI(
-        [newWindow, listener]() { listener->didPushChildren(newWindow); });
+        [newWindow = std::move(newWindow), listener]() {
+          listener->didPushChildren(newWindow);
+        });
     WishlistJsRuntime::getInstance().accessRuntime([=](jsi::Runtime &rt) {
       try {
-        jsi::Function didPushChildren =
-            rt.global()
-                .getPropertyAsObject(rt, "global")
-                .getPropertyAsObject(rt, "__wishlistInflatorRegistry")
-                .getPropertyAsFunction(rt, "didPushChildren");
+        // Cached on first use to avoid the three JSI property lookups every
+        // viewport-carer push (i.e. every scroll-induced item change).
+        auto &didPushChildren =
+            WishlistJsRuntime::getInstance().getDidPushChildrenFn(rt);
         didPushChildren.call(rt, 0);
       } catch (jsi::JSError &e) {
         std::cout << "[Wishlist][didPushChildren] JS error: "
