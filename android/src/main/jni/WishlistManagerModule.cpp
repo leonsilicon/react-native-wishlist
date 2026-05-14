@@ -11,6 +11,19 @@
 using namespace facebook;
 using namespace facebook::react;
 
+namespace worklets {
+// Implemented in `worklets/Compat/StableApi.cpp` and exported by the
+// react-native-worklets shared lib. Unlike calling `getNativeState<WorkletRuntimeHolder>`
+// from our own `.so`, going through worklets' own code means the `typeid` /
+// `dynamic_cast` happens inside the library that defined the type, so the
+// check succeeds regardless of how the typeinfo symbol's visibility is set
+// across `.so` boundaries. See https://itanium-cxx-abi.github.io/cxx-abi/abi.html#rtti
+// for why RTTI is fragile across shared objects.
+std::shared_ptr<WorkletRuntime> getWorkletRuntimeFromHolder(
+    facebook::jsi::Runtime &rt,
+    const facebook::jsi::Object &object);
+} // namespace worklets
+
 namespace Wishlist {
 
 local_ref<WishlistManagerModule::jhybriddata> WishlistManagerModule::initHybrid(
@@ -87,13 +100,8 @@ void WishlistManagerModule::nativeInstall(
           "WishlistManager._setWishlistContext expects a worklet runtime holder");
     }
     auto holderObj = args[0].asObject(rt);
-    if (!holderObj.hasNativeState<worklets::WorkletRuntimeHolder>(rt)) {
-      throw jsi::JSError(
-          rt,
-          "WishlistManager._setWishlistContext: argument is not a WorkletRuntimeHolder");
-    }
     auto workletRuntime =
-        holderObj.getNativeState<worklets::WorkletRuntimeHolder>(rt)->runtime_;
+        worklets::getWorkletRuntimeFromHolder(rt, holderObj);
     jsi::Runtime &workletJsiRuntime = workletRuntime->getJSIRuntime();
     std::weak_ptr<worklets::WorkletRuntime> workletRuntimeWeak = workletRuntime;
     WishlistJsRuntime::getInstance().initialize(
