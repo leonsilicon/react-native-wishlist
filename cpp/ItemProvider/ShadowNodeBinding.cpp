@@ -9,22 +9,48 @@ using namespace facebook::react;
 
 namespace Wishlist {
 
+void ShadowNodeBinding::propagateToAncestors(
+    std::shared_ptr<ShadowNodeBinding> parent,
+    std::shared_ptr<ShadowNode> replacement) {
+  while (parent != nullptr) {
+    auto &cd = parent->sn_->getComponentDescriptor();
+    auto children = parent->sn_->getChildren();
+    for (auto &child : children) {
+      if (child->getTag() == replacement->getTag()) {
+        child = replacement;
+        break;
+      }
+    }
+    replacement = cd.cloneShadowNode(
+        *(parent->sn_),
+        {nullptr,
+         std::make_shared<std::vector<std::shared_ptr<const ShadowNode>>>(
+             std::move(children))});
+    parent->sn_ = replacement;
+    parent = parent->parent_;
+  }
+}
+
 ShadowNodeBinding::ShadowNodeBinding(
     std::shared_ptr<const ShadowNode> sn,
     std::weak_ptr<ComponentsPool> wcp,
     const std::string &type,
     const std::string &key)
-    : sn_(sn), wcp_(wcp), parent_(nullptr), type_(type), key_(key) {}
+    : sn_(std::move(sn)),
+      wcp_(std::move(wcp)),
+      parent_(nullptr),
+      type_(type),
+      key_(key) {}
 
 ShadowNodeBinding::ShadowNodeBinding(
     std::shared_ptr<const ShadowNode> sn,
     std::weak_ptr<ComponentsPool> wcp,
     std::shared_ptr<ShadowNodeBinding> parent)
-    : sn_(sn),
-      wcp_(wcp),
-      parent_(parent),
-      type_(parent->type_),
-      key_(parent->key_) {}
+    : sn_(std::move(sn)),
+      wcp_(std::move(wcp)),
+      parent_(std::move(parent)),
+      type_(parent_->type_),
+      key_(parent_->key_) {}
 
 std::string ShadowNodeBinding::getType() const {
   return type_;
@@ -144,25 +170,7 @@ Value ShadowNodeBinding::get(Runtime &rt, const PropNameID &nameProp) {
               });
 
           sn_ = clonedShadowNode;
-
-          std::shared_ptr<ShadowNodeBinding> currentParent = parent_;
-          std::shared_ptr<ShadowNode> currentSN = clonedShadowNode;
-          while (currentParent != nullptr) {
-            auto &cd = currentParent->sn_->getComponentDescriptor();
-            auto children = currentParent->sn_->getChildren();
-            for (int i = 0; i < children.size(); ++i) {
-              if (children[i]->getTag() == currentSN->getTag()) {
-                children[i] = currentSN;
-                break;
-              }
-            }
-            currentSN = cd.cloneShadowNode(
-                *(currentParent->sn_),
-                {nullptr,
-                 std::make_shared<std::vector<std::shared_ptr<const ShadowNode>>>(children)});
-            currentParent->sn_ = currentSN;
-            currentParent = currentParent->parent_;
-          }
+          propagateToAncestors(parent_, clonedShadowNode);
 
           return jsi::Value::undefined();
         });
@@ -213,34 +221,14 @@ Value ShadowNodeBinding::get(Runtime &rt, const PropNameID &nameProp) {
                   newChildren,
               });
 
-          auto oldChildren = sn_->getChildren();
-          auto cp = wcp_.lock();
-          for (int i = 0; i < oldChildren.size(); ++i) {
-            if (cp) {
-              cp->returnToPool(oldChildren[i]);
+          if (auto cp = wcp_.lock()) {
+            for (const auto &oldChild : sn_->getChildren()) {
+              cp->returnToPool(oldChild);
             }
           }
 
           sn_ = clonedShadowNode;
-
-          std::shared_ptr<ShadowNodeBinding> currentParent = parent_;
-          std::shared_ptr<ShadowNode> currentSN = clonedShadowNode;
-          while (currentParent != nullptr) {
-            auto &cd = currentParent->sn_->getComponentDescriptor();
-            auto children = currentParent->sn_->getChildren();
-            for (int i = 0; i < children.size(); ++i) {
-              if (children[i]->getTag() == currentSN->getTag()) {
-                children[i] = currentSN;
-                break;
-              }
-            }
-            currentSN = cd.cloneShadowNode(
-                *(currentParent->sn_),
-                {nullptr,
-                 std::make_shared<std::vector<std::shared_ptr<const ShadowNode>>>(children)});
-            currentParent->sn_ = currentSN;
-            currentParent = currentParent->parent_;
-          }
+          propagateToAncestors(parent_, clonedShadowNode);
 
           return jsi::Value::undefined();
         });

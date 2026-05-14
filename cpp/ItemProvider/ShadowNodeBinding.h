@@ -48,6 +48,13 @@ class ShadowNodeBinding
       const std::string &nativeId,
       std::shared_ptr<ShadowNodeBinding> p);
 
+  // Re-clone every ancestor up to the root so it reflects `replacement` having
+  // been swapped in for this binding's previous shadow node. Used by both
+  // `addProps` and `setChildren` to keep the parent chain consistent.
+  static void propagateToAncestors(
+      std::shared_ptr<ShadowNodeBinding> parent,
+      std::shared_ptr<ShadowNode> replacement);
+
  private:
   std::shared_ptr<const ShadowNode> sn_;
   std::weak_ptr<ComponentsPool> wcp_;

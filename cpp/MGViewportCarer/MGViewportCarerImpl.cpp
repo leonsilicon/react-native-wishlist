@@ -16,46 +16,21 @@ MGViewportCarerImpl::MGViewportCarerImpl()
       windowHeight_(0),
       windowWidth_(0),
       surfaceId_(0),
-      inflatorId_(""),
       componentsPool_(std::make_shared<ComponentsPool>()),
-      itemProvider_(nullptr),
-      window_({}),
-      wishListNode_(nullptr),
-      lc_({}),
-      di_({}),
-      firstItemKeyForStartReached_(""),
-      lastItemKeyForEndReached_(""),
-      listener_({}),
       ignoreScrollEvents_(false) {}
 
 MGViewportCarerImpl::~MGViewportCarerImpl() {
+  // Collect every tag in the current window into a single batch, then post one
+  // JS-thread job. The destructor runs on whatever thread releases the last
+  // shared_ptr (often UI during screen navigation away), so doing the tree
+  // walk inline + one async hop keeps the navigation transition smooth.
   auto dropTags = std::make_shared<std::vector<int>>();
-  std::function<void(std::shared_ptr<ShadowNode const>)> collectTags =
-      [&](std::shared_ptr<ShadowNode const> node) {
-        dropTags->push_back(node->getTag());
-        for (auto child : node->getChildren()) {
-          collectTags(child);
-        }
-      };
-  for (auto &item : window_) {
+  for (const auto &item : window_) {
     if (item.sn != nullptr) {
-      collectTags(item.sn);
+      collectShadowNodeTags(*item.sn, *dropTags);
     }
   }
-
-  WishlistJsRuntime::getInstance().accessRuntime([dropTags](jsi::Runtime &rt) {
-    try {
-      auto global = rt.global().getPropertyAsObject(rt, "global");
-      if (global.hasProperty(rt, "dropGestureHandler")) {
-        auto f = global.getPropertyAsFunction(rt, "dropGestureHandler");
-        for (int tag : *dropTags) {
-          f.call(rt, tag);
-        }
-      }
-    } catch (...) {
-      // Ignore
-    }
-  });
+  dropGestureHandlerTags(std::move(dropTags));
 }
 
 void MGViewportCarerImpl::setDI(const std::weak_ptr<MGDI> &di) {
@@ -123,6 +98,19 @@ void MGViewportCarerImpl::didScrollAsync(
       return;
     }
 
+    if (window_.empty() || itemProvider_ == nullptr) {
+      return;
+    }
+
+    auto di = di_.lock();
+    if (di == nullptr) {
+      return;
+    }
+    auto dataBinding = di->getDataBinding();
+    if (dataBinding == nullptr) {
+      return;
+    }
+
     if (dimensions.width != windowWidth_ || inflatorId != inflatorId_) {
       itemProvider_ = std::static_pointer_cast<ItemProvider>(
           std::make_shared<WorkletItemProvider>(
@@ -131,9 +119,8 @@ void MGViewportCarerImpl::didScrollAsync(
       windowWidth_ = dimensions.width;
       inflatorId_ = inflatorId;
     } else {
-      std::set<int> dirty =
-          di_.lock()->getDataBinding()->applyChangesAndGetDirtyIndices(
-              {window_[0].index, window_.back().index});
+      std::set<int> dirty = dataBinding->applyChangesAndGetDirtyIndices(
+          {window_[0].index, window_.back().index});
       for (auto &item : window_) {
         if (dirty.count(item.index) > 0) {
           item.dirty = true;

@@ -13,6 +13,13 @@ using namespace facebook::jsi;
 
 namespace Wishlist {
 
+// Walks `node` and its descendants, appending each tag to `out`.
+void collectShadowNodeTags(const ShadowNode &node, std::vector<int> &out);
+
+// Posts a single JS-thread job that calls `global.dropGestureHandler(tag)` for
+// every tag in `tags`. Coalesces drops so callers only pay one runtime hop.
+void dropGestureHandlerTags(std::shared_ptr<std::vector<int>> tags);
+
 class ComponentsPool : public std::enable_shared_from_this<ComponentsPool> {
  public:
   void setNames(const std::vector<std::string> &names);

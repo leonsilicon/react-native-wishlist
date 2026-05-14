@@ -9,6 +9,36 @@ using namespace jsi;
 
 namespace Wishlist {
 
+void collectShadowNodeTags(
+    const ShadowNode &node,
+    std::vector<int> &out) {
+  out.push_back(node.getTag());
+  for (const auto &child : node.getChildren()) {
+    collectShadowNodeTags(*child, out);
+  }
+}
+
+void dropGestureHandlerTags(std::shared_ptr<std::vector<int>> tags) {
+  if (tags == nullptr || tags->empty()) {
+    return;
+  }
+  WishlistJsRuntime::getInstance().accessRuntime(
+      [tags = std::move(tags)](jsi::Runtime &rt) {
+        try {
+          auto global = rt.global().getPropertyAsObject(rt, "global");
+          if (!global.hasProperty(rt, "dropGestureHandler")) {
+            return;
+          }
+          auto f = global.getPropertyAsFunction(rt, "dropGestureHandler");
+          for (int tag : *tags) {
+            f.call(rt, tag);
+          }
+        } catch (...) {
+          // Ignore
+        }
+      });
+}
+
 void ComponentsPool::setNames(const std::vector<std::string> &names) {
   nameToIndex_.clear();
   for (int i = 0; i < names.size(); ++i) {
@@ -18,39 +48,18 @@ void ComponentsPool::setNames(const std::vector<std::string> &names) {
 
 void ComponentsPool::setRegisteredViews(
     std::vector<std::shared_ptr<ShadowNode const>> registeredViews) {
-  registeredViews_ = registeredViews;
+  registeredViews_ = std::move(registeredViews);
 }
 
 void ComponentsPool::returnToPool(std::shared_ptr<ShadowNode const> sn) {
   if (sn == nullptr) {
     return;
   }
-  std::string type = tagToType_[sn->getTag()];
-  reusable_[type].push_back(sn);
+  reusable_[tagToType_[sn->getTag()]].push_back(sn);
 
   auto dropTags = std::make_shared<std::vector<int>>();
-  std::function<void(std::shared_ptr<ShadowNode const>)> collectTags =
-      [&](std::shared_ptr<ShadowNode const> node) {
-        dropTags->push_back(node->getTag());
-        for (auto child : node->getChildren()) {
-          collectTags(child);
-        }
-      };
-  collectTags(sn);
-
-  WishlistJsRuntime::getInstance().accessRuntime([dropTags](jsi::Runtime &rt) {
-    try {
-      auto global = rt.global().getPropertyAsObject(rt, "global");
-      if (global.hasProperty(rt, "dropGestureHandler")) {
-        auto f = global.getPropertyAsFunction(rt, "dropGestureHandler");
-        for (int tag : *dropTags) {
-          f.call(rt, tag);
-        }
-      }
-    } catch (...) {
-      // Ignore
-    }
-  });
+  collectShadowNodeTags(*sn, *dropTags);
+  dropGestureHandlerTags(std::move(dropTags));
 }
 
 void ComponentsPool::templatesUpdated() {
