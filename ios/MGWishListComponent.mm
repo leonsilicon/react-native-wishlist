@@ -161,6 +161,23 @@ using namespace facebook::react;
 
 - (void)prepareForRecycle
 {
+  // Drop every gesture handler the wishlist attached BEFORE Fabric pulls
+  // this component's child Pressable UIViews into the recycle pool. RNGH
+  // attaches `UIGestureRecognizer`s directly to UIViews and writes
+  // `view.reactTag` as an associated object that survives `prepareForRecycle`;
+  // if a recognizer is still attached when Fabric reuses the view for an
+  // unrelated screen, tapping that view fires the stale recognizer →
+  // DeviceEventEmitter → wishlist runtime → original `onPress`. We can't rely
+  // on `~MGViewportCarerImpl` for this because `MGWishlistState` keeps the
+  // carer alive past view recycle, and `react-native-screens`-style detach
+  // (the common navigation case) recycles wishlist views without unmounting
+  // the React component (so `markWishlistDead` doesn't run either).
+  if (_state) {
+    auto viewportCarer = _state->getData().viewportCarer;
+    if (viewportCarer != nullptr) {
+      viewportCarer->dropAllGestureHandlersNow();
+    }
+  }
   _state.reset();
   _orchestrator = nil;
   [super prepareForRecycle];

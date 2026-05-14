@@ -19,7 +19,7 @@ import {
 import { ComponentPool } from './ComponentPool';
 import { ForEach } from './Components/ForEach';
 import { IF } from './Components/IF';
-import { Pressable } from './Components/Pressable';
+import { Pressable, useWishlistGestureLifecycle } from './Components/Pressable';
 import { Case, Switch } from './Components/Switch';
 import { WishlistImage } from './Components/WishlistImage';
 import { WishlistText } from './Components/WishlistText';
@@ -142,6 +142,7 @@ function ComponentBase<T extends BaseItem>(
 
   const { width } = useWindowDimensions();
   useMemo(() => initEventHandler(), []);
+  useWishlistGestureLifecycle(wishlistId.current!);
 
   // Template registration and tracking
   const childrenTemplates = useMemo(

@@ -107,6 +107,18 @@ void Orchestrator::didUpdateContentOffset() {
   di_->getViewportCarer()->didUpdateContentOffset();
 }
 
+void Orchestrator::dropAllGestureHandlers() {
+  auto vc = di_->getViewportCarer();
+  if (vc != nullptr) {
+    // `MGViewportCarer` interface holds the polymorphic carer; the
+    // gesture-drop walk lives on `MGViewportCarerImpl`. Cast safely.
+    auto impl = std::dynamic_pointer_cast<MGViewportCarerImpl>(vc);
+    if (impl != nullptr) {
+      impl->dropAllGestureHandlersNow();
+    }
+  }
+}
+
 void Orchestrator::scrollToItem(int index) {
   float offset = -1;
   for (auto &item : items_) {
@@ -161,6 +173,8 @@ void Orchestrator::registerNatives() {
        makeNativeMethod("didScrollAsync", Orchestrator::didScrollAsync),
        makeNativeMethod(
            "didUpdateContentOffset", Orchestrator::didUpdateContentOffset),
+       makeNativeMethod(
+           "dropAllGestureHandlers", Orchestrator::dropAllGestureHandlers),
        makeNativeMethod("scrollToItem", Orchestrator::scrollToItem)});
 }
 

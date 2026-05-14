@@ -182,6 +182,17 @@ class Wishlist(reactContext: Context) : ReactScrollView(reactContext) {
     orchestrator?.scrollToItem(index)
   }
 
+  /**
+   * Drops every gesture handler the wishlist attached to its Pressable
+   * children (both visible items and items parked in the C++ reusable pool).
+   * Called from [WishlistViewManager.onDropViewInstance] so the handlers are
+   * gone before the views themselves can be reused on an unrelated screen.
+   * Mirrors `MGWishListComponent.prepareForRecycle` on iOS.
+   */
+  fun dropAllGestureHandlers() {
+    orchestrator?.dropAllGestureHandlers()
+  }
+
   fun setShadowContentMinHeightDip(heightDip: Float) {
     val heightPx = PixelUtil.toPixelFromDIP(heightDip).toInt()
     if (heightPx == shadowContentMinHeightPx) {

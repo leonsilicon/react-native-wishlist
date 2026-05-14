@@ -27,6 +27,16 @@ class WishlistViewManager : ViewGroupManager<Wishlist>(), MGWishlistManagerInter
 
   override fun createViewInstance(reactContext: ThemedReactContext) = Wishlist(reactContext)
 
+  override fun onDropViewInstance(view: Wishlist) {
+    // Drop every gesture handler attached to the wishlist's Pressables
+    // before letting the view be torn down. Without this, the recognizers
+    // remain bound to the underlying RN views, and any future tap on those
+    // views (after the user's app reuses them) would route into the
+    // wishlist's onPress worklet.
+    view.dropAllGestureHandlers()
+    super.onDropViewInstance(view)
+  }
+
   override fun getDelegate() = mDelegate
 
   override fun updateState(

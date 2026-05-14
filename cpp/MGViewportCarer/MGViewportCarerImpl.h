@@ -48,6 +48,16 @@ class MGViewportCarerImpl final : public MGViewportCarer {
 
   bool isEndReached() const { return endReached_; }
 
+  // Synchronously walks `window_` and `componentsPool_->reusable_` and
+  // schedules one batched `dropGestureHandler` JS hop for every shadow
+  // node tag they hold. Unlike `~MGViewportCarerImpl` (same walk on
+  // destruction) this can be invoked while the carer is still alive —
+  // intended for iOS `prepareForRecycle` on `MGWishListComponent`, when
+  // Fabric is about to take the wishlist's UIViews and reuse them for an
+  // unrelated screen. Idempotent: dropping a tag twice is a no-op on the
+  // JS side and on RNGH's native registry.
+  void dropAllGestureHandlersNow();
+
  private:
   void updateWindow();
 

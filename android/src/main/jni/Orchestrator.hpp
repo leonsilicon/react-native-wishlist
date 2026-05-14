@@ -43,6 +43,13 @@ class Orchestrator : public jni::HybridClass<Orchestrator> {
 
   void didUpdateContentOffset();
 
+  // Drops every gesture handler currently attached to wishlist Pressables
+  // (visible items + items parked in the reusable pool). Called from
+  // `WishlistViewManager.onDropViewInstance` so handlers are removed before
+  // the Pressable views can be reused by an unrelated screen (mirror of
+  // `MGWishListComponent.prepareForRecycle` on iOS).
+  void dropAllGestureHandlers();
+
   void scrollToItem(int index);
 
   void didPushChildren(std::vector<Item> items);

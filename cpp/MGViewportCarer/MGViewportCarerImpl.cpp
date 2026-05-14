@@ -48,6 +48,25 @@ MGViewportCarerImpl::~MGViewportCarerImpl() {
   dropGestureHandlerTags(std::move(dropTags));
 }
 
+void MGViewportCarerImpl::dropAllGestureHandlersNow() {
+  // Same walk as `~MGViewportCarerImpl`. Called from iOS
+  // `MGWishListComponent::prepareForRecycle` so handlers are removed before
+  // Fabric reuses the Pressable UIViews on an unrelated screen. The carer
+  // itself stays alive — if the wishlist remounts (react-navigation
+  // re-attach), a later `addProps` worklet will re-attach handlers from
+  // scratch via `attachGestureHandlersBatch`.
+  auto dropTags = std::make_shared<std::vector<int>>();
+  for (const auto &item : window_) {
+    if (item.sn != nullptr) {
+      collectShadowNodeTags(*item.sn, *dropTags);
+    }
+  }
+  if (componentsPool_ != nullptr) {
+    componentsPool_->collectAllReusableTags(*dropTags);
+  }
+  dropGestureHandlerTags(std::move(dropTags));
+}
+
 void MGViewportCarerImpl::setDI(const std::weak_ptr<MGDI> &di) {
   di_ = di;
 }

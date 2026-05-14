@@ -31,6 +31,8 @@ class Orchestrator(private val mWishlist: Wishlist, wishlistId: String, viewport
 
   external fun didUpdateContentOffset()
 
+  external fun dropAllGestureHandlers()
+
   @DoNotStrip
   private fun scrollToOffset(offset: Float, animated: Boolean) {
     mWishlist.reactSmoothScrollTo(0, PixelUtil.toPixelFromDIP(offset).toInt())
