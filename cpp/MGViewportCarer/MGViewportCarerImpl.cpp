@@ -1,5 +1,7 @@
 #include "MGViewportCarerImpl.h"
 
+#include <iostream>
+
 #include "MGContentContainerShadowNode.h"
 #include "MGUIManagerHolder.h"
 #include "MGWishlistShadowNode.h"
@@ -450,12 +452,21 @@ void MGViewportCarerImpl::notifyAboutPushedChildren() {
     di_.lock()->getUIScheduler()->scheduleOnUI(
         [newWindow, listener]() { listener->didPushChildren(newWindow); });
     WishlistJsRuntime::getInstance().accessRuntime([=](jsi::Runtime &rt) {
-      jsi::Function didPushChildren =
-          rt.global()
-              .getPropertyAsObject(rt, "global")
-              .getPropertyAsObject(rt, "__wishlistInflatorRegistry")
-              .getPropertyAsFunction(rt, "didPushChildren");
-      didPushChildren.call(rt, 0);
+      try {
+        jsi::Function didPushChildren =
+            rt.global()
+                .getPropertyAsObject(rt, "global")
+                .getPropertyAsObject(rt, "__wishlistInflatorRegistry")
+                .getPropertyAsFunction(rt, "didPushChildren");
+        didPushChildren.call(rt, 0);
+      } catch (jsi::JSError &e) {
+        std::cout << "[Wishlist][didPushChildren] JS error: "
+                  << e.getMessage() << "\n"
+                  << e.getStack() << std::endl;
+      } catch (std::exception &e) {
+        std::cout << "[Wishlist][didPushChildren] native exception: "
+                  << e.what() << std::endl;
+      }
     });
   }
 }
