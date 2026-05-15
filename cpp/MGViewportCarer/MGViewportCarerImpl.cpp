@@ -508,69 +508,93 @@ std::shared_ptr<ShadowNode> MGViewportCarerImpl::getOffseter(float offset) {
 void MGViewportCarerImpl::pushChildren(float contentOffset) {
   std::shared_ptr<ShadowNode> sWishList = wishListNode_;
   if (sWishList == nullptr) {
+    // Carer's owning shadow node is gone. If we'd flagged
+    // `ignoreScrollEvents_=true` upstream, nothing will ever clear it because
+    // there'll be no `updateState`/`didUpdateContentOffset` cycle from the
+    // view side. Recover here so a subsequent (post-remount) scroll isn't
+    // silently dropped.
+    if (contentOffset != MG_NO_OFFSET) {
+      ignoreScrollEvents_ = false;
+    }
     return;
   }
 
-  MGUIManagerHolder::getInstance()
-      .getUIManager()
-      ->getShadowTreeRegistry()
-      .visit(surfaceId_, [&](const ShadowTree &st) {
-        ShadowTreeCommitTransaction transaction =
-            [&](RootShadowNode const &oldRootShadowNode)
-            -> std::shared_ptr<RootShadowNode> {
-          return std::static_pointer_cast<RootShadowNode>(
-              oldRootShadowNode.cloneTree(
-                  sWishList->getFamily(),
-                  [&](const ShadowNode &sn) -> std::shared_ptr<ShadowNode> {
-                    auto children =
-                        std::make_shared<std::vector<std::shared_ptr<const ShadowNode>>>();
+  auto uiManager = MGUIManagerHolder::getInstance().getUIManager();
+  if (uiManager == nullptr) {
+    if (contentOffset != MG_NO_OFFSET) {
+      ignoreScrollEvents_ = false;
+    }
+    return;
+  }
 
-                    children->push_back(getOffseter(window_[0].offset));
+  bool committed = false;
+  uiManager->getShadowTreeRegistry().visit(surfaceId_, [&](const ShadowTree &st) {
+    ShadowTreeCommitTransaction transaction =
+        [&](RootShadowNode const &oldRootShadowNode)
+        -> std::shared_ptr<RootShadowNode> {
+      return std::static_pointer_cast<RootShadowNode>(
+          oldRootShadowNode.cloneTree(
+              sWishList->getFamily(),
+              [&](const ShadowNode &sn) -> std::shared_ptr<ShadowNode> {
+                auto children =
+                    std::make_shared<std::vector<std::shared_ptr<const ShadowNode>>>();
 
-                    for (WishItem &wishItem : window_) {
-                      if (wishItem.sn != nullptr) {
-                        children->push_back(wishItem.sn);
-                      }
-                    }
+                children->push_back(getOffseter(window_[0].offset));
 
-                    auto contentContainer = std::static_pointer_cast<
-                        const MGContentContainerShadowNode>(
-                        sn.getChildren()[0]);
+                for (WishItem &wishItem : window_) {
+                  if (wishItem.sn != nullptr) {
+                    children->push_back(wishItem.sn);
+                  }
+                }
 
-                    // TODO: This solution seems a little bit hacky still.
-                    // We need to update most recent state before creating
-                    // cloning the shadow node as it will be used to initialize
-                    // children.
-                    auto stateData =
-                        std::make_shared<MGContentContainerState>(children);
-                    auto state = std::make_shared<
-                        MGContentContainerShadowNode::ConcreteState>(
-                        stateData, *contentContainer->getState());
-                    contentContainer->getFamily().setMostRecentState(state);
+                auto contentContainer = std::static_pointer_cast<
+                    const MGContentContainerShadowNode>(
+                    sn.getChildren()[0]);
 
-                    auto newContentContainer =
-                        std::static_pointer_cast<MGContentContainerShadowNode>(
-                            contentContainer->clone(
-                                {nullptr, children, nullptr}));
+                // TODO: This solution seems a little bit hacky still.
+                // We need to update most recent state before creating
+                // cloning the shadow node as it will be used to initialize
+                // children.
+                auto stateData =
+                    std::make_shared<MGContentContainerState>(children);
+                auto state = std::make_shared<
+                    MGContentContainerShadowNode::ConcreteState>(
+                    stateData, *contentContainer->getState());
+                contentContainer->getFamily().setMostRecentState(state);
 
-                    newContentContainer->setWishlistChildren(children);
+                auto newContentContainer =
+                    std::static_pointer_cast<MGContentContainerShadowNode>(
+                        contentContainer->clone(
+                            {nullptr, children, nullptr}));
 
-                    auto wishlistChildren =
-                        std::make_shared<std::vector<std::shared_ptr<const ShadowNode>>>(
-                            std::vector<std::shared_ptr<const ShadowNode>>{newContentContainer});
+                newContentContainer->setWishlistChildren(children);
 
-                    auto newWishlistSn =
-                        std::static_pointer_cast<MGWishlistShadowNode>(
-                            sn.clone(ShadowNodeFragment{
-                                nullptr, wishlistChildren, nullptr}));
+                auto wishlistChildren =
+                    std::make_shared<std::vector<std::shared_ptr<const ShadowNode>>>(
+                        std::vector<std::shared_ptr<const ShadowNode>>{newContentContainer});
 
-                    newWishlistSn->updateContentOffset(contentOffset);
+                auto newWishlistSn =
+                    std::static_pointer_cast<MGWishlistShadowNode>(
+                        sn.clone(ShadowNodeFragment{
+                            nullptr, wishlistChildren, nullptr}));
 
-                    return newWishlistSn;
-                  }));
-        };
-        st.commit(transaction, {});
-      });
+                newWishlistSn->updateContentOffset(contentOffset);
+
+                return newWishlistSn;
+              }));
+    };
+    auto status = st.commit(transaction, {});
+    committed = (status == ShadowTree::CommitStatus::Succeeded);
+  });
+
+  // If we set `ignoreScrollEvents_=true` upstream but the commit didn't go
+  // through (commit conflict, surface gone, etc.), there is no view-side
+  // `updateState` to ever clear it via `didUpdateContentOffset`. Without
+  // this rescue every subsequent scroll event is dropped at the worklet
+  // level and the user sees a frozen, unscrollable list.
+  if (!committed && contentOffset != MG_NO_OFFSET) {
+    ignoreScrollEvents_ = false;
+  }
 
   notifyAboutPushedChildren();
 }

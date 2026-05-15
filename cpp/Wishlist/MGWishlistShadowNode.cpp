@@ -46,6 +46,12 @@ void MGWishlistShadowNode::updateContentOffset(float contentOffset) {
 
   auto state = getStateData();
   state.contentOffset = contentOffset;
+  // Bump the seq only on real (non-sentinel) writes — `MG_NO_OFFSET` is a
+  // "no-op, don't scroll" signal. The view side compares seq with its
+  // last-applied seq to avoid re-yanking scroll on unrelated state commits.
+  if (contentOffset != MG_NO_OFFSET) {
+    state.contentOffsetSeq++;
+  }
   setStateData(std::move(state));
 }
 

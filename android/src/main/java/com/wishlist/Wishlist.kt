@@ -30,7 +30,17 @@ class Wishlist(reactContext: Context) : ReactScrollView(reactContext) {
   private var didInitialScroll = false
   private val initialContentSize = 100000f
   private var pendingScrollOffset = Int.MIN_VALUE
+  private var pendingScrollOffsetSeq = 0
   private var ignoreScrollEvents = false
+  /**
+   * `contentOffsetSeq` of the last `pendingScrollOffset` we applied via
+   * `scrollTo`. The C++ `MGWishlistState` propagates `contentOffset` as a
+   * sticky field — every state commit (including those triggered by
+   * unrelated layout/relayout) replays it. Without this seq guard, every
+   * such commit would re-yank the user mid-fling. Stays at 0 until the
+   * first real push from C++ (which always emits seq > 0).
+   */
+  private var lastAppliedScrollOffsetSeq: Int = 0
   /** Shadow-tree content height (px); from state `contentBoundingRect.size.height`. */
   private var shadowContentMinHeightPx: Int = 0
 
@@ -212,10 +222,11 @@ class Wishlist(reactContext: Context) : ReactScrollView(reactContext) {
     child.requestLayout()
   }
 
-  fun scrollToOffsetForContentChange(offset: Float) {
+  fun scrollToOffsetForContentChange(offset: Float, seq: Int) {
     // State is updated before content view is laid out so update the
     // scroll position in layout handler.
     pendingScrollOffset = PixelUtil.toPixelFromDIP(offset).toInt()
+    pendingScrollOffsetSeq = seq
   }
 
   private fun maybeScrollToOffsetForContentChange() {
@@ -231,15 +242,17 @@ class Wishlist(reactContext: Context) : ReactScrollView(reactContext) {
     }
     val effectiveContentHeight = max(contentView.height, shadowContentMinHeightPx)
     val targetOffset = pendingScrollOffset
+    val targetSeq = pendingScrollOffsetSeq
     // Always clear `pendingScrollOffset` and notify C++ that we processed
-    // this update — even when we have to clamp or drop the value. Otherwise
-    // `MGViewportCarerImpl::ignoreScrollEvents_` stays `true` forever
-    // (it's only reset by `didUpdateContentOffset`), which silently drops
-    // every subsequent scroll event and leaves the wishlist visually stuck
-    // showing whatever was last on screen with no way to recover.
+    // this update — even when we have to clamp, drop the value, or skip a
+    // replayed-stale commit. Otherwise `MGViewportCarerImpl::ignoreScrollEvents_`
+    // stays `true` forever (only reset by `didUpdateContentOffset`), which
+    // silently drops every subsequent scroll event and leaves the wishlist
+    // visually stuck with no recovery path.
     pendingScrollOffset = Int.MIN_VALUE
     ignoreScrollEvents = true
-    if (targetOffset in 0..effectiveContentHeight) {
+    if (targetSeq != lastAppliedScrollOffsetSeq && targetOffset in 0..effectiveContentHeight) {
+      lastAppliedScrollOffsetSeq = targetSeq
       scrollTo(0, targetOffset)
     }
     orchestrator?.didUpdateContentOffset()

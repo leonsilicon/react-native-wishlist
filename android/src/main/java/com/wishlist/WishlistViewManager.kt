@@ -15,6 +15,9 @@ private const val CONTENT_OFFSET_KEY = 2
 /** Must match `ContentBoundsHeightKey` in `MGWishlistState.cpp` (width key 3 is reserved). */
 private const val CONTENT_BOUNDS_HEIGHT_KEY = 4
 
+/** Must match `ContentOffsetSeqKey` in `MGWishlistState.cpp`. */
+private const val CONTENT_OFFSET_SEQ_KEY = 5
+
 @ReactModule(name = WishlistViewManager.REACT_CLASS)
 class WishlistViewManager : ViewGroupManager<Wishlist>(), MGWishlistManagerInterface<Wishlist> {
   companion object {
@@ -54,7 +57,11 @@ class WishlistViewManager : ViewGroupManager<Wishlist>(), MGWishlistManagerInter
       )
     }
     if (stateData != null && stateData.contains(CONTENT_OFFSET_KEY)) {
-      view.scrollToOffsetForContentChange(stateData.getDouble(CONTENT_OFFSET_KEY).toFloat())
+      val seq = if (stateData.contains(CONTENT_OFFSET_SEQ_KEY)) stateData.getInt(CONTENT_OFFSET_SEQ_KEY) else 0
+      view.scrollToOffsetForContentChange(
+          stateData.getDouble(CONTENT_OFFSET_KEY).toFloat(),
+          seq,
+      )
     }
     return null
   }

@@ -19,7 +19,8 @@ MGWishlistState::MGWishlistState()
     : initialised(false),
       viewportCarer(std::make_shared<MGViewportCarerImpl>()),
       contentBoundingRect({}),
-      contentOffset(MG_NO_OFFSET){};
+      contentOffset(MG_NO_OFFSET),
+      contentOffsetSeq(0){};
 
 #ifdef ANDROID
 
@@ -29,7 +30,12 @@ MGWishlistState::MGWishlistState(
     : initialised(previousState.initialised),
       viewportCarer(previousState.viewportCarer),
       contentBoundingRect(previousState.contentBoundingRect),
-      contentOffset(MG_NO_OFFSET){};
+      contentOffset(MG_NO_OFFSET),
+      contentOffsetSeq(previousState.contentOffsetSeq){};
+
+namespace {
+constexpr MapBuffer::Key ContentOffsetSeqKey = 5;
+} // namespace
 
 folly::dynamic MGWishlistState::getDynamic() const {
   auto viewportCarerRef = Wishlist::JNIStateRegistry::getInstance().addValue(
@@ -38,6 +44,7 @@ folly::dynamic MGWishlistState::getDynamic() const {
   result["viewportCarer"] = viewportCarerRef;
   if (contentOffset != MG_NO_OFFSET) {
     result["contentOffset"] = contentOffset;
+    result["contentOffsetSeq"] = (double)contentOffsetSeq;
   }
   return result;
 };
@@ -49,6 +56,7 @@ MapBuffer MGWishlistState::getMapBuffer() const {
   builder.putInt(ViewportCarerKey, viewportCarerRef);
   if (contentOffset != MG_NO_OFFSET) {
     builder.putDouble(ContentOffsetKey, contentOffset);
+    builder.putInt(ContentOffsetSeqKey, (int)contentOffsetSeq);
   }
   // Same scrollable extent as iOS `MGWishListComponent` `updateState` (content
   // bounding rect, including virtual padding while not end-reached). Android

@@ -304,7 +304,7 @@ export function LevelsWishlist({
 
   return (
     <View style={styles.root}>
-      <Wishlist.Component style={styles.list} data={data}>
+      <Wishlist.Component style={styles.list} data={data} mode="javascript">
         <Wishlist.Template type="level">
           <LevelCellView onGraphemePress={onGraphemePress} />
         </Wishlist.Template>
