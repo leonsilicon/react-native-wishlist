@@ -265,23 +265,23 @@ void MGViewportCarerImpl::updateWindow() {
   }
 #endif
 
-  // Re-provide every dirty item with up-to-date data and re-flow the layout.
+  // Re-provide every dirty item with up-to-date data.
   //
   // Anchoring rule: the FIRST item's bottom stays where it was (so items
   // visually below it don't jump when the first item's height changes —
-  // important for chat-style "anchor at bottom" behavior). Every subsequent
-  // item is laid out continuously below the previous one. Previously, every
-  // dirty item used the same `currentOffset - (newH - oldH)` formula, but
-  // that formula only anchors correctly when `currentOffset` equals the
-  // item's OLD offset — true for the first item, NOT true for any item after
-  // it. The result was a layout discontinuity proportional to the item's old
-  // height every time a non-first item was dirty.
+  // chat-style "anchor at bottom" behavior). Every subsequent dirty item is
+  // laid out continuously below its predecessor. The previous code applied
+  // `currentOffset - (newH - oldH)` to every dirty item, but that formula
+  // only anchors correctly when `currentOffset` equals the item's OLD
+  // offset — true for the first item, NOT true for any item after it (since
+  // by then `currentOffset` is the prior item's NEW bottom). The result was
+  // a layout discontinuity proportional to the dirty item's old height
+  // every time a non-first item was dirty.
   //
-  // Also: when a dirty item's `provide` returns null we used `continue`,
-  // which skipped the `currentOffset = item.offset + item.height` update at
-  // the bottom of the loop. Subsequent iterations then computed offsets
-  // against a stale `currentOffset`. Restructured so `currentOffset` is
-  // always advanced based on the (possibly unchanged) item.
+  // Bug also fixed: when a dirty item's `provide` returned null we used
+  // `continue`, which skipped the `currentOffset = item.offset + item.height`
+  // advance at the bottom of the loop. Subsequent iterations then computed
+  // offsets against a stale `currentOffset`. Now we always advance.
   bool isFirstItem = true;
   float currentOffset = window_[0].offset;
   for (auto &item : window_) {
@@ -310,16 +310,8 @@ void MGViewportCarerImpl::updateWindow() {
         item.dirty = false;
         changed = true;
       }
-      // If `provide` returned null we leave the item as-is. We still advance
-      // `currentOffset` below so later iterations see the correct anchor.
-    } else if (!isFirstItem) {
-      // Non-first non-dirty items get re-flowed only if a preceding item's
-      // height changed. Pin to `currentOffset` for continuity. (Cheap: just a
-      // float assignment.)
-      if (item.offset != currentOffset) {
-        item.offset = currentOffset;
-        changed = true;
-      }
+      // If `provide` returned null we leave the item as-is and still advance
+      // `currentOffset` so later iterations see the correct predecessor bottom.
     }
     currentOffset = item.offset + item.height;
     isFirstItem = false;
