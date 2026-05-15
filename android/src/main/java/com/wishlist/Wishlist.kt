@@ -190,10 +190,17 @@ class Wishlist(reactContext: Context) : ReactScrollView(reactContext) {
    * iOS `scrollViewWillEndDragging:` clamp. The JS-worklet renderer needs
    * frames the user can't out-scroll; trading peak fling speed for guaranteed
    * content matches Flutter list behavior. Velocity arrives in px/s.
+   *
+   * Upward flings (negative velocityY = revealing items above) are capped
+   * harder than downward because the transparent offsetter sits above
+   * `window_[0]` — once the prepend loop falls behind, the user sees the app
+   * background showing through. Downward flings can only outrun the rendered
+   * tail and don't expose any background to the user.
    */
   override fun fling(velocityY: Int) {
-    val maxVelocityPxPerSec = PixelUtil.toPixelFromDIP(MAX_FLING_VELOCITY_DIP_PER_SEC).toInt()
-    val clamped = velocityY.coerceIn(-maxVelocityPxPerSec, maxVelocityPxPerSec)
+    val maxDownPxPerSec = PixelUtil.toPixelFromDIP(MAX_FLING_VELOCITY_DOWN_DIP_PER_SEC).toInt()
+    val maxUpPxPerSec = PixelUtil.toPixelFromDIP(MAX_FLING_VELOCITY_UP_DIP_PER_SEC).toInt()
+    val clamped = velocityY.coerceIn(-maxUpPxPerSec, maxDownPxPerSec)
     super.fling(clamped)
   }
 
@@ -293,7 +300,8 @@ class Wishlist(reactContext: Context) : ReactScrollView(reactContext) {
     }
 
   companion object {
-    private const val MAX_FLING_VELOCITY_DIP_PER_SEC = 5000f
+    private const val MAX_FLING_VELOCITY_DOWN_DIP_PER_SEC = 5000f
+    private const val MAX_FLING_VELOCITY_UP_DIP_PER_SEC = 2800f
     private var scrollerField: Field? = null
     private var triedScrollerField = false
 

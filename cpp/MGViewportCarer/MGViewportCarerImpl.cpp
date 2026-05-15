@@ -300,23 +300,28 @@ void MGViewportCarerImpl::didUpdateContentOffset() {
 }
 
 void MGViewportCarerImpl::updateWindow() {
-  // Render `kBufferViewports` viewport-heights above and below the visible
-  // region. Sized to keep each pass fast enough that the UI-thread sync-wait
-  // gate in `didScrollAsync` stays under its saturation threshold — that gate
-  // is the primary defense against blanks under rapid successive swipes, and
-  // a bigger buffer here trips it and disables sync help.
+  // Render `kBufferAboveViewports` viewport-heights above and
+  // `kBufferBelowViewports` below the visible region. Sized to keep each pass
+  // fast enough that the UI-thread sync-wait gate in `didScrollAsync` stays
+  // under its saturation threshold.
+  //
+  // The buffer is asymmetric: we hold MORE buffer above than below because
+  // upward flings reveal the offsetter (transparent above `window_[0]`) when
+  // the prepend loop can't keep up — visible as the app background showing
+  // through. Downward flings can only run off the END of the rendered region
+  // and an extra below-buffer item just delays a commit without any visual
+  // benefit until the user reaches it.
   //
   // On the very first pass after `initialRenderAsync` we use a smaller buffer
   // so the first commit lands fast (visible viewport only); the next pass
   // expands to steady-state. `initialRenderAsync` schedules that follow-up
   // expansion via `requestVSync`.
-  constexpr float kBufferViewports = 3.0f;
-  constexpr float kInitialBufferViewports = 0.0f;
-  float bufferViewports =
-      initialBufferFilled_ ? kBufferViewports : kInitialBufferViewports;
-  float topEdge = contentOffset_ - bufferViewports * windowHeight_;
-  float bottomEdge =
-      contentOffset_ + (1.0f + bufferViewports) * windowHeight_;
+  constexpr float kBufferAboveViewports = 5.0f;
+  constexpr float kBufferBelowViewports = 3.0f;
+  float bufferAbove = initialBufferFilled_ ? kBufferAboveViewports : 0.0f;
+  float bufferBelow = initialBufferFilled_ ? kBufferBelowViewports : 0.0f;
+  float topEdge = contentOffset_ - bufferAbove * windowHeight_;
+  float bottomEdge = contentOffset_ + (1.0f + bufferBelow) * windowHeight_;
   bool startReached = false;
   endReached_ = false;
   bool changed = false;

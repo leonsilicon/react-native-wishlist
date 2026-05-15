@@ -193,14 +193,21 @@ using namespace facebook::react;
   // sibling `scrollViewDidScroll` override here also doesn't, and the parent
   // (RCTScrollViewComponentView) provides no behavior we'd want layered on.
   //
-  // ~1600 pt at default decel ≈ 5000 pt/s peak velocity. Adjust if heavier
-  // templates start dropping frames at this rate.
-  static const CGFloat kMaxFlingDisplacement = 1600.0f;
+  // The upward cap is tighter than the downward one: upward flings reveal
+  // the transparent offsetter (app background showing through) as soon as the
+  // prepend loop falls behind, while downward flings just delay reaching the
+  // unseen tail of the rendered window. A more aggressive upward clamp keeps
+  // peak velocity low enough that the worklet always lands before the user
+  // outpaces the rendered front.
+  static const CGFloat kMaxFlingDownDisplacement = 1600.0f;
+  static const CGFloat kMaxFlingUpDisplacement = 900.0f;
   CGFloat dy = targetContentOffset->y - scrollView.contentOffset.y;
-  if (dy > kMaxFlingDisplacement) {
-    targetContentOffset->y = scrollView.contentOffset.y + kMaxFlingDisplacement;
-  } else if (dy < -kMaxFlingDisplacement) {
-    targetContentOffset->y = scrollView.contentOffset.y - kMaxFlingDisplacement;
+  if (dy > kMaxFlingDownDisplacement) {
+    targetContentOffset->y =
+        scrollView.contentOffset.y + kMaxFlingDownDisplacement;
+  } else if (dy < -kMaxFlingUpDisplacement) {
+    targetContentOffset->y =
+        scrollView.contentOffset.y - kMaxFlingUpDisplacement;
   }
 }
 
