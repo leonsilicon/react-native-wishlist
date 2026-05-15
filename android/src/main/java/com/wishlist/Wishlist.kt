@@ -147,8 +147,15 @@ class Wishlist(reactContext: Context) : ReactScrollView(reactContext) {
   }
 
   /**
-   * [ReactScrollView] aborts flings when `scrollY >= getMaxScrollY()` where max Y is derived from
-   * the short virtualized child. Use the shadow-tree content height instead.
+   * [ReactScrollView.onOverScrolled] aborts flings when `scrollY >= getMaxScrollY()`, where
+   * `getMaxScrollY` is derived from the (short) virtualized child. iOS lets `UIScrollView` keep
+   * coasting because we resize `contentSize` to the virtual extent; on Android `getMaxScrollY` is
+   * `private` and reads `mContentView.getHeight()` directly — `setMinimumHeight` and
+   * [computeVerticalScrollRange] don't influence it because the Yoga-laid-out child measures itself.
+   *
+   * To match iOS momentum, we (a) abort the fling against the *virtual* extent ourselves, and
+   * (b) skip [ReactScrollView]'s `onOverScrolled` so it never runs its premature abort. We replicate
+   * just the scroll commit (the only other thing the parent does) by calling [scrollTo].
    */
   override fun onOverScrolled(scrollX: Int, scrollY: Int, clampedX: Boolean, clampedY: Boolean) {
     var adjustedY = scrollY
@@ -163,7 +170,11 @@ class Wishlist(reactContext: Context) : ReactScrollView(reactContext) {
         }
       }
     }
-    super.onOverScrolled(scrollX, adjustedY, clampedX, clampedY)
+    if (getScrollX() != scrollX || getScrollY() != adjustedY) {
+      scrollTo(scrollX, adjustedY)
+    } else {
+      awakenScrollBars()
+    }
   }
 
   override fun computeVerticalScrollRange(): Int {
@@ -172,6 +183,18 @@ class Wishlist(reactContext: Context) : ReactScrollView(reactContext) {
       return fromSuper
     }
     return max(fromSuper, shadowContentMinHeightPx)
+  }
+
+  /**
+   * Cap the fling velocity so deceleration travel is bounded — mirrors the
+   * iOS `scrollViewWillEndDragging:` clamp. The JS-worklet renderer needs
+   * frames the user can't out-scroll; trading peak fling speed for guaranteed
+   * content matches Flutter list behavior. Velocity arrives in px/s.
+   */
+  override fun fling(velocityY: Int) {
+    val maxVelocityPxPerSec = PixelUtil.toPixelFromDIP(MAX_FLING_VELOCITY_DIP_PER_SEC).toInt()
+    val clamped = velocityY.coerceIn(-maxVelocityPxPerSec, maxVelocityPxPerSec)
+    super.fling(clamped)
   }
 
   override fun onScrollChanged(x: Int, y: Int, oldX: Int, oldY: Int) {
@@ -270,6 +293,7 @@ class Wishlist(reactContext: Context) : ReactScrollView(reactContext) {
     }
 
   companion object {
+    private const val MAX_FLING_VELOCITY_DIP_PER_SEC = 5000f
     private var scrollerField: Field? = null
     private var triedScrollerField = false
 

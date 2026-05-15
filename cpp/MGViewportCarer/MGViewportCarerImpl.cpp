@@ -1,5 +1,6 @@
 #include "MGViewportCarerImpl.h"
 
+#include <chrono>
 #include <iostream>
 
 #include "MGContentContainerShadowNode.h"
@@ -150,90 +151,143 @@ void MGViewportCarerImpl::didScrollAsync(
   // (see [[wishlist-viewport-carer-lifetime]]).
   auto pending = pendingScroll_;
   bool shouldSchedule = false;
+  uint64_t baselineCompletion = 0;
+  uint64_t lastDurationMicros = 0;
   {
     std::lock_guard<std::mutex> lock(pending->mutex);
     pending->dimensions = dimensions;
     pending->contentOffset = contentOffset;
     pending->inflatorId = inflatorId;
+    baselineCompletion = pending->completionCounter;
+    lastDurationMicros = pending->lastWorkletDurationMicros;
     if (!pending->scheduled) {
       pending->scheduled = true;
       shouldSchedule = true;
     }
   }
 
-  if (!shouldSchedule) {
+  if (shouldSchedule) {
+    WishlistJsRuntime::getInstance().accessRuntime(
+        [this, pending](jsi::Runtime &rt) { processScrollOnWorklet(pending); });
+  }
+
+  // Sync-wait gate. Three conditions to bail:
+  //  1. `contentOffset == MG_NO_OFFSET` — this is a VSync re-entry triggered
+  //     from the worklet runtime itself (see `MGDataBindingImpl` →
+  //     `requestVSync` → `handleVSync` → `didScrollAsync(MG_NO_OFFSET)`).
+  //     Waiting on the worklet to signal us from the worklet thread would
+  //     deadlock. Only real UI-thread scroll events carry an offset.
+  //  2. The worklet's most recent pass exceeded the budget. Blocking here on
+  //     a saturated worklet just burns the full timeout on every event and
+  //     makes scrolling worse, not better.
+  constexpr auto kSyncCatchUpBudget = std::chrono::milliseconds(16);
+  constexpr uint64_t kSaturationThresholdMicros = 12'000;
+  if (contentOffset == MG_NO_OFFSET ||
+      lastDurationMicros > kSaturationThresholdMicros) {
     return;
   }
 
-  WishlistJsRuntime::getInstance().accessRuntime(
-      [this, pending](jsi::Runtime &rt) {
-    MGDims dimensions;
-    float contentOffset;
-    std::string inflatorId;
-    {
-      std::lock_guard<std::mutex> lock(pending->mutex);
-      dimensions = pending->dimensions;
-      contentOffset = pending->contentOffset;
-      inflatorId = pending->inflatorId;
-      pending->scheduled = false;
-    }
-
-    if (ignoreScrollEvents_) {
-      return;
-    }
-
-    if (itemProvider_ == nullptr) {
-      return;
-    }
-
-    auto di = di_.lock();
-    if (di == nullptr) {
-      return;
-    }
-    auto dataBinding = di->getDataBinding();
-    if (dataBinding == nullptr) {
-      return;
-    }
-
-    if (dimensions.width != windowWidth_ || inflatorId != inflatorId_) {
-      itemProvider_ = std::static_pointer_cast<ItemProvider>(
-          std::make_shared<WorkletItemProvider>(
-              di_, dimensions.width, lc_, inflatorId));
-      itemProvider_->setComponentsPool(componentsPool_);
-      windowWidth_ = dimensions.width;
-      inflatorId_ = inflatorId;
-    } else if (!window_.empty()) {
-      std::set<int> dirty = dataBinding->applyChangesAndGetDirtyIndices(
-          {window_[0].index, window_.back().index});
-      for (auto &item : window_) {
-        if (dirty.count(item.index) > 0) {
-          item.dirty = true;
-        }
-      }
-    }
-
-    // MG_NO_OFFSET means that we keep the current offset.
-    if (contentOffset != MG_NO_OFFSET) {
-      contentOffset_ = contentOffset;
-    }
-    windowHeight_ = dimensions.height;
-
-    // Window can be empty when `initialRenderAsync` refused to seed (its
-    // `provide(originItem)` returned null because the inflator/data wasn't
-    // ready yet). Retry the seed here on every scroll/vsync until it
-    // succeeds — otherwise the carer is permanently stuck and the user sees
-    // an empty wishlist with no recovery path.
-    if (window_.empty()) {
-      WishItem seed = itemProvider_->provide(initialOriginItem_, nullptr);
-      if (seed.sn == nullptr) {
-        return;
-      }
-      window_.push_back(seed);
-      window_.back().offset = initialContentSize_ / 2;
-    }
-
-    updateWindow();
+  // Wait briefly for the worklet pass to land so the next frame draws fresh
+  // content. If it doesn't land in time we fall through and accept one frame
+  // of staleness rather than a hang.
+  std::unique_lock<std::mutex> lock(pending->mutex);
+  pending->cv.wait_for(lock, kSyncCatchUpBudget, [&] {
+    return pending->completionCounter != baselineCompletion;
   });
+}
+
+void MGViewportCarerImpl::processScrollOnWorklet(
+    std::shared_ptr<PendingScroll> pending) {
+  // Signal completion on EVERY exit path (including early returns for
+  // missing di/itemProvider/etc.) so a UI thread blocked in `wait_for`
+  // unblocks immediately instead of paying the full budget timeout. Also
+  // records the elapsed time so the UI thread can decide whether the worklet
+  // is keeping up well enough to be worth waiting for on the next event.
+  struct CompletionNotifier {
+    std::shared_ptr<PendingScroll> pending;
+    std::chrono::steady_clock::time_point start =
+        std::chrono::steady_clock::now();
+    ~CompletionNotifier() {
+      auto durationMicros =
+          std::chrono::duration_cast<std::chrono::microseconds>(
+              std::chrono::steady_clock::now() - start)
+              .count();
+      {
+        std::lock_guard<std::mutex> lock(pending->mutex);
+        ++pending->completionCounter;
+        pending->lastWorkletDurationMicros =
+            static_cast<uint64_t>(durationMicros);
+      }
+      pending->cv.notify_all();
+    }
+  } notifier{pending};
+
+  MGDims dimensions;
+  float contentOffset;
+  std::string inflatorId;
+  {
+    std::lock_guard<std::mutex> lock(pending->mutex);
+    dimensions = pending->dimensions;
+    contentOffset = pending->contentOffset;
+    inflatorId = pending->inflatorId;
+    pending->scheduled = false;
+  }
+
+  if (ignoreScrollEvents_) {
+    return;
+  }
+
+  if (itemProvider_ == nullptr) {
+    return;
+  }
+
+  auto di = di_.lock();
+  if (di == nullptr) {
+    return;
+  }
+  auto dataBinding = di->getDataBinding();
+  if (dataBinding == nullptr) {
+    return;
+  }
+
+  if (dimensions.width != windowWidth_ || inflatorId != inflatorId_) {
+    itemProvider_ = std::static_pointer_cast<ItemProvider>(
+        std::make_shared<WorkletItemProvider>(
+            di_, dimensions.width, lc_, inflatorId));
+    itemProvider_->setComponentsPool(componentsPool_);
+    windowWidth_ = dimensions.width;
+    inflatorId_ = inflatorId;
+  } else if (!window_.empty()) {
+    std::set<int> dirty = dataBinding->applyChangesAndGetDirtyIndices(
+        {window_[0].index, window_.back().index});
+    for (auto &item : window_) {
+      if (dirty.count(item.index) > 0) {
+        item.dirty = true;
+      }
+    }
+  }
+
+  // MG_NO_OFFSET means that we keep the current offset.
+  if (contentOffset != MG_NO_OFFSET) {
+    contentOffset_ = contentOffset;
+  }
+  windowHeight_ = dimensions.height;
+
+  // Window can be empty when `initialRenderAsync` refused to seed (its
+  // `provide(originItem)` returned null because the inflator/data wasn't
+  // ready yet). Retry the seed here on every scroll/vsync until it
+  // succeeds — otherwise the carer is permanently stuck and the user sees
+  // an empty wishlist with no recovery path.
+  if (window_.empty()) {
+    WishItem seed = itemProvider_->provide(initialOriginItem_, nullptr);
+    if (seed.sn == nullptr) {
+      return;
+    }
+    window_.push_back(seed);
+    window_.back().offset = initialContentSize_ / 2;
+  }
+
+  updateWindow();
 }
 
 void MGViewportCarerImpl::didUpdateContentOffset() {
@@ -246,8 +300,23 @@ void MGViewportCarerImpl::didUpdateContentOffset() {
 }
 
 void MGViewportCarerImpl::updateWindow() {
-  float topEdge = contentOffset_ - windowHeight_;
-  float bottomEdge = contentOffset_ + 2 * windowHeight_;
+  // Render `kBufferViewports` viewport-heights above and below the visible
+  // region. Sized to keep each pass fast enough that the UI-thread sync-wait
+  // gate in `didScrollAsync` stays under its saturation threshold — that gate
+  // is the primary defense against blanks under rapid successive swipes, and
+  // a bigger buffer here trips it and disables sync help.
+  //
+  // On the very first pass after `initialRenderAsync` we use a smaller buffer
+  // so the first commit lands fast (visible viewport only); the next pass
+  // expands to steady-state. `initialRenderAsync` schedules that follow-up
+  // expansion via `requestVSync`.
+  constexpr float kBufferViewports = 3.0f;
+  constexpr float kInitialBufferViewports = 0.0f;
+  float bufferViewports =
+      initialBufferFilled_ ? kBufferViewports : kInitialBufferViewports;
+  float topEdge = contentOffset_ - bufferViewports * windowHeight_;
+  float bottomEdge =
+      contentOffset_ + (1.0f + bufferViewports) * windowHeight_;
   bool startReached = false;
   endReached_ = false;
   bool changed = false;
@@ -474,6 +543,20 @@ void MGViewportCarerImpl::updateWindow() {
               << ", height: " << item.height << "}" << std::endl;
   }
 #endif
+
+  // First pass committed with the visible viewport only — schedule a follow-up
+  // pass so the steady-state buffer fills in before the user scrolls. Request
+  // via the orchestrator's vsync hook (rather than directly calling
+  // `updateWindow` here) so the larger pass doesn't extend the current
+  // commit's latency.
+  if (!initialBufferFilled_) {
+    initialBufferFilled_ = true;
+    if (auto di = di_.lock()) {
+      if (auto vsr = di->getVSyncRequester()) {
+        vsr->requestVSync();
+      }
+    }
+  }
 }
 
 std::shared_ptr<ShadowNode> MGViewportCarerImpl::getOffseter(float offset) {

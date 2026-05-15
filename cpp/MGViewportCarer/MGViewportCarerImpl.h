@@ -2,6 +2,7 @@
 
 #include <react/renderer/uimanager/UIManager.h>
 #include <stdio.h>
+#include <condition_variable>
 #include <deque>
 #include <iostream>
 #include <mutex>
@@ -59,6 +60,12 @@ class MGViewportCarerImpl final : public MGViewportCarer {
   void dropAllGestureHandlersNow();
 
  private:
+  struct PendingScroll;
+  // Body of the worklet-runtime job posted by `didScrollAsync`. Extracted from
+  // the lambda so the UI-thread sync-wait path and the async-scheduled path
+  // can share one entry point.
+  void processScrollOnWorklet(std::shared_ptr<PendingScroll> pending);
+
   void updateWindow();
 
   void updateContentOffset(float contentOffset);
@@ -82,6 +89,12 @@ class MGViewportCarerImpl final : public MGViewportCarer {
   // seeding `window_` on subsequent vsyncs if the very first
   // `provide(originItem)` returned null (inflator/data not yet ready).
   int initialOriginItem_;
+  // First worklet pass after `initialRenderAsync` uses a small buffer so the
+  // first commit lands fast (one viewport of items); the next pass expands to
+  // the steady-state buffer. Without this gate the initial render inflates 3
+  // viewports of items before the first commit and the list visibly appears
+  // late.
+  bool initialBufferFilled_ = false;
   std::string inflatorId_;
   std::shared_ptr<ComponentsPool> componentsPool_;
   std::shared_ptr<ItemProvider> itemProvider_;
@@ -109,7 +122,21 @@ class MGViewportCarerImpl final : public MGViewportCarer {
   // `this` to read the state.
   struct PendingScroll {
     std::mutex mutex;
+    std::condition_variable cv;
     bool scheduled = false;
+    // Incremented every time the worklet thread finishes an `updateWindow`
+    // pass driven by this `PendingScroll`. The UI thread snapshots the value
+    // before waiting and checks for a change to know its scroll event landed.
+    // A counter (vs. a bool) avoids the lost-wakeup race when the worklet
+    // races to completion before the UI thread enters `wait_for`.
+    uint64_t completionCounter = 0;
+    // Wall-clock duration of the most recent worklet pass, in microseconds.
+    // The UI-thread sync-wait path checks this before waiting: if the worklet
+    // has been chronically slow (saturated under sustained heavy scrolling),
+    // we skip the wait and let things stay async — blocking the UI thread for
+    // a full 16ms budget on every event under saturation makes scrolling
+    // worse, not better.
+    uint64_t lastWorkletDurationMicros = 0;
     MGDims dimensions{0, 0};
     float contentOffset = 0;
     std::string inflatorId;

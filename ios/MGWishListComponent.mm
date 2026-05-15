@@ -21,6 +21,9 @@ using namespace facebook::react;
 @interface RCTScrollViewComponentView (MGWishList)
 
 - (void)scrollViewDidScroll:(UIScrollView *)sv;
+- (void)scrollViewWillEndDragging:(UIScrollView *)sv
+                     withVelocity:(CGPoint)velocity
+              targetContentOffset:(inout CGPoint *)targetContentOffset;
 
 @end
 
@@ -175,6 +178,30 @@ using namespace facebook::react;
   [_orchestrator didScrollAsyncWithDimensions:{(float)scrollView.frame.size.width, (float)scrollView.frame.size.height}
                                 contentOffset:scrollView.contentOffset.y
                                    inflatorId:_inflatorId];
+}
+
+- (void)scrollViewWillEndDragging:(UIScrollView *)scrollView
+                     withVelocity:(CGPoint)velocity
+              targetContentOffset:(inout CGPoint *)targetContentOffset
+{
+  // Cap the predicted deceleration landing offset to a maximum displacement
+  // from the current position. UIScrollView will decelerate to that closer
+  // point at a proportionally lower effective velocity, which keeps the JS
+  // worklet renderer able to produce frames fast enough to avoid blanks.
+  // Flutter lists feel "speed-limited" the same way; user trades peak fling
+  // distance for guaranteed content. Deliberately not calling `super`: the
+  // sibling `scrollViewDidScroll` override here also doesn't, and the parent
+  // (RCTScrollViewComponentView) provides no behavior we'd want layered on.
+  //
+  // ~1600 pt at default decel ≈ 5000 pt/s peak velocity. Adjust if heavier
+  // templates start dropping frames at this rate.
+  static const CGFloat kMaxFlingDisplacement = 1600.0f;
+  CGFloat dy = targetContentOffset->y - scrollView.contentOffset.y;
+  if (dy > kMaxFlingDisplacement) {
+    targetContentOffset->y = scrollView.contentOffset.y + kMaxFlingDisplacement;
+  } else if (dy < -kMaxFlingDisplacement) {
+    targetContentOffset->y = scrollView.contentOffset.y - kMaxFlingDisplacement;
+  }
 }
 
 - (void)prepareForRecycle
